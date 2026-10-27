@@ -82,6 +82,7 @@ export default function RootLayout() {
         <Stack.Screen name="chats" options={{ headerShown: false }} />
         <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="settings" options={{ headerShown: false }} />
+        <Stack.Screen name="contacts" options={{ headerShown: false }} />
       </Stack>
 
       {/* Global Incoming Call Overlay */}

@@ -1117,6 +1117,16 @@ export default function ChatsScreen() {
                 style={styles.menuItem}
                 onPress={() => {
                   setShowTopMenu(false);
+                  router.push('/contacts');
+                }}
+              >
+                <Text style={styles.menuItemText}>Find contacts</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setShowTopMenu(false);
                   router.push('/settings');
                 }}
               >
@@ -1727,6 +1737,25 @@ export default function ChatsScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {!isGroupMode && (
+              <TouchableOpacity
+                style={styles.findContactsModalBtn}
+                onPress={() => {
+                  setShowNewChatModal(false);
+                  router.push('/contacts');
+                }}
+              >
+                <View style={styles.findContactsIconWrap}>
+                  <Ionicons name="people" size={20} color="#00a884" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.findContactsModalTitle}>Find Contacts</Text>
+                  <Text style={styles.findContactsModalSubtitle}>Discover friends from your phonebook</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#8696a0" />
+              </TouchableOpacity>
+            )}
 
             {isGroupMode && (
               <TextInput
@@ -2878,5 +2907,34 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontSize: 15,
     fontWeight: '700',
+  },
+  findContactsModalBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#202c33',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#2a3942',
+  },
+  findContactsIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0, 168, 132, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  findContactsModalTitle: {
+    color: '#e9edef',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  findContactsModalSubtitle: {
+    color: '#8696a0',
+    fontSize: 12,
+    marginTop: 2,
   },
 });

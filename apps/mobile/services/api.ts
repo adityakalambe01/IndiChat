@@ -8,7 +8,10 @@ import {
   MessageHistoryResponse,
   Message,
   SendMessagePayload,
-  FileUploadResponse
+  FileUploadResponse,
+  MatchContactsRequest,
+  MatchContactsResponse,
+  MatchedContactDto
 } from '@chat/shared-types';
 
 import { storage, STORAGE_KEYS } from './storage';
@@ -385,5 +388,12 @@ export const api = {
       if (finalErr instanceof ApiError) throw finalErr;
       throw new ApiError(500, finalErr.message || 'File upload failed');
     }
+  },
+
+  matchContacts: async (phoneNumbers: string[], defaultRegion = 'US'): Promise<MatchContactsResponse> => {
+    return request<MatchContactsResponse>('/contacts/match', {
+      method: 'POST',
+      body: JSON.stringify({ phoneNumbers, defaultRegion }),
+    });
   },
 };
