@@ -118,6 +118,22 @@ Revoke active session and disconnect device socket.
   }
   ```
 
+#### Demo Accounts & Pre-Seeded Profiles
+For local development and testing, run `npm run db:seed` to populate the following accounts:
+
+| User | Username | Email | Phone Number | Password | 2FA Status | Role / Bio |
+|---|---|---|---|---|---|---|
+| **Alice Cooper** | `alice` | `alice@example.com` | `+12345678901` | `Password123!` | 🔒 **PIN: `112233`** | Community Admin / Building IndiChat 🚀 |
+| **Bob Dylan** | `bob` | `bob@example.com` | `+12345678902` | `Password123!` | None | Member / Hey there! I am using IndiChat. |
+| **Charlie Davis** | `charlie` | `charlie@example.com` | `+12345678903` | `Password123!` | None | Member / Coffee, code, repeat ☕💻 |
+| **David Miller** | `david` | `david@example.com` | `+12345678904` | `Password123!` | None | Member / Available for quick calls 📞 |
+| **Emma Watson** | `emma` | `emma@example.com` | `+12345678905` | `Password123!` | None | Member / Designing sleek user interfaces ✨ |
+| **Frank Castle** | `frank` | `frank@example.com` | `+12345678906` | `Password123!` | None | Member / Away on a business trip ✈️ |
+| **Grace Hopper** | `grace` | `grace@example.com` | `+12345678907` | `Password123!` | None | Member / First bug found here! 🐞 |
+
+- Mutual contacts are automatically synchronized across all 7 demo accounts (6 contacts each).
+- Pre-seeded group conversation: `"IndiChat Community"` (all 7 members enrolled with initial message history).
+
 ---
 
 ### 2. User & Discovery (`/api/v1/users`)

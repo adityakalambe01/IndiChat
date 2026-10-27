@@ -129,6 +129,7 @@ export default function LoginScreen() {
     setDisplayName(name);
     setPassword('Password123!');
     setErrorMsg(null);
+    setIsRegister(false);
   };
 
   const handleTestConnection = async () => {
@@ -204,13 +205,20 @@ export default function LoginScreen() {
 
           {/* Quick Demo Accounts Fill */}
           <View style={styles.demoSection}>
-            <Text style={styles.demoLabel}>Quick Demo Fill:</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <Text style={styles.demoLabel}>Quick Demo Fill:</Text>
+              {username === 'alice' && (
+                <Text style={{ fontSize: 11, color: '#00a884', fontWeight: '600' }}>
+                  2FA PIN: 112233
+                </Text>
+              )}
+            </View>
             <View style={styles.demoRow}>
               <TouchableOpacity
                 style={[styles.demoPill, username === 'alice' && styles.demoPillActive]}
                 onPress={() => handleFillDemo('alice', 'Alice')}
               >
-                <Text style={styles.demoPillText}>Alice</Text>
+                <Text style={styles.demoPillText}>🔒 Alice</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.demoPill, username === 'bob' && styles.demoPillActive]}
@@ -223,6 +231,30 @@ export default function LoginScreen() {
                 onPress={() => handleFillDemo('charlie', 'Charlie')}
               >
                 <Text style={styles.demoPillText}>Charlie</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.demoPill, username === 'david' && styles.demoPillActive]}
+                onPress={() => handleFillDemo('david', 'David Miller')}
+              >
+                <Text style={styles.demoPillText}>David</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.demoPill, username === 'emma' && styles.demoPillActive]}
+                onPress={() => handleFillDemo('emma', 'Emma Watson')}
+              >
+                <Text style={styles.demoPillText}>Emma</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.demoPill, username === 'frank' && styles.demoPillActive]}
+                onPress={() => handleFillDemo('frank', 'Frank Castle')}
+              >
+                <Text style={styles.demoPillText}>Frank</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.demoPill, username === 'grace' && styles.demoPillActive]}
+                onPress={() => handleFillDemo('grace', 'Grace Hopper')}
+              >
+                <Text style={styles.demoPillText}>Grace</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -503,11 +535,12 @@ const styles = StyleSheet.create({
   },
   demoRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   demoPill: {
-    flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: 6,
     backgroundColor: '#111b21',
     alignItems: 'center',
