@@ -68,6 +68,17 @@ if (!process.env.JAVA_HOME) {
       break;
     }
   }
+
+  if (!process.env.JAVA_HOME && process.platform === 'darwin') {
+    try {
+      const jh = spawnSync('/usr/libexec/java_home', [], { encoding: 'utf8' });
+      if (jh.status === 0 && jh.stdout.trim()) {
+        process.env.JAVA_HOME = jh.stdout.trim();
+      }
+    } catch (e) {
+      // Ignore error if java_home binary is unavailable
+    }
+  }
 }
 
 // Parse CLI flags
@@ -87,6 +98,9 @@ console.log(`Build Bundle (.aab):  ${buildBundle ? 'YES' : 'NO'}`);
 console.log(`Clean First:          ${cleanBeforeBuild ? 'YES' : 'NO'}`);
 if (process.env.ANDROID_HOME) {
   console.log(`ANDROID_HOME:         ${process.env.ANDROID_HOME}`);
+}
+if (process.env.JAVA_HOME) {
+  console.log(`JAVA_HOME:            ${process.env.JAVA_HOME}`);
 }
 console.log('====================================================\n');
 
