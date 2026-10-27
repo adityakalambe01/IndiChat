@@ -29,6 +29,7 @@ import {
   ArrowDownLeft,
   ArrowUpRight
 } from 'lucide-react';
+import { ChatEmptyState } from './ChatEmptyState';
 
 interface ChatWindowProps {
   currentUser: User;
@@ -38,6 +39,12 @@ interface ChatWindowProps {
   onBackToSidebar: () => void;
   typingUsers: Record<string, boolean>; // userId -> isTyping
   onStartCall: (targetUserId: string, isVideo: boolean) => void;
+  onGoToCalls?: () => void;
+  onSendDocument?: () => void;
+  onAddContact?: () => void;
+  onInviteFriend?: () => void;
+  onNewCall?: () => void;
+  onAskMetaAi?: () => void;
 }
 
 interface ParsedAttachment {
@@ -172,7 +179,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onSendMessage,
   onBackToSidebar,
   typingUsers,
-  onStartCall
+  onStartCall,
+  onGoToCalls,
+  onSendDocument,
+  onAddContact,
+  onInviteFriend,
+  onNewCall,
+  onAskMetaAi,
 }) => {
   const [inputText, setInputText] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
@@ -235,16 +248,20 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   if (!conversation) {
     return (
       <main className="chat-area">
-        <div className="empty-chat-state">
-          <div className="empty-chat-icon">
-            <Users size={48} />
-          </div>
-          <h1 className="empty-chat-title">{APP_NAME} Web</h1>
-          <p className="empty-chat-desc">
-            Send and receive real-time messages with end-to-end reliability.
-            Select a conversation on the left or click the new chat button to begin.
-          </p>
-        </div>
+        <ChatEmptyState
+          onGoToCalls={onGoToCalls || (() => {})}
+          onSendDocument={onSendDocument || (() => {})}
+          onAddContact={onAddContact || (() => {})}
+          onInviteFriend={
+            onInviteFriend ||
+            (() => {
+              navigator.clipboard?.writeText(window.location.origin);
+              alert('Invite link copied to clipboard!');
+            })
+          }
+          onNewCall={onNewCall || onGoToCalls || (() => {})}
+          onAskMetaAi={onAskMetaAi || (() => {})}
+        />
       </main>
     );
   }

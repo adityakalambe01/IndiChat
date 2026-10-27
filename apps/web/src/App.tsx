@@ -1,35 +1,64 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from './services/api';
 import { wsClient } from './services/websocket';
 import { soundEffects } from './services/audio';
 import { notificationService } from './services/notifications';
 import { User, Conversation, Message, MessageReceipt, AuthResponse, MessageType } from '@chat/shared-types';
+import { NavigationRail, RailTab } from './components/NavigationRail';
 import { ChatSidebar } from './features/chats/ChatSidebar';
 import { ChatWindow } from './features/chats/ChatWindow';
+import { CallsSidebar } from './features/calls/CallsSidebar';
+import { CallsEmptyState } from './features/calls/CallsEmptyState';
+import { StatusSidebar } from './features/status/StatusSidebar';
+import { StatusEmptyState } from './features/status/StatusEmptyState';
+import { StatusViewerModal } from './features/status/StatusViewerModal';
+import { CreateStatusModal } from './features/status/CreateStatusModal';
+import { ChannelsSidebar } from './features/channels/ChannelsSidebar';
+import { ChannelsEmptyState } from './features/channels/ChannelsEmptyState';
+import { ChannelFeedView } from './features/channels/ChannelFeedView';
+import { CreateChannelModal } from './features/channels/CreateChannelModal';
+import { CommunitiesSidebar } from './features/communities/CommunitiesSidebar';
+import { CommunitiesEmptyState } from './features/communities/CommunitiesEmptyState';
+import { CreateCommunityModal } from './features/communities/CreateCommunityModal';
+import { MetaAiChatView } from './features/meta_ai/MetaAiChatView';
+import { DialpadModal } from './features/calls/DialpadModal';
 import { AuthModal } from './features/auth/AuthModal';
 import { NewChatModal } from './features/chats/NewChatModal';
 import { CallModal } from './features/calls/CallModal';
 import { NotificationModal } from './features/notifications/NotificationModal';
+import { SettingsView } from './features/settings/SettingsView';
 import { generateUUID } from './utils/uuid';
 import { resetDeviceId } from './utils/device';
 import { settingsService } from './services/settings';
 import { SessionRevokedModal } from './features/auth/SessionRevokedModal';
 import { APP_NAME, APP_FULL_TITLE } from './config/appConfig';
+import { UserStatus } from './data/statusData';
+import { ChannelItem } from './data/channelData';
+import { CommunityItem } from './data/communityData';
 
 export const App: React.FC = () => {
-
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<RailTab>('chats');
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [showNewChatModal, setShowNewChatModal] = useState(false);
-  const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(true);
   const [sessionRevokedReason, setSessionRevokedReason] = useState<string | null>(null);
-  const isLoggingOutRef = React.useRef(false);
+  const isLoggingOutRef = useRef(false);
+
+  // Feature specific states
+  const [selectedStatus, setSelectedStatus] = useState<UserStatus | null>(null);
+  const [showCreateStatusModal, setShowCreateStatusModal] = useState(false);
+  const [createStatusInitialType, setCreateStatusInitialType] = useState<'text' | 'image'>('text');
+
+  const [selectedChannel, setSelectedChannel] = useState<ChannelItem | null>(null);
+  const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
+
+  const [showCreateCommunityModal, setShowCreateCommunityModal] = useState(false);
+  const [showDialpadModal, setShowDialpadModal] = useState(false);
 
   // Calling state
   const [activeCall, setActiveCall] = useState<{
@@ -40,7 +69,11 @@ export const App: React.FC = () => {
     incomingOfferData?: any;
   } | null>(null);
 
-  // Initialize theme and title
+  // Modals
+  const [showNewChatModal, setShowNewChatModal] = useState(false);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+
+  // Theme & Document Title
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
@@ -49,8 +82,7 @@ export const App: React.FC = () => {
     document.title = APP_FULL_TITLE;
   }, []);
 
-
-  // Prompt notification allow popup on opening website if not yet granted (only when user is logged in)
+  // Notifications prompt
   useEffect(() => {
     if (
       currentUser &&
@@ -65,7 +97,7 @@ export const App: React.FC = () => {
     }
   }, [currentUser]);
 
-  // Check existing session
+  // Load existing session
   useEffect(() => {
     const token = localStorage.getItem('chat_access_token');
     if (!token) {
@@ -99,11 +131,12 @@ export const App: React.FC = () => {
       const list = await api.getConversations();
       setConversations(list);
     } catch (e) {
-      console.error('Failed to load conversations', e);
+      console.error('Failed to load backend conversations:', e);
+      setConversations([]);
     }
   }, []);
 
-  // Fetch messages when active conversation changes
+  // Messages fetcher for active conversation
   useEffect(() => {
     if (!activeConversationId) {
       setMessages([]);
@@ -113,7 +146,6 @@ export const App: React.FC = () => {
     api.getMessages(activeConversationId)
       .then((res) => {
         setMessages(res.messages);
-        // Clear unread in list
         setConversations((prev) =>
           prev.map((c) => (c.id === activeConversationId ? { ...c, unreadCount: 0 } : c))
         );
@@ -125,9 +157,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     if (!currentUser) return;
 
-    // 1. Message Created
     const unsubMsg = wsClient.onMessageCreated((msg: Message) => {
-      // Check if belongs to current conversation
       if (msg.conversationId === activeConversationId) {
         setMessages((prev) => {
           const matchIndex = prev.findIndex(
@@ -144,64 +174,27 @@ export const App: React.FC = () => {
         });
       }
 
-      // Audio & delivery receipt for incoming messages
       if (msg.senderId !== currentUser.id) {
         soundEffects.playIncomingMessage();
         wsClient.markDelivered(msg.id, msg.conversationId);
 
-        // Web Browser & Desktop Push Notification
         const senderName = msg.sender?.displayName || msg.sender?.username || 'New Message';
         const conv = conversations.find((c) => c.id === msg.conversationId);
         const title = conv?.type === 'GROUP' ? (conv.title || 'Group Chat') : senderName;
-
-        let previewText = msg.content;
-        if (msg.type === 'STICKER') {
-          previewText = '🏷️ Sticker';
-        } else if (msg.type === 'IMAGE') {
-          try {
-            const data = JSON.parse(msg.content);
-            if (data.isGif || data.fileName?.toLowerCase().endsWith('.gif') || data.fileUrl?.toLowerCase().includes('.gif')) {
-              previewText = '🎞️ GIF';
-            } else {
-              previewText = data.caption ? `📷 ${data.caption}` : '📷 Photo';
-            }
-          } catch {
-            previewText = msg.content?.toLowerCase().includes('.gif') ? '🎞️ GIF' : '📷 Photo';
-          }
-        } else if (msg.type === 'VIDEO') {
-          try {
-            const data = JSON.parse(msg.content);
-            previewText = data.caption ? `🎥 ${data.caption}` : '🎥 Video';
-          } catch {
-            previewText = '🎥 Video';
-          }
-        } else if (msg.type === 'AUDIO') {
-          previewText = '🎵 Audio';
-        } else if (msg.type === 'DOCUMENT') {
-          try {
-            const data = JSON.parse(msg.content);
-            previewText = `📄 ${data.fileName || 'Document'}`;
-          } catch {
-            previewText = '📄 Document';
-          }
-        }
-
-        const body = conv?.type === 'GROUP' ? `${senderName}: ${previewText}` : previewText;
-        const username = msg.sender?.username || senderName;
+        const body = msg.content;
 
         notificationService.showNotification(title, {
           body,
           tag: msg.conversationId,
-          username,
-          avatar: username.charAt(0).toUpperCase(),
+          username: senderName,
           onClick: () => {
             setActiveConversationId(msg.conversationId);
+            setActiveTab('chats');
             setIsMobileOpen(false);
           },
         });
       }
 
-      // Update conversations sidebar lastMessage & unread count
       setConversations((prev) => {
         return prev.map((c) => {
           if (c.id === msg.conversationId) {
@@ -218,7 +211,6 @@ export const App: React.FC = () => {
       });
     });
 
-    // 2. Receipt Updated
     const unsubReceipt = wsClient.onReceiptUpdated((receipt: MessageReceipt) => {
       setMessages((prev) =>
         prev.map((m) => {
@@ -232,22 +224,8 @@ export const App: React.FC = () => {
           return m;
         })
       );
-
-      setConversations((prev) =>
-        prev.map((c) => {
-          if (c.lastMessage && c.lastMessage.id === receipt.messageId) {
-            const receipts = c.lastMessage.receipts ? [...c.lastMessage.receipts] : [];
-            const idx = receipts.findIndex((r) => r.userId === receipt.userId);
-            if (idx >= 0) receipts[idx] = receipt;
-            else receipts.push(receipt);
-            return { ...c, lastMessage: { ...c.lastMessage, receipts } };
-          }
-          return c;
-        })
-      );
     });
 
-    // 3. Typing Updated
     const unsubTyping = wsClient.onTypingUpdated((event) => {
       if (event.conversationId === activeConversationId) {
         setTypingUsers((prev) => ({
@@ -257,7 +235,6 @@ export const App: React.FC = () => {
       }
     });
 
-    // 4. Presence Updated
     const unsubPresence = wsClient.onPresenceUpdated((event) => {
       setConversations((prev) =>
         prev.map((c) => {
@@ -279,7 +256,6 @@ export const App: React.FC = () => {
       );
     });
 
-    // 5. Call Signal
     const unsubCall = wsClient.onCallSignal((signal) => {
       if (signal.signalType === 'offer' && signal.senderUserId) {
         const callerNameFromSignal = (signal.data as any)?.callerName;
@@ -327,16 +303,15 @@ export const App: React.FC = () => {
     }
     setShowNotificationModal(false);
 
-    // Network logout and push unregistration happen cleanly in the background
     if (notifyBackend) {
       api.logout().catch((e) => {
-        console.warn('Backend logout warning (proceeding with local cleanup):', e);
+        console.warn('Backend logout warning:', e);
       });
     }
 
     try {
       notificationService.unregister();
-    } catch (e) {}
+    } catch {}
 
     wsClient.disconnect();
     localStorage.removeItem('chat_access_token');
@@ -352,38 +327,6 @@ export const App: React.FC = () => {
       isLoggingOutRef.current = false;
     }, 1500);
   }, []);
-
-  // Listen for remote device removal / session termination
-  useEffect(() => {
-    const unsubDeviceRemoved = wsClient.onDeviceRemoved((reason) => {
-      if (isLoggingOutRef.current) return;
-      console.warn('[Session] Device removed remotely by user:', reason);
-      handleLogout(false, true);
-      setSessionRevokedReason(
-        reason || 'This device was removed from your linked devices. You have been logged out.'
-      );
-    });
-
-    const handleSessionExpired = (e: Event) => {
-      if (isLoggingOutRef.current) return;
-      const customEvent = e as CustomEvent<{ message?: string }>;
-      const reason = customEvent.detail?.message;
-      console.warn('[Session] Session expired event:', reason);
-      const isRevocation =
-        reason && (reason.toLowerCase().includes('revoked') || reason.toLowerCase().includes('removed'));
-      handleLogout(false, Boolean(isRevocation));
-      if (isRevocation) {
-        setSessionRevokedReason('This device was removed from your linked devices. You have been logged out.');
-      }
-    };
-
-    window.addEventListener('chat:session_expired', handleSessionExpired);
-
-    return () => {
-      unsubDeviceRemoved();
-      window.removeEventListener('chat:session_expired', handleSessionExpired);
-    };
-  }, [handleLogout]);
 
   const handleSendMessage = async (content: string, messageType: MessageType = 'TEXT') => {
     if (!currentUser || !activeConversationId) return;
@@ -402,8 +345,8 @@ export const App: React.FC = () => {
       status: 'sending',
     };
 
-    // Optimistic UI update
     setMessages((prev) => [...prev, optimisticMessage]);
+
 
     const payload = {
       conversationId: activeConversationId,
@@ -413,7 +356,6 @@ export const App: React.FC = () => {
     };
 
     try {
-      // Primary: Send via HTTP REST API (visible in DevTools Network tab)
       const saved = await api.sendMessage(payload);
       setMessages((prev) =>
         prev.map((m) =>
@@ -430,11 +372,9 @@ export const App: React.FC = () => {
         )
       );
     } catch (err) {
-      console.warn('[Chat] HTTP API send failed, trying WebSocket fallback:', err);
-      // Fallback: try WebSocket if HTTP fails
+      console.warn('HTTP API send failed, trying WebSocket fallback:', err);
       const sentWs = wsClient.sendMessage(payload);
       if (!sentWs) {
-        console.error('[Chat] Both HTTP API and WebSocket failed to send');
         setMessages((prev) =>
           prev.map((m) =>
             (m.clientMessageId && m.clientMessageId === clientMsgId) || m.id === clientMsgId
@@ -448,7 +388,8 @@ export const App: React.FC = () => {
 
   const handleSelectConversation = (id: string) => {
     setActiveConversationId(id);
-    setIsMobileOpen(false); // On mobile, show chat area
+    setActiveTab('chats');
+    setIsMobileOpen(false);
   };
 
   const handleStartCall = (targetUserId: string, isVideo: boolean) => {
@@ -457,7 +398,7 @@ export const App: React.FC = () => {
 
     setActiveCall({
       targetUserId,
-      targetName: targetMember?.user?.displayName || targetMember?.user?.username || 'Contact',
+      targetName: targetMember?.user?.displayName || targetMember?.user?.username || targetUserId || 'Contact',
       isVideo,
       isIncoming: false,
     });
@@ -488,6 +429,7 @@ export const App: React.FC = () => {
   };
 
   const activeConversation = conversations.find((c) => c.id === activeConversationId) || null;
+  const totalUnreads = conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
 
   if (loading) {
     return (
@@ -526,49 +468,237 @@ export const App: React.FC = () => {
 
   return (
     <div className="app-container">
-      <ChatSidebar
-        currentUser={currentUser}
-        conversations={conversations}
-        activeConversationId={activeConversationId}
-        onSelectConversation={handleSelectConversation}
-        onOpenNewChat={() => setShowNewChatModal(true)}
-        onLogout={handleLogout}
-        theme={theme}
-        onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-        isMobileOpen={isMobileOpen}
-        messages={messages}
-        onUpdateUser={(updated) => setCurrentUser((prev) => (prev ? { ...prev, ...updated } : prev))}
-        onClearAllMessages={async () => {
-          try {
-            await api.clearAllMessages();
-            setMessages([]);
-            loadConversations();
-          } catch (e) {
-            console.error('Failed to clear all messages on backend', e);
+      {/* 1. Leftmost Navigation Rail matching WhatsApp Web */}
+      <NavigationRail
+        activeTab={activeTab}
+        onSelectTab={(tab) => {
+          setActiveTab(tab);
+          if (tab !== 'chats') {
+            setActiveConversationId(null);
           }
         }}
-        onDeleteAllChats={async () => {
-          try {
-            await api.deleteAllChats();
+        currentUser={currentUser}
+        unreadCount={totalUnreads}
+        hasUnreadStatus={true}
+      />
+
+      {/* 2. Sidebar based on active navigation tab */}
+      {(activeTab === 'chats' || activeTab === 'archived') && (
+        <ChatSidebar
+          currentUser={currentUser}
+          conversations={conversations}
+          activeConversationId={activeConversationId}
+          onSelectConversation={handleSelectConversation}
+          onOpenNewChat={() => setShowNewChatModal(true)}
+          onLogout={handleLogout}
+          theme={theme}
+          onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          isMobileOpen={isMobileOpen}
+          messages={messages}
+          onUpdateUser={(updated) => setCurrentUser((prev) => (prev ? { ...prev, ...updated } : prev))}
+          onClearAllMessages={() => {
+            setMessages([]);
+            loadConversations();
+          }}
+          onDeleteAllChats={() => {
             setConversations([]);
             setActiveConversationId(null);
             setMessages([]);
-          } catch (e) {
-            console.error('Failed to delete all chats on backend', e);
-          }
-        }}
-      />
+          }}
+          onOpenArchived={() => setActiveTab('archived')}
+          onOpenCommunities={() => setActiveTab('communities')}
+          onOpenSettings={() => setActiveTab('settings')}
+          typingUsers={typingUsers}
+        />
+      )}
 
-      <ChatWindow
-        currentUser={currentUser}
-        conversation={activeConversation}
-        messages={messages}
-        onSendMessage={handleSendMessage}
-        onBackToSidebar={() => setIsMobileOpen(true)}
-        typingUsers={typingUsers}
-        onStartCall={handleStartCall}
-      />
+      {activeTab === 'calls' && (
+        <CallsSidebar
+          onStartCallWithContact={(contactName, isVideo) => {
+            handleStartCall(contactName, isVideo);
+          }}
+          onOpenNewCallModal={() => setShowNewChatModal(true)}
+          onShowDialpad={() => setShowDialpadModal(true)}
+        />
+      )}
 
+      {activeTab === 'status' && (
+        <StatusSidebar
+          currentUser={currentUser}
+          onSelectStatus={(status) => setSelectedStatus(status)}
+          onOpenCreateStatus={(type) => {
+            setCreateStatusInitialType(type);
+            setShowCreateStatusModal(true);
+          }}
+        />
+      )}
+
+      {activeTab === 'channels' && (
+        <ChannelsSidebar
+          selectedChannelId={selectedChannel?.id || null}
+          onSelectChannel={(channel) => setSelectedChannel(channel)}
+          onCreateChannel={() => setShowCreateChannelModal(true)}
+        />
+      )}
+
+      {activeTab === 'communities' && (
+        <CommunitiesSidebar
+          onStartCommunity={() => setShowCreateCommunityModal(true)}
+          onSelectCommunityGroup={(groupName) => {
+            alert(`Opening community group: ${groupName}`);
+          }}
+        />
+      )}
+
+      {activeTab === 'settings' && (
+        <aside className="sidebar">
+          <SettingsView
+            currentUser={currentUser}
+            conversations={conversations}
+            messages={messages}
+            onClose={() => setActiveTab('chats')}
+            onLogout={handleLogout}
+            onUpdateUser={(updated) => setCurrentUser((prev) => (prev ? { ...prev, ...updated } : prev))}
+            onClearAllMessages={() => {
+              setMessages([]);
+              loadConversations();
+            }}
+            onDeleteAllChats={() => {
+              setConversations([]);
+              setActiveConversationId(null);
+              setMessages([]);
+            }}
+            initialSubView="menu"
+          />
+        </aside>
+      )}
+
+      {/* 3. Main Content Panel */}
+      {activeTab === 'chats' && (
+        <ChatWindow
+          currentUser={currentUser}
+          conversation={activeConversation}
+          messages={messages}
+          onSendMessage={handleSendMessage}
+          onBackToSidebar={() => setIsMobileOpen(true)}
+          typingUsers={typingUsers}
+          onStartCall={handleStartCall}
+          onGoToCalls={() => setActiveTab('calls')}
+          onSendDocument={() => setShowNewChatModal(true)}
+          onAddContact={() => setShowNewChatModal(true)}
+          onInviteFriend={() => {
+            navigator.clipboard?.writeText(window.location.origin);
+            alert('WhatsApp invite link copied to clipboard!');
+          }}
+          onNewCall={() => setActiveTab('calls')}
+          onAskMetaAi={() => setActiveTab('meta_ai')}
+        />
+      )}
+
+      {activeTab === 'archived' && (
+        <ChatWindow
+          currentUser={currentUser}
+          conversation={activeConversation}
+          messages={messages}
+          onSendMessage={handleSendMessage}
+          onBackToSidebar={() => setIsMobileOpen(true)}
+          typingUsers={typingUsers}
+          onStartCall={handleStartCall}
+          onGoToCalls={() => setActiveTab('calls')}
+          onSendDocument={() => setShowNewChatModal(true)}
+          onAddContact={() => setShowNewChatModal(true)}
+          onInviteFriend={() => {
+            navigator.clipboard?.writeText(window.location.origin);
+            alert('WhatsApp invite link copied to clipboard!');
+          }}
+          onNewCall={() => setActiveTab('calls')}
+          onAskMetaAi={() => setActiveTab('meta_ai')}
+        />
+      )}
+
+      {activeTab === 'calls' && (
+        <main className="chat-area">
+          <CallsEmptyState
+            onStartCall={() => setShowNewChatModal(true)}
+            onNewCallLink={() => {
+              const link = `${window.location.origin}/call/meet-${Date.now().toString(36)}`;
+              navigator.clipboard?.writeText(link);
+              alert(`Call link created & copied: ${link}`);
+            }}
+            onCallNumber={() => setShowDialpadModal(true)}
+          />
+        </main>
+      )}
+
+      {activeTab === 'status' && (
+        <main className="chat-area">
+          <StatusEmptyState
+            onTextStatus={() => {
+              setCreateStatusInitialType('text');
+              setShowCreateStatusModal(true);
+            }}
+            onPhotoVideoStatus={() => {
+              setCreateStatusInitialType('image');
+              setShowCreateStatusModal(true);
+            }}
+          />
+        </main>
+      )}
+
+      {activeTab === 'channels' && (
+        selectedChannel ? (
+          <ChannelFeedView
+            channel={selectedChannel}
+            onBack={() => setSelectedChannel(null)}
+          />
+        ) : (
+          <main className="chat-area">
+            <ChannelsEmptyState
+              onCreateChannel={() => setShowCreateChannelModal(true)}
+              onExploreChannels={() => {
+                alert('Explore trending channels: Sports, Entertainment, Tech, and News.');
+              }}
+            />
+          </main>
+        )
+      )}
+
+      {activeTab === 'communities' && (
+        <main className="chat-area">
+          <CommunitiesEmptyState
+            onStartCommunity={() => setShowCreateCommunityModal(true)}
+          />
+        </main>
+      )}
+
+      {activeTab === 'meta_ai' && (
+        <MetaAiChatView onBack={() => setActiveTab('chats')} />
+      )}
+
+      {activeTab === 'settings' && (
+        <main className="chat-area">
+          <ChatWindow
+            currentUser={currentUser}
+            conversation={null}
+            messages={[]}
+            onSendMessage={handleSendMessage}
+            onBackToSidebar={() => setIsMobileOpen(true)}
+            typingUsers={typingUsers}
+            onStartCall={handleStartCall}
+            onGoToCalls={() => setActiveTab('calls')}
+            onSendDocument={() => setShowNewChatModal(true)}
+            onAddContact={() => setShowNewChatModal(true)}
+            onInviteFriend={() => {
+              navigator.clipboard?.writeText(window.location.origin);
+              alert('WhatsApp invite link copied to clipboard!');
+            }}
+            onNewCall={() => setActiveTab('calls')}
+            onAskMetaAi={() => setActiveTab('meta_ai')}
+          />
+        </main>
+      )}
+
+      {/* 4. Modals */}
       {showNewChatModal && (
         <NewChatModal
           currentUser={currentUser}
@@ -576,6 +706,7 @@ export const App: React.FC = () => {
           onConversationCreated={(newConv) => {
             setConversations((prev) => [newConv, ...prev.filter((c) => c.id !== newConv.id)]);
             setActiveConversationId(newConv.id);
+            setActiveTab('chats');
             setIsMobileOpen(false);
           }}
         />
@@ -585,7 +716,7 @@ export const App: React.FC = () => {
         <CallModal
           targetUserId={activeCall.targetUserId}
           targetName={activeCall.targetName}
-          callerName={currentUser?.displayName || currentUser?.username || 'IndiChat User'}
+          callerName={currentUser?.displayName || currentUser?.username || 'WhatsApp User'}
           isVideo={activeCall.isVideo}
           isIncoming={activeCall.isIncoming}
           incomingOfferData={activeCall.incomingOfferData}
@@ -593,6 +724,55 @@ export const App: React.FC = () => {
         />
       )}
 
+      {/* Dialpad Modal */}
+      <DialpadModal
+        isOpen={showDialpadModal}
+        onClose={() => setShowDialpadModal(false)}
+        onStartCall={(num, isVideo) => {
+          handleStartCall(num, isVideo);
+        }}
+      />
+
+      {/* Status Viewer Story Modal */}
+      {selectedStatus && (
+        <StatusViewerModal
+          status={selectedStatus}
+          onClose={() => setSelectedStatus(null)}
+          onSendReply={(replyText, contactName) => {
+            console.log(`Reply to ${contactName}: ${replyText}`);
+          }}
+        />
+      )}
+
+      {/* Create Status Modal */}
+      <CreateStatusModal
+        isOpen={showCreateStatusModal}
+        initialType={createStatusInitialType}
+        onClose={() => setShowCreateStatusModal(false)}
+        onStatusCreated={(newStatus) => {
+          console.log('Status created:', newStatus);
+        }}
+      />
+
+      {/* Create Channel Modal */}
+      <CreateChannelModal
+        isOpen={showCreateChannelModal}
+        onClose={() => setShowCreateChannelModal(false)}
+        onChannelCreated={(newCh) => {
+          setSelectedChannel(newCh);
+        }}
+      />
+
+      {/* Create Community Modal */}
+      <CreateCommunityModal
+        isOpen={showCreateCommunityModal}
+        onClose={() => setShowCreateCommunityModal(false)}
+        onCommunityCreated={(newComm) => {
+          console.log('Community created:', newComm);
+        }}
+      />
+
+      {/* Desktop Notification Prompt */}
       <NotificationModal
         isOpen={showNotificationModal}
         onClose={() => setShowNotificationModal(false)}
