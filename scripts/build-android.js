@@ -52,6 +52,15 @@ if (!process.env.ANDROID_HOME && !process.env.ANDROID_SDK_ROOT) {
   }
 }
 
+// Ensure Node module resolution paths are properly configured for monorepo
+const mobileNodeModules = path.join(mobileDir, 'node_modules');
+const rootNodeModules = path.join(rootDir, 'node_modules');
+const nodePaths = [mobileNodeModules, rootNodeModules];
+if (process.env.NODE_PATH) {
+  nodePaths.push(process.env.NODE_PATH);
+}
+process.env.NODE_PATH = nodePaths.join(path.delimiter);
+
 // Ensure Java environment is configured (Java 17/21 compatibility for Gradle)
 if (!process.env.JAVA_HOME) {
   const candidateJavaHomes = [
