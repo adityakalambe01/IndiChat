@@ -259,9 +259,29 @@ npm run build:android:bundle
 node scripts/build-android.js --clean
 ```
 Output files appear in:
-`release/android/IndiChat-release-<timestamp>.apk`  
-`release/android/IndiChat-debug-<timestamp>.apk`  
-`release/android/IndiChat-release-<timestamp>.aab`
+`release/android/IndiChat.apk` (or `IndiChat-release-<timestamp>.apk`)  
+`release/android/app-release.apk`  
+`release/android/IndiChat.aab`
+
+### 6. Automated iOS App & Simulator Compilation
+The build script automatically detects Xcode Developer tools, ensures CocoaPods is installed, prebuilds the native iOS workspace, syncs multi-resolution AppIcon assets, and compiles release binaries into `release/ios/`:
+
+```bash
+# Build iOS Simulator Release .app bundle (no signing certificates required):
+npm run build:ios:sim
+# Or alias:
+npm run build:ios
+
+# Build iOS Device Archive (.xcarchive):
+npm run build:ios:archive
+
+# Clean build and recompile:
+node scripts/build-ios.js --clean
+```
+Output files appear in:
+`release/ios/IndiChat.app` — Standalone compiled iOS application bundle  
+`release/ios/IndiChat-Simulator.zip` — Compressed bundle ready for iOS Simulator  
+`release/ios/icon.png` — 1024x1024 App Store icon
 
 ---
 

@@ -12,9 +12,17 @@
       "backgroundColor": "#111b21"
     },
     "ios": {
+      "bundleIdentifier": "com.indichat.app",
       "supportsTablet": true,
       "infoPlist": {
-        "NSContactsUsageDescription": "IndiChat uses your contacts to find friends who are already on IndiChat. Your contacts are not stored on our servers."
+        "NSContactsUsageDescription": "IndiChat uses your contacts to find friends who are already on IndiChat. Your contacts are not stored on our servers.",
+        "NSCameraUsageDescription": "IndiChat requires access to the camera to take and send photos and videos.",
+        "NSPhotoLibraryUsageDescription": "IndiChat requires access to your photo library to select and send photos and media.",
+        "NSMicrophoneUsageDescription": "IndiChat requires access to your microphone to record voice messages and make audio/video calls.",
+        "NSFaceIDUsageDescription": "IndiChat uses Face ID for biometric security and authentication.",
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {

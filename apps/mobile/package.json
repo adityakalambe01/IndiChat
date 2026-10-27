@@ -11,7 +11,8 @@
     "web": "expo start --web",
     "build:apk": "node ../../scripts/build-android.js --apk",
     "build:bundle": "node ../../scripts/build-android.js --bundle",
-    "build:android": "node ../../scripts/build-android.js"
+    "build:android": "node ../../scripts/build-android.js",
+    "build:ios": "node ../../scripts/build-ios.js"
   },
   "dependencies": {
     "@chat/shared-types": "file:../../packages/shared-types",
