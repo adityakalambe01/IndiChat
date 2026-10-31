@@ -1,0 +1,3974 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IndiChat · Distinctive Liquid Glass Mobile Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Studio Workspace Tokens */
+      --studio-bg: #05080b;
+      --studio-surface: #0b1016;
+      --studio-card: #101720;
+      --studio-border: rgba(255, 255, 255, 0.08);
+      --studio-text: #f0f4f2;
+      --studio-muted: #8696a0;
+      --studio-subtle: #5f707a;
+      
+      /* IndiChat Restrained Liquid Glass Brand Tokens (Dark Obsidian) */
+      --phone-bg: #070b0e;
+      --phone-surface: #0e141a;
+      --phone-surface-elevated: #131c24;
+      --phone-text: #ffffff;
+      --phone-text-sec: #8696a0;
+      --phone-line: rgba(255, 255, 255, 0.07);
+
+      /* Brand Accents - Restrained & Professional */
+      --brand-emerald: #10b981;
+      --brand-teal: #00a884;
+      --brand-teal-dark: #005c4b;
+      --tick-cyan: #53bdeb; /* Preserved cyan read tick */
+      --accent-cyan: #06b6d4;
+      --accent-indigo: #4f46e5;
+      --accent-danger: #f43f5e;
+      --accent-warning: #f59e0b;
+
+      /* Liquid Glass Materials */
+      --glass-blur: 20px;
+      --glass-dock-bg: rgba(14, 20, 26, 0.78);
+      --glass-header-bg: rgba(11, 16, 21, 0.84);
+      --glass-bento-bg: rgba(19, 28, 36, 0.65);
+      --glass-input-bg: rgba(255, 255, 255, 0.06);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.14);
+
+      /* Message Bubbles - High-Density Frosted Glass */
+      --bubble-out-bg: rgba(0, 92, 75, 0.92);
+      --bubble-out-border: rgba(255, 255, 255, 0.15);
+      --bubble-out-text: #ffffff;
+      --bubble-in-bg: rgba(24, 33, 43, 0.90);
+      --bubble-in-border: rgba(255, 255, 255, 0.08);
+      --bubble-in-text: #ffffff;
+      --pill-date-bg: #141c22;
+      --pill-date-text: #8696a0;
+    }
+
+    /* Daylight (Light Mode) */
+    .phone.light {
+      --phone-bg: #f2f5f3;
+      --phone-surface: #ffffff;
+      --phone-surface-elevated: #e6ece8;
+      --phone-text: #0f172a;
+      --phone-text-sec: #5f707a;
+      --phone-line: rgba(0, 0, 0, 0.07);
+
+      --glass-dock-bg: rgba(255, 255, 255, 0.84);
+      --glass-header-bg: rgba(242, 245, 243, 0.88);
+      --glass-bento-bg: rgba(255, 255, 255, 0.75);
+      --glass-input-bg: rgba(0, 0, 0, 0.04);
+      --glass-border: rgba(0, 0, 0, 0.08);
+      --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+
+      --bubble-out-bg: rgba(217, 253, 211, 0.95);
+      --bubble-out-border: rgba(0, 168, 132, 0.22);
+      --bubble-out-text: #0f172a;
+      --bubble-in-bg: rgba(255, 255, 255, 0.95);
+      --bubble-in-border: rgba(0, 0, 0, 0.06);
+      --bubble-in-text: #0f172a;
+      --pill-date-bg: #e2e8e4;
+      --pill-date-text: #5f707a;
+    }
+
+    /* Solid Surfaces Mode (Reduced Transparency) */
+    .phone.solid {
+      --glass-blur: 0px !important;
+      --glass-dock-bg: #141c24 !important;
+      --glass-header-bg: #0b1016 !important;
+      --glass-bento-bg: #131c24 !important;
+      --glass-input-bg: #1a2530 !important;
+      --glass-border: rgba(255, 255, 255, 0.16) !important;
+      --bubble-out-bg: #005c4b !important;
+      --bubble-in-bg: #1c2732 !important;
+    }
+
+    .phone.light.solid {
+      --glass-blur: 0px !important;
+      --glass-dock-bg: #ffffff !important;
+      --glass-header-bg: #f2f5f3 !important;
+      --glass-bento-bg: #ffffff !important;
+      --glass-input-bg: #e6ece8 !important;
+      --glass-border: rgba(0, 0, 0, 0.12) !important;
+      --bubble-out-bg: #d9fdd3 !important;
+      --bubble-in-bg: #ffffff !important;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: var(--studio-bg);
+      color: var(--studio-text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    button, input, select {
+      font: inherit;
+      color: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
+
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 2px solid var(--brand-emerald);
+      outline-offset: 2px;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* Top Studio Bar */
+    header.studio-bar {
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--studio-border);
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--brand-emerald), var(--brand-teal));
+      color: #05080b;
+      font-weight: 800;
+      font-size: 18px;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-title span {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--studio-muted);
+      margin-left: 6px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .studio-btn {
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 7px 13px;
+      border-radius: 8px;
+      border: 1px solid var(--studio-border);
+      background: rgba(255, 255, 255, 0.04);
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .studio-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    /* Main Studio Grid Layout */
+    main.studio-layout {
+      max-width: 1440px;
+      width: 100%;
+      margin: 20px auto 40px;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 330px 410px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    /* Sidebar Left: Screen Navigator */
+    .studio-sidebar {
+      background: var(--studio-surface);
+      border: 1px solid var(--studio-border);
+      border-radius: 18px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+
+    .studio-sidebar::-webkit-scrollbar {
+      width: 5px;
+    }
+    .studio-sidebar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 3px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--brand-emerald);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 4px 9px;
+      border-radius: 16px;
+      align-self: flex-start;
+    }
+
+    .sidebar-title {
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: -0.6px;
+      line-height: 1.25;
+    }
+
+    .sidebar-desc {
+      font-size: 12.5px;
+      color: var(--studio-muted);
+      line-height: 1.6;
+    }
+
+    .nav-group-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+      color: var(--studio-subtle);
+      margin-top: 8px;
+    }
+
+    .screen-nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav-item-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      text-align: left;
+      transition: all 0.15s;
+      font-size: 12.5px;
+    }
+
+    .nav-item-btn:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-item-btn.active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .nav-item-btn .tag {
+      font-size: 9.5px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 6px;
+      margin-left: auto;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    .tag.implemented {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--brand-emerald);
+    }
+
+    .tag.page {
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--accent-cyan);
+    }
+
+    .tag.placeholder {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent-warning);
+    }
+
+    /* Central Phone Simulator */
+    .simulator-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: sticky;
+      top: 20px;
+    }
+
+    .phone {
+      width: 390px;
+      height: 844px;
+      border-radius: 48px;
+      border: 8px solid #1c2227;
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12),
+                  0 20px 60px rgba(0, 0, 0, 0.65);
+      position: relative;
+      overflow: hidden;
+      background: var(--phone-bg);
+      color: var(--phone-text);
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    /* Subtle Restrained Ambient Canvas */
+    .phone-ambient-canvas {
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse at 15% 10%, rgba(16, 185, 129, 0.06) 0%, transparent 40%),
+        radial-gradient(ellipse at 85% 85%, rgba(6, 182, 212, 0.05) 0%, transparent 45%),
+        linear-gradient(180deg, var(--phone-bg) 0%, var(--phone-surface) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .phone-status-bar {
+      position: relative;
+      height: 48px;
+      padding: 12px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 650;
+      z-index: 10;
+      color: var(--phone-text);
+    }
+
+    .dynamic-island {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 114px;
+      height: 28px;
+      border-radius: 18px;
+      background: #000000;
+    }
+
+    .phone-view {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 1;
+      box-sizing: border-box;
+    }
+
+    .phone-home-indicator {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 130px;
+      height: 4px;
+      border-radius: 4px;
+      background: var(--phone-text);
+      opacity: 0.45;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    /* Liquid Glass Common Classes */
+    .liquid-glass-dock {
+      position: absolute;
+      bottom: 20px;
+      left: 14px;
+      right: 14px;
+      height: 64px;
+      border-radius: 32px;
+      background: var(--glass-dock-bg);
+      backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-highlight), 0 8px 26px rgba(0, 0, 0, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 6px;
+      z-index: 15;
+    }
+
+    .dock-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 6px 12px;
+      border-radius: 18px;
+      color: var(--phone-text-sec);
+      font-size: 10px;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .dock-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .dock-btn.active {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.1);
+      font-weight: 650;
+    }
+
+    .phone.light .dock-btn.active {
+      color: var(--brand-teal-dark);
+      background: rgba(0, 0, 0, 0.08);
+    }
+
+    .dock-badge-dot {
+      position: absolute;
+      top: -3px;
+      right: -7px;
+      background: var(--brand-emerald);
+      color: #070b0e;
+      font-size: 9.5px;
+      font-weight: 800;
+      height: 15px;
+      min-width: 15px;
+      padding: 0 4px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Screen Page Headers */
+    .page-header {
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 56px;
+      min-height: 56px;
+      max-height: 56px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--phone-line);
+      background: var(--glass-header-bg);
+      backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+      z-index: 10;
+      box-sizing: border-box;
+    }
+
+    .page-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .page-header h2 {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--phone-text-sec);
+      transition: background 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .header-icon-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--phone-text);
+    }
+
+    .header-icon-btn svg {
+      width: 19px;
+      height: 19px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .header-action-text-btn {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--brand-emerald);
+      padding: 6px 10px;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .header-action-text-btn:hover {
+      background: rgba(16, 185, 129, 0.12);
+    }
+
+    .header-action-text-btn.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    /* Scrollable Container in Phone */
+    .phone-body {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      padding: 12px 16px 120px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+      outline: none;
+    }
+
+    .phone-body::-webkit-scrollbar {
+      width: 4px;
+    }
+    .phone-body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .phone-body::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 4px;
+    }
+    .phone.light .phone-body::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.18);
+    }
+
+    /* Liquid Glass Bento Card */
+    .bento-card {
+      flex-shrink: 0;
+      margin-bottom: 14px;
+      border-radius: 18px;
+      background: var(--glass-bento-bg);
+      backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-highlight), 0 4px 16px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .bento-section-title {
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      color: var(--phone-text-sec);
+      padding: 10px 4px 6px;
+      box-sizing: border-box;
+    }
+
+    /* Interactive Menu Row */
+    .menu-row {
+      flex-shrink: 0;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--phone-line);
+      text-align: left;
+      transition: background 0.15s;
+      box-sizing: border-box;
+    }
+
+    .menu-row:last-child {
+      border-bottom: none;
+    }
+
+    .menu-row:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .menu-row-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--brand-emerald);
+      flex-shrink: 0;
+    }
+
+    .menu-row-icon.cyan {
+      background: rgba(6, 182, 212, 0.12);
+      color: var(--accent-cyan);
+    }
+
+    .menu-row-icon.danger {
+      background: rgba(244, 63, 94, 0.12);
+      color: var(--accent-danger);
+    }
+
+    .menu-row-icon svg {
+      width: 17px;
+      height: 17px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .menu-row-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .menu-row-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--phone-text);
+      display: block;
+    }
+
+    .menu-row-desc {
+      font-size: 11.5px;
+      color: var(--phone-text-sec);
+      display: block;
+      margin-top: 2px;
+    }
+
+    .menu-row-value {
+      font-size: 12px;
+      color: var(--phone-text-sec);
+      margin-right: 4px;
+    }
+
+    .chevron-glyph {
+      color: var(--phone-text-sec);
+      opacity: 0.5;
+      font-size: 14px;
+    }
+
+    /* Form Inputs inside Phone */
+    .form-field-group {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--phone-line);
+    }
+
+    .form-field-group:last-child {
+      border-bottom: none;
+    }
+
+    .form-field-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--phone-text-sec);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .form-text-input {
+      width: 100%;
+      background: var(--glass-input-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      padding: 9px 12px;
+      color: var(--phone-text);
+      font-size: 13.5px;
+      outline: none;
+    }
+
+    .form-text-input:focus {
+      border-color: var(--brand-emerald);
+    }
+
+    .form-field-hint {
+      font-size: 11px;
+      color: var(--phone-text-sec);
+      margin-top: 5px;
+      line-height: 1.4;
+    }
+
+    .form-field-error {
+      font-size: 11px;
+      color: var(--accent-danger);
+      margin-top: 5px;
+      font-weight: 600;
+    }
+
+    /* Switch Component */
+    .glass-switch {
+      width: 44px;
+      height: 24px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid var(--glass-border);
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .glass-switch.on {
+      background: var(--brand-emerald);
+      border-color: var(--brand-emerald);
+    }
+
+    .glass-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s;
+    }
+
+    .glass-switch.on::after {
+      transform: translateX(20px);
+    }
+
+    /* Shared SVG Glyphs & Sizing Defense */
+    .icon-glyph,
+    svg.icon-glyph,
+    .phone svg {
+      width: 20px;
+      height: 20px;
+      min-width: 20px;
+      min-height: 20px;
+      flex-shrink: 0;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      box-sizing: border-box;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    /* Compact Search Field (44-48px height, 18-20px icon) */
+    .search-bar-wrap {
+      padding: 8px 16px 6px;
+      flex-shrink: 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .search-input-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 44px;
+      min-height: 44px;
+      max-height: 48px;
+      padding: 0 14px;
+      border-radius: 12px;
+      background: var(--glass-input-bg);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      color: var(--phone-text-sec);
+      box-sizing: border-box;
+      width: 100%;
+      flex-shrink: 0;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .search-input-pill:focus-within {
+      border-color: var(--brand-emerald);
+      box-shadow: 0 0 0 1px var(--brand-emerald);
+    }
+
+    .search-input-pill svg,
+    .search-input-pill .icon-glyph {
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      min-height: 18px;
+      flex-shrink: 0;
+      color: var(--phone-text-sec);
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .search-field-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 13.5px;
+      color: var(--phone-text);
+      width: 100%;
+      height: 100%;
+      flex: 1;
+      min-width: 0;
+      padding: 0;
+      margin: 0;
+      font-family: inherit;
+    }
+
+    .search-field-input::placeholder {
+      color: var(--phone-text-sec);
+      opacity: 0.85;
+    }
+
+    /* Filter Chips Row */
+    .filter-chips-row {
+      display: flex;
+      gap: 7px;
+      padding: 6px 16px 10px;
+      overflow-x: auto;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .filter-chips-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-chip-btn {
+      flex-shrink: 0;
+      white-space: nowrap;
+      padding: 6px 14px;
+      border-radius: 14px;
+      font-size: 11.5px;
+      font-weight: 600;
+      background: var(--glass-input-bg);
+      color: var(--phone-text-sec);
+      border: 1px solid var(--phone-line);
+      box-sizing: border-box;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .filter-chip-btn:hover {
+      color: var(--phone-text);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .filter-chip-btn.selected {
+      background: rgba(16, 185, 129, 0.18);
+      color: var(--brand-emerald);
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    /* In-App Segmented Controls */
+    .segmented-control {
+      display: flex;
+      background: var(--glass-input-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 3px;
+      gap: 3px;
+      box-sizing: border-box;
+      width: 100%;
+      flex-shrink: 0;
+    }
+
+    .segmented-btn {
+      flex: 1;
+      padding: 8px 6px;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 650;
+      color: var(--phone-text-sec);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .segmented-btn:hover {
+      color: var(--phone-text);
+    }
+
+    .segmented-btn.active {
+      background: var(--phone-surface-elevated);
+      color: var(--phone-text);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .phone.light .segmented-btn.active {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    /* Solid Surfaces Override on Backdrop Filters */
+    .phone.solid .liquid-glass-dock,
+    .phone.solid .page-header,
+    .phone.solid .bento-card,
+    .phone.solid .search-input-pill,
+    .phone.solid .segmented-control,
+    .phone.solid .msg-bubble {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+
+    /* Chats List & Message Bubbles */
+    .chat-item-row {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--phone-line);
+      text-align: left;
+    }
+
+    .chat-avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      font-weight: 750;
+      color: #ffffff;
+      position: relative;
+      flex-shrink: 0;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .online-indicator {
+      position: absolute;
+      right: -2px;
+      bottom: -2px;
+      width: 11px;
+      height: 11px;
+      background: var(--brand-emerald);
+      border: 2px solid var(--phone-bg);
+      border-radius: 50%;
+    }
+
+    .chat-meta-col {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .chat-title-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .chat-name {
+      font-size: 14px;
+      font-weight: 650;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-time {
+      font-size: 11px;
+      color: var(--phone-text-sec);
+    }
+
+    .chat-snippet-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+      color: var(--phone-text-sec);
+    }
+
+    .chat-snippet {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .read-tick {
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .read-tick.cyan {
+      color: var(--tick-cyan); /* Preserved #53bdeb */
+    }
+
+    .read-tick.grey {
+      color: var(--phone-text-sec);
+    }
+
+    .chat-unread-pill {
+      background: var(--brand-emerald);
+      color: #070b0e;
+      font-size: 10px;
+      font-weight: 800;
+      height: 17px;
+      min-width: 17px;
+      padding: 0 5px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Message Bubbles in Conversation */
+    .message-stream {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 14px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      scrollbar-width: none;
+    }
+
+    .message-bubble {
+      max-width: 82%;
+      padding: 8px 12px 6px;
+      border-radius: 16px;
+      font-size: 13.5px;
+      line-height: 1.45;
+      position: relative;
+      word-break: break-word;
+    }
+
+    .message-bubble.incoming {
+      align-self: flex-start;
+      background: var(--bubble-in-bg);
+      color: var(--bubble-in-text);
+      border: 1px solid var(--bubble-in-border);
+      border-top-left-radius: 4px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .message-bubble.outgoing {
+      align-self: flex-end;
+      background: var(--bubble-out-bg);
+      color: var(--bubble-out-text);
+      border: 1px solid var(--bubble-out-border);
+      border-top-right-radius: 4px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    .bubble-meta {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      opacity: 0.75;
+      margin-top: 3px;
+    }
+
+    /* Floating Chat Composer */
+    .chat-composer {
+      position: absolute;
+      bottom: 14px;
+      left: 12px;
+      right: 12px;
+      border-radius: 28px;
+      background: var(--glass-dock-bg);
+      backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-highlight), 0 8px 24px rgba(0, 0, 0, 0.35);
+      padding: 6px 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 15;
+    }
+
+    .composer-input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--phone-text);
+      font-size: 13.5px;
+      padding: 6px 4px;
+    }
+
+    .composer-send-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 18px;
+      background: var(--brand-emerald);
+      color: #070b0e;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      transition: transform 0.15s;
+    }
+
+    .composer-send-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .composer-send-btn svg {
+      width: 17px;
+      height: 17px;
+      stroke: #070b0e;
+      fill: none;
+      stroke-width: 2.5;
+    }
+
+    /* Feedback Toast */
+    .phone-toast {
+      position: absolute;
+      bottom: 90px;
+      left: 20px;
+      right: 20px;
+      background: rgba(19, 28, 36, 0.95);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 11px 16px;
+      border-radius: 14px;
+      font-size: 12px;
+      font-weight: 500;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      z-index: 30;
+      backdrop-filter: blur(16px);
+      animation: popToast 0.2s ease-out;
+    }
+
+    @keyframes popToast {
+      from { transform: translateY(8px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Dialog Modal Overlay */
+    .dialog-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 50;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .dialog-card {
+      width: 100%;
+      max-width: 310px;
+      background: #121820;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .dialog-title {
+      font-size: 17px;
+      font-weight: 750;
+      color: #ffffff;
+    }
+
+    .dialog-desc {
+      font-size: 12.5px;
+      color: var(--phone-text-sec);
+      line-height: 1.5;
+    }
+
+    .dialog-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .dialog-btn {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 650;
+      text-align: center;
+    }
+
+    .dialog-btn.cancel {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--phone-text);
+    }
+
+    .dialog-btn.destructive {
+      background: var(--accent-danger);
+      color: #ffffff;
+    }
+
+    .dialog-btn.primary {
+      background: var(--brand-emerald);
+      color: #070b0e;
+    }
+
+    /* Sidebar Right: Material Controls & Contrast Verification */
+    .sidebar-right {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .panel-card {
+      background: var(--studio-surface);
+      border: 1px solid var(--studio-border);
+      border-radius: 18px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .panel-title {
+      font-size: 18px;
+      font-weight: 750;
+      letter-spacing: -0.4px;
+    }
+
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    .control-label span.num {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--brand-emerald);
+      font-size: 11.5px;
+    }
+
+    .range-slider {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      accent-color: var(--brand-emerald);
+      cursor: pointer;
+    }
+
+    .studio-toggle-btn {
+      padding: 8px 14px;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--studio-border);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--studio-text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.15s;
+    }
+
+    .studio-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .studio-toggle-btn.active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: var(--brand-emerald);
+    }
+
+    /* Contrast Table */
+    .contrast-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+    }
+
+    .contrast-table th, .contrast-table td {
+      padding: 7px 8px;
+      text-align: left;
+      border-bottom: 1px solid var(--studio-border);
+    }
+
+    .contrast-table th {
+      color: var(--studio-subtle);
+      font-weight: 600;
+    }
+
+    .contrast-table td {
+      color: var(--studio-muted);
+    }
+
+    .contrast-table td strong {
+      color: var(--studio-text);
+    }
+
+    .wcag-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(16, 185, 129, 0.14);
+      color: var(--brand-emerald);
+    }
+
+    /* Responsive */
+    @media (max-width: 1240px) {
+      main.studio-layout {
+        grid-template-columns: 300px 390px;
+      }
+      .sidebar-right {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 820px) {
+      main.studio-layout {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0 16px;
+      }
+      .studio-sidebar, .sidebar-right {
+        width: 100%;
+        max-width: 420px;
+      }
+      .sidebar-right {
+        display: flex;
+        flex-direction: column;
+      }
+      .simulator-wrap {
+        position: static;
+        margin: 16px 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce), (update: slow) {
+      * {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    /* Studio Toggle: Reduced Motion Override */
+    .reduced-motion *,
+    .reduced-motion {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+
+    /* Accessible focus visible rings */
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    a:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 2px solid var(--brand-emerald) !important;
+      outline-offset: 2px !important;
+    }
+
+    /* Semantic disabled styles */
+    button:disabled,
+    input:disabled,
+    [aria-disabled="true"] {
+      opacity: 0.45 !important;
+      cursor: not-allowed !important;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Studio Bar -->
+  <header class="studio-bar">
+    <div class="brand-wrap">
+      <div class="brand-mark" aria-hidden="true">i</div>
+      <div class="brand-title">
+        IndiChat <span>/ Mobile Design Studio · Liquid Glass</span>
+      </div>
+    </div>
+    <nav class="nav-actions" aria-label="Studio navigation">
+      <a href="index.html" class="studio-btn">← All previews gallery</a>
+      <a href="preview-find-contacts.html" class="studio-btn">Find contacts preview ↗</a>
+    </nav>
+  </header>
+
+  <!-- Studio Workspace -->
+  <main class="studio-layout">
+
+    <!-- Left Sidebar: Screen Navigator -->
+    <aside class="studio-sidebar" aria-label="Screen navigator">
+      <span class="status-badge">● Design Review</span>
+      <h1 class="sidebar-title">Liquid Glass Mobile Suite</h1>
+      <p class="sidebar-desc">
+        Explore IndiChat’s dedicated page architecture, restrained liquid glass surfaces, and authentic Indian messaging features.
+      </p>
+
+      <!-- Main Navigation Screens -->
+      <div class="nav-group-title">Core Messaging Hub</div>
+      <nav class="screen-nav-list" aria-label="Messaging hub screens">
+        <button class="nav-item-btn active" data-nav="chats">
+          <span>💬 Chats</span>
+          <span class="tag implemented">Live</span>
+        </button>
+        <button class="nav-item-btn" data-nav="conversation">
+          <span>🗨️ Conversation</span>
+          <span class="tag implemented">Live</span>
+        </button>
+        <button class="nav-item-btn" data-nav="contacts">
+          <span>👥 Find Contacts</span>
+          <span class="tag implemented">Live</span>
+        </button>
+        <button class="nav-item-btn" data-nav="calls">
+          <span>📞 Calls</span>
+          <span class="tag implemented">Live</span>
+        </button>
+        <button class="nav-item-btn" data-nav="updates">
+          <span>⭕ Updates</span>
+          <span class="tag implemented">Live</span>
+        </button>
+        <button class="nav-item-btn" data-nav="communities">
+          <span>🌐 Communities</span>
+          <span class="tag implemented">Live</span>
+        </button>
+        <button class="nav-item-btn" data-nav="settings">
+          <span>⚙️ Settings (You)</span>
+          <span class="tag implemented">Live</span>
+        </button>
+      </nav>
+
+      <!-- Authentication Screens -->
+      <div class="nav-group-title">Authentication & Access</div>
+      <nav class="screen-nav-list" aria-label="Authentication screens">
+        <button class="nav-item-btn" data-nav="auth">
+          <span>🔑 Sign In / Register</span>
+          <span class="tag implemented">Auth</span>
+        </button>
+        <button class="nav-item-btn" data-nav="auth_2fa">
+          <span>🛡️ 2FA PIN Challenge</span>
+          <span class="tag implemented">Auth</span>
+        </button>
+        <button class="nav-item-btn" data-nav="auth_server">
+          <span>🖥️ Server Configuration</span>
+          <span class="tag implemented">Config</span>
+        </button>
+      </nav>
+
+      <!-- Dedicated Settings Pages -->
+      <div class="nav-group-title">Dedicated Settings Pages</div>
+      <nav class="screen-nav-list" aria-label="Dedicated settings pages">
+        <button class="nav-item-btn" data-nav="settings_profile">
+          <span>👤 Edit Profile</span>
+          <span class="tag page">Page</span>
+        </button>
+        <button class="nav-item-btn" data-nav="settings_account">
+          <span>🔐 Account</span>
+          <span class="tag page">Page</span>
+        </button>
+        <button class="nav-item-btn" data-nav="settings_password">
+          <span>🔑 Change Password</span>
+          <span class="tag page">Page</span>
+        </button>
+        <button class="nav-item-btn" data-nav="settings_two_factor">
+          <span>🛡️ Two-Step Verification</span>
+          <span class="tag page">Page</span>
+        </button>
+        <button class="nav-item-btn" data-nav="settings_phone">
+          <span>📱 Change Phone</span>
+          <span class="tag page">Page</span>
+        </button>
+        <button class="nav-item-btn" data-nav="settings_passkeys">
+          <span>🧬 Passkeys & Biometrics</span>
+          <span class="tag placeholder">Preference</span>
+        </button>
+        <button class="nav-item-btn" data-nav="settings_privacy">
+          <span>👁️ Privacy & Receipts</span>
+          <span class="tag page">Page</span>
+        </button>
+        <button class="nav-item-btn" data-nav="settings_appearance">
+          <span>✨ Appearance &amp; Materials</span>
+          <span class="tag page">Page</span>
+        </button>
+        <button class="nav-item-btn" data-nav="settings_chats">
+          <span>🎨 Chat Wallpaper & Theme</span>
+          <span class="tag page">Page</span>
+        </button>
+        <button class="nav-item-btn" data-nav="settings_backup">
+          <span>☁️ Chat Backup</span>
+          <span class="tag placeholder">Simulated</span>
+        </button>
+        <button class="nav-item-btn" data-nav="settings_devices">
+          <span>💻 Linked Devices</span>
+          <span class="tag page">Page</span>
+        </button>
+        <button class="nav-item-btn" data-nav="settings_link_code">
+          <span>🔲 Link With Code / QR</span>
+          <span class="tag placeholder">Pairing</span>
+        </button>
+        <button class="nav-item-btn" data-nav="settings_notifications">
+          <span>🔔 Notifications</span>
+          <span class="tag page">Page</span>
+        </button>
+        <button class="nav-item-btn" data-nav="settings_language">
+          <span>🌐 App Language</span>
+          <span class="tag page">Page</span>
+        </button>
+        <button class="nav-item-btn" data-nav="settings_server">
+          <span>🖥️ Server Settings</span>
+          <span class="tag page">Page</span>
+        </button>
+        <button class="nav-item-btn" data-nav="settings_delete">
+          <span>🗑️ Delete Account</span>
+          <span class="tag page">Page</span>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Center Section: Mobile Phone Simulator -->
+    <section class="simulator-wrap" aria-label="Mobile phone simulator">
+      <div class="phone" id="phoneDevice">
+        <div class="phone-ambient-canvas" aria-hidden="true"></div>
+
+        <!-- Phone Status Bar -->
+        <div class="phone-status-bar">
+          <span id="phoneClock">9:41</span>
+          <div class="dynamic-island" aria-hidden="true"></div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:11px">
+            <span>5G</span>
+            <span>100%</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Screen Viewport -->
+        <div id="phoneView" class="phone-view"></div>
+
+        <!-- Home Bar Indicator -->
+        <div class="phone-home-indicator" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- Right Sidebar: Material Controls & Contrast Verification -->
+    <aside class="sidebar-right">
+      
+      <!-- Live Material Controls -->
+      <div class="panel-card">
+        <h2 class="panel-title">Material Controls</h2>
+        
+        <div class="control-row">
+          <label class="control-label">
+            <span>Appearance theme</span>
+          </label>
+          <button id="themeToggleBtn" class="studio-toggle-btn" aria-label="Toggle daylight appearance">
+            <span id="themeLabelText">Dark Obsidian</span>
+            <span>Switch to Daylight ☀️</span>
+          </button>
+        </div>
+
+        <div class="control-row">
+          <div class="control-label">
+            <label for="blurSlider">Backdrop blur radius</label>
+            <span id="blurValueLabel" class="num">20 px</span>
+          </div>
+          <input id="blurSlider" type="range" class="range-slider" min="0" max="40" value="20" aria-label="Adjust glass blur radius">
+        </div>
+
+        <div class="control-row">
+          <label class="control-label">
+            <span>Reduced transparency</span>
+          </label>
+          <button id="reduceToggleBtn" class="studio-toggle-btn" aria-pressed="false" aria-label="Toggle solid opaque fallback">
+            <span>Solid surfaces fallback</span>
+            <span id="reduceLabelText">Off</span>
+          </button>
+        </div>
+
+        <div class="control-row">
+          <label class="control-label">
+            <span>Reduced motion</span>
+          </label>
+          <button id="motionToggleBtn" class="studio-toggle-btn" aria-pressed="false" aria-label="Toggle animation reduced motion">
+            <span>Animations &amp; Transitions</span>
+            <span id="motionLabelText">Normal</span>
+          </button>
+        </div>
+
+        <div class="control-row">
+          <label class="control-label">
+            <span>Simulate incoming call</span>
+          </label>
+          <button id="simCallBtn" class="studio-toggle-btn" aria-label="Simulate incoming call dialog">
+            <span>Aarav Sharma</span>
+            <span>Trigger call 📞</span>
+          </button>
+        </div>
+
+        <div class="control-row">
+          <label class="control-label">
+            <span>Simulate remote device revocation</span>
+          </label>
+          <button id="simRevokeBtn" class="studio-toggle-btn" aria-label="Simulate remote session revocation alert">
+            <span>Session revocation</span>
+            <span>Alert demo ⚠️</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- WCAG Contrast Verification -->
+      <div class="panel-card">
+        <h2 class="panel-title">Measured Contrast Verification</h2>
+        <table class="contrast-table" aria-label="Contrast measurements">
+          <thead>
+            <tr>
+              <th>Element</th>
+              <th>Colors</th>
+              <th>Ratio</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Primary Body Text</strong></td>
+              <td>#ffffff on #070b0e</td>
+              <td>19.1:1</td>
+              <td><span class="wcag-chip">Pass AAA</span></td>
+            </tr>
+            <tr>
+              <td><strong>Outgoing Bubble</strong></td>
+              <td>#ffffff on #005c4b</td>
+              <td>7.98:1</td>
+              <td><span class="wcag-chip">Pass AAA</span></td>
+            </tr>
+            <tr>
+              <td><strong>Incoming Bubble</strong></td>
+              <td>#ffffff on #18212b</td>
+              <td>14.8:1</td>
+              <td><span class="wcag-chip">Pass AAA</span></td>
+            </tr>
+            <tr>
+              <td><strong>Secondary Labels</strong></td>
+              <td>#8696a0 on #070b0e</td>
+              <td>5.72:1</td>
+              <td><span class="wcag-chip">Pass AA</span></td>
+            </tr>
+            <tr>
+              <td><strong>Cyan Read Tick</strong></td>
+              <td>#53bdeb on #005c4b</td>
+              <td>3.74:1</td>
+              <td><span class="wcag-chip">Pass UI >=3.0</span></td>
+            </tr>
+            <tr>
+              <td><strong>Daylight Primary Text</strong></td>
+              <td>#0f172a on #f2f5f3</td>
+              <td>15.8:1</td>
+              <td><span class="wcag-chip">Pass AAA</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size:11px;color:var(--studio-muted);line-height:1.5;margin-top:4px">
+          Cyan double checkmarks (#53bdeb) preserved with full sent/delivered/read semantics. High-density frosted bubbles guarantee readability without contrast degradation.
+        </p>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- Complete Script Router & Logic -->
+  <script>
+    // SVG Icon Library
+    const ICONS = {
+      chats: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+      updates: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/>',
+      calls: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
+      communities: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+      search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+      plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+      back: '<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
+      video: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
+      camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+      send: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+      lock: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+      shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+      device: '<rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>',
+      link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+      calendar: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+      palette: '<circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>',
+      bell: '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
+      globe: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+      trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+      user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+      cloud: '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>',
+      key: '<path d="M21 2l-2 2m-1.5 1.5L14 9l-2-2-4 4m6-6l2 2m-6 6l-6 6v3h3l6-6"/>',
+      check: '<polyline points="20 6 9 17 4 12"/>'
+    };
+
+    const renderIcon = (name, className = '') => `<svg class="icon-glyph ${className}" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ICONS.chats}</svg>`;
+
+    // Sample Datasets Grounded in IndiChat Mobile
+    const CONTACTS = [
+      { id: '1', name: 'Aarav Sharma', username: 'aarav_s', snippet: 'The photos turned out so good 📸', time: '9:15 AM', tick: 'cyan', unread: 0, online: true, color: '#10b981', bio: 'Available on IndiChat ✨' },
+      { id: '2', name: 'Priya Patel', username: 'priya_p', snippet: 'Working on something new 🚀', time: '8:48 AM', tick: 'grey', unread: 2, online: true, color: '#ec4899', bio: 'Design engineer @ IndiChat' },
+      { id: '3', name: 'Rohan Verma', username: 'rohan_v', snippet: 'Who is bringing the coffee for the trip?', time: 'Yesterday', tick: 'cyan', unread: 0, online: false, color: '#3b82f6', bio: 'Hey there! I am using IndiChat.' },
+      { id: '4', name: 'Ananya Iyer', username: 'ananya_i', snippet: 'That sounds like the perfect plan! ✨', time: 'Now', tick: '', unread: 1, online: true, color: '#8b5cf6', bio: 'Designing in the flow 🌱' },
+      { id: '5', name: 'Vikram Singh', username: 'vikram_s', snippet: 'Voice message · 0:42', time: 'Yesterday', tick: 'grey', unread: 0, online: false, color: '#f59e0b', bio: 'Exploring new horizons 🏔️' },
+      { id: '6', name: 'Design Circle', username: 'group_design', snippet: 'Priya: Shared the liquid glass tokens', time: 'Yesterday', tick: 'cyan', unread: 5, online: false, color: '#00a884', isGroup: true, bio: 'IndiChat Mobile Core Team' }
+    ];
+
+    const CALL_LOGS = [
+      { name: 'Aarav Sharma', type: 'incoming', date: 'Today, 9:30 AM', duration: '12m 40s', isVideo: false, color: '#10b981' },
+      { name: 'Priya Patel', type: 'missed', date: 'Today, 8:15 AM', duration: 'Missed', isVideo: true, color: '#ec4899' },
+      { name: 'Vikram Singh', type: 'outgoing', date: 'Yesterday, 6:10 PM', duration: '4m 12s', isVideo: false, color: '#f59e0b' },
+      { name: 'Ananya Iyer', type: 'incoming', date: 'Yesterday, 3:20 PM', duration: '28m 05s', isVideo: true, color: '#8b5cf6' }
+    ];
+
+    // Mobile Settings State Store (Simulated Local Storage)
+    const userSettings = {
+      displayName: 'Riya Kapoor',
+      username: 'riya_k',
+      statusAbout: 'Designing in the flow 🌱',
+      phoneNumber: '+91 98765 00112',
+      email: 'riya.kapoor@example.com',
+      twoFactorEnabled: false,
+      twoFactorPin: '',
+      passkeyEnabled: false,
+      readReceipts: true,
+      enterIsSend: true,
+      mediaVisibility: true,
+      lastSeen: 'Everyone',
+      language: 'en',
+      serverUrl: 'http://192.168.0.70:8080',
+      lastBackupDate: 'Today, 04:15 AM (14.8 MB)',
+      // Appearance & Materials Preferences
+      appearanceMode: 'dark', // 'system' | 'light' | 'dark'
+      blurRadius: 20, // 0 to 40 px
+      reduceTransparency: false, // true = solid opaque surfaces fallback
+      reducedMotion: 'off', // 'system' | 'on' | 'off'
+      linkedDevices: [
+        { id: 'dev-1', name: 'Chrome on macOS', location: 'Bengaluru, India', active: 'Active now', isCurrent: false },
+        { id: 'dev-2', name: 'Linux Desktop Native', location: 'Bengaluru, India', active: 'Yesterday at 8:20 PM', isCurrent: false }
+      ]
+    };
+
+    // State Variables
+    let currentScreen = 'chats';
+    let previousScreen = 'chats';
+    let activeFilter = 'All';
+    let activeContact = CONTACTS[0];
+    let customMessages = [];
+    let toastTimeout = null;
+    let authIsRegister = false;
+
+    // Elements
+    const phone = document.getElementById('phoneDevice');
+    const phoneView = document.getElementById('phoneView');
+
+    const escapeHTML = (str) => String(str || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    // Common Floating Bottom Dock (used on core tabs)
+    function renderDock(activeTab) {
+      return `
+        <nav class="liquid-glass-dock" aria-label="Mobile Navigation Dock">
+          <button class="dock-btn ${activeTab === 'updates' ? 'active' : ''}" data-nav="updates" aria-label="Updates Tab">
+            ${renderIcon('updates')}
+            <span>Updates</span>
+          </button>
+          <button class="dock-btn ${activeTab === 'calls' ? 'active' : ''}" data-nav="calls" aria-label="Calls Tab">
+            ${renderIcon('calls')}
+            <span>Calls</span>
+          </button>
+          <button class="dock-btn ${activeTab === 'communities' ? 'active' : ''}" data-nav="communities" aria-label="Communities Tab">
+            ${renderIcon('communities')}
+            <span>Circles</span>
+          </button>
+          <button class="dock-btn ${activeTab === 'chats' ? 'active' : ''}" data-nav="chats" aria-label="Chats Tab (8 unread)">
+            <div style="position:relative">
+              ${renderIcon('chats')}
+              <div class="dock-badge-dot">8</div>
+            </div>
+            <span>Chats</span>
+          </button>
+          <button class="dock-btn ${activeTab === 'settings' ? 'active' : ''}" data-nav="settings" aria-label="Settings and Profile">
+            <div style="width:20px;height:20px;border-radius:10px;background:#10b981;color:#fff;font-size:10px;font-weight:750;display:grid;place-items:center">R</div>
+            <span>You</span>
+          </button>
+        </nav>
+      `;
+    }
+
+    // Helper: Toast Message
+    function showToast(text) {
+      document.querySelector('.phone-toast')?.remove();
+      const toast = document.createElement('div');
+      toast.className = 'phone-toast';
+      toast.setAttribute('role', 'status');
+      toast.textContent = text;
+      phoneView.appendChild(toast);
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => toast.remove(), 2600);
+    }
+
+    // Helper: Dialog Prompt
+    function showDialog(title, desc, confirmText, onConfirm, isDestructive = false) {
+      document.querySelector('.dialog-overlay')?.remove();
+      const overlay = document.createElement('div');
+      overlay.className = 'dialog-overlay';
+      overlay.innerHTML = `
+        <div class="dialog-card" role="dialog" aria-modal="true">
+          <div class="dialog-title">${escapeHTML(title)}</div>
+          <div class="dialog-desc">${escapeHTML(desc)}</div>
+          <div class="dialog-actions">
+            <button class="dialog-btn cancel" id="dialogCancelBtn">Cancel</button>
+            <button class="dialog-btn ${isDestructive ? 'destructive' : 'primary'}" id="dialogConfirmBtn">${escapeHTML(confirmText)}</button>
+          </div>
+        </div>
+      `;
+      phoneView.appendChild(overlay);
+
+      document.getElementById('dialogCancelBtn').onclick = () => overlay.remove();
+      document.getElementById('dialogConfirmBtn').onclick = () => {
+        overlay.remove();
+        onConfirm();
+      };
+    }
+
+    // SCREEN 1: CHATS LIST
+    function viewChats() {
+      const filtered = CONTACTS.filter(c => {
+        if (activeFilter === 'Unread') return c.unread > 0;
+        if (activeFilter === 'Favourites') return c.name.includes('Aarav') || c.name.includes('Ananya');
+        if (activeFilter === 'Groups') return c.isGroup;
+        return true;
+      });
+
+      return `
+        <header class="page-header">
+          <h2>IndiChat</h2>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="header-icon-btn" data-toast="Camera preview" aria-label="Camera">${renderIcon('camera')}</button>
+            <button class="header-icon-btn" data-toast="Search active" aria-label="Search">${renderIcon('search')}</button>
+            <button class="header-icon-btn" data-nav="contacts" aria-label="Find or Add Contacts">${renderIcon('plus')}</button>
+          </div>
+        </header>
+
+        <div class="search-bar-wrap">
+          <div class="search-input-pill">
+            ${renderIcon('search', 'search-icon')}
+            <input id="chatSearchInput" class="search-field-input" placeholder="Search conversations..." aria-label="Search conversations">
+          </div>
+        </div>
+
+        <div class="filter-chips-row" role="tablist" aria-label="Conversation filters">
+          ${['All', 'Unread', 'Favourites', 'Groups'].map(f => `
+            <button class="filter-chip-btn ${activeFilter === f ? 'selected' : ''}" data-filter="${f}">
+              ${f}
+            </button>
+          `).join('')}
+        </div>
+
+        <div class="phone-body" id="chatsListContainer" tabindex="0" aria-label="Conversations list">
+          <div class="bento-section-title">Recent Conversations</div>
+          ${filtered.map(c => `
+            <button class="chat-item-row" data-chat-id="${c.id}" aria-label="Chat with ${c.name}">
+              <div class="chat-avatar" style="background:${c.color}">
+                ${c.isGroup ? '👥' : c.name.split(' ').map(n => n[0]).join('')}
+                ${c.online ? '<div class="online-indicator"></div>' : ''}
+              </div>
+              <div class="chat-meta-col">
+                <div class="chat-title-line">
+                  <span class="chat-name">${c.name}</span>
+                  <span class="chat-time">${c.time}</span>
+                </div>
+                <div class="chat-snippet-line">
+                  <span class="chat-snippet">
+                    ${c.tick ? `<span class="read-tick ${c.tick}">✓✓</span>` : ''}
+                    ${c.snippet}
+                  </span>
+                  ${c.unread ? `<span class="chat-unread-pill">${c.unread}</span>` : ''}
+                </div>
+              </div>
+            </button>
+          `).join('')}
+        </div>
+
+        ${renderDock('chats')}
+      `;
+    }
+
+    // SCREEN 2: CONVERSATION ROOM
+    function viewConversation() {
+      const c = activeContact;
+      return `
+        <div style="display:flex;flex-direction:column;height:100%">
+          <header class="page-header">
+            <div class="page-header-left">
+              <button class="header-icon-btn" data-nav="chats" aria-label="Back to chats">${renderIcon('back')}</button>
+              <div style="width:34px;height:34px;border-radius:12px;background:${c.color};color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700;position:relative">
+                ${c.name.split(' ').map(n => n[0]).join('')}
+                ${c.online ? '<div class="online-indicator"></div>' : ''}
+              </div>
+              <div style="min-width:0">
+                <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHTML(c.name)}</div>
+                <div style="font-size:10.5px;color:var(--brand-emerald)">${c.online ? 'Online now' : 'Last seen recently'}</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <button class="header-icon-btn" data-action="audio-call" aria-label="Audio call">${renderIcon('calls')}</button>
+              <button class="header-icon-btn" data-action="video-call" aria-label="Video call">${renderIcon('video')}</button>
+            </div>
+          </header>
+
+          <div class="message-stream" id="messagesStream">
+            <div style="align-self:center;background:var(--pill-date-bg);color:var(--pill-date-text);font-size:11px;font-weight:600;padding:4px 12px;border-radius:12px;margin:6px 0">
+              TODAY · 9:24 AM
+            </div>
+            <div style="align-self:center;background:var(--pill-date-bg);color:var(--pill-date-text);font-size:10.5px;line-height:1.45;padding:8px 12px;border-radius:10px;text-align:center;max-width:92%;margin-bottom:4px;border:1px solid var(--phone-line)">
+              🔒 Messages and calls are end-to-end encrypted. No one outside of this chat can read or listen to them.
+            </div>
+
+            <!-- Incoming Text -->
+            <div class="message-bubble incoming">
+              Hey! Are we ready to review the new IndiChat mobile architecture?
+              <div class="bubble-meta">
+                <span>9:24 AM</span>
+              </div>
+            </div>
+
+            <!-- Outgoing Bubble (High-density frosted teal) -->
+            <div class="message-bubble outgoing">
+              Yes! All 15 settings pages are now dedicated routes instead of modals.
+              <div class="bubble-meta">
+                <span>9:26 AM</span>
+                <span class="read-tick cyan">✓✓</span>
+              </div>
+            </div>
+
+            <!-- Incoming Photo Attachment Card -->
+            <div class="message-bubble incoming" style="max-width:88%;padding:6px">
+              <div style="border-radius:10px;overflow:hidden;background:#15222c;border:1px solid rgba(255,255,255,0.08)">
+                <div style="height:120px;background:radial-gradient(circle at 70% 30%, #00a884, #0b151b);display:flex;align-items:flex-end;padding:8px;font-size:11.5px;font-weight:600;color:#fff">
+                  IndiChat Liquid Glass Architecture 📐
+                </div>
+                <div style="padding:6px 8px;font-size:12px">Refined bento hierarchy &amp; verified contrast</div>
+              </div>
+              <div class="bubble-meta">
+                <span>9:27 AM</span>
+              </div>
+            </div>
+
+            <!-- Outgoing Bubble -->
+            <div class="message-bubble outgoing">
+              Preserved established cyan read ticks (#53bdeb) and restrained ambient materials.
+              <div class="bubble-meta">
+                <span>9:28 AM</span>
+                <span class="read-tick cyan">✓✓</span>
+              </div>
+            </div>
+
+            <!-- Live Custom Messages Appended by User -->
+            ${customMessages.map(m => `
+              <div class="message-bubble outgoing">
+                ${escapeHTML(m)}
+                <div class="bubble-meta">
+                  <span>Now</span>
+                  <span class="read-tick cyan">✓</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- Floating Composer -->
+          <form class="chat-composer" id="composerForm">
+            <button type="button" class="header-icon-btn" data-toast="Attachment sheet (Document, Camera, Gallery)" aria-label="Attachments">${renderIcon('plus')}</button>
+            <input id="composerInput" class="composer-input" placeholder="Type a message..." aria-label="Message text" autocomplete="off">
+            <button type="button" class="header-icon-btn" data-toast="Quick ₹ Rupee payment demo" aria-label="Send Rupee">₹</button>
+            <button type="button" class="header-icon-btn" data-toast="Camera preview" aria-label="Camera">${renderIcon('camera')}</button>
+            <button type="submit" class="composer-send-btn" aria-label="Send message">${renderIcon('send')}</button>
+          </form>
+        </div>
+      `;
+    }
+
+    // SCREEN 3: FIND CONTACTS
+    function viewContacts() {
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="chats" aria-label="Back to chats">${renderIcon('back')}</button>
+            <h2>Find Contacts</h2>
+          </div>
+          <button class="header-icon-btn" data-toast="Refreshing address book..." aria-label="Refresh contacts">${renderIcon('updates')}</button>
+        </header>
+
+        <div class="search-bar-wrap">
+          <div class="search-input-pill">
+            ${renderIcon('search', 'search-icon')}
+            <input id="contactSearchInput" class="search-field-input" placeholder="Search name or username..." aria-label="Search contacts">
+          </div>
+        </div>
+
+        <div class="phone-body" tabindex="0" aria-label="Contacts list">
+          <div class="bento-card" style="padding:16px">
+            <span class="status-badge">● SHA-256 Encrypted</span>
+            <div style="font-size:17px;font-weight:750;margin:8px 0 4px">Your People. One Tap Away.</div>
+            <div style="font-size:12px;color:var(--phone-text-sec);line-height:1.5;margin-bottom:12px">
+              Find contacts who are already on IndiChat. Phone numbers are hashed using SHA-256 before matching.
+            </div>
+            <button class="studio-btn" style="background:var(--brand-emerald);color:#070b0e;border:none;font-weight:700" data-toast="Contacts synced with address book">
+              Sync Address Book
+            </button>
+          </div>
+
+          <div class="bento-section-title">On IndiChat · 5</div>
+          ${CONTACTS.slice(0, 5).map(c => `
+            <div class="chat-item-row">
+              <div class="chat-avatar" style="background:${c.color}">
+                ${c.name.split(' ').map(n => n[0]).join('')}
+                ${c.online ? '<div class="online-indicator"></div>' : ''}
+              </div>
+              <div class="chat-meta-col">
+                <div class="chat-title-line">
+                  <span class="chat-name">${c.name}</span>
+                  <span style="font-size:11px;color:var(--brand-emerald)">@${c.username}</span>
+                </div>
+                <div class="chat-snippet-line">${c.bio}</div>
+              </div>
+              <button class="studio-btn" style="padding:5px 12px;font-size:11px;background:rgba(16,185,129,0.15);color:var(--brand-emerald);border-color:rgba(16,185,129,0.3)" data-chat-id="${c.id}">
+                Message
+              </button>
+            </div>
+          `).join('')}
+
+          <div class="bento-section-title" style="margin-top:16px">Invite to IndiChat · 2</div>
+          <div class="chat-item-row">
+            <div class="chat-avatar" style="background:#5f707a">K</div>
+            <div class="chat-meta-col">
+              <div class="chat-name">Kavita Desai</div>
+              <div class="chat-snippet-line">+91 98450 11223</div>
+            </div>
+            <button class="studio-btn" style="padding:5px 12px;font-size:11px" data-toast="Invite link copied to clipboard">
+              Invite
+            </button>
+          </div>
+        </div>
+
+        ${renderDock('chats')}
+      `;
+    }
+
+    // SCREEN 4: CALLS TAB
+    function viewCalls() {
+      return `
+        <header class="page-header">
+          <h2>Calls</h2>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button class="header-icon-btn" data-toast="Search calls" aria-label="Search Calls">${renderIcon('search')}</button>
+            <button class="header-icon-btn" data-nav="contacts" aria-label="Start Call">${renderIcon('plus')}</button>
+          </div>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Calls list">
+          <div class="bento-card" style="padding:16px">
+            <div style="font-size:16px;font-weight:750;margin-bottom:4px">Encrypted Calling</div>
+            <div style="font-size:12px;color:var(--phone-text-sec);line-height:1.5;margin-bottom:14px">
+              Crystal-clear peer-to-peer audio and video calls with WebRTC encryption.
+            </div>
+            <div style="display:flex;justify-content:space-around;gap:8px">
+              <button class="dock-btn" data-toast="Call link copied" style="color:var(--brand-emerald)">
+                <div style="width:40px;height:40px;border-radius:20px;background:rgba(16,185,129,0.12);display:grid;place-items:center;margin-bottom:4px">
+                  ${renderIcon('link')}
+                </div>
+                <span>Create link</span>
+              </button>
+              <button class="dock-btn" data-toast="Schedule modal preview" style="color:var(--brand-emerald)">
+                <div style="width:40px;height:40px;border-radius:20px;background:rgba(16,185,129,0.12);display:grid;place-items:center;margin-bottom:4px">
+                  ${renderIcon('calendar')}
+                </div>
+                <span>Schedule</span>
+              </button>
+              <button class="dock-btn" data-nav="contacts" style="color:var(--brand-emerald)">
+                <div style="width:40px;height:40px;border-radius:20px;background:rgba(16,185,129,0.12);display:grid;place-items:center;margin-bottom:4px">
+                  ${renderIcon('calls')}
+                </div>
+                <span>New call</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="bento-section-title">Recent Calls</div>
+          ${CALL_LOGS.map(cl => `
+            <div class="chat-item-row" style="cursor:pointer" data-toast="Call log details for ${cl.name}">
+              <div class="chat-avatar" style="background:${cl.color}">
+                ${cl.name.split(' ').map(n => n[0]).join('')}
+              </div>
+              <div class="chat-meta-col">
+                <div class="chat-name" style="${cl.type === 'missed' ? 'color:var(--accent-danger)' : ''}">${cl.name}</div>
+                <div class="chat-snippet-line">
+                  <span>${cl.type === 'missed' ? '↙ Missed' : (cl.type === 'outgoing' ? '↗ Outgoing' : '↙ Incoming')} · ${cl.date} (${cl.duration})</span>
+                </div>
+              </div>
+              <button class="header-icon-btn" data-action="${cl.isVideo ? 'video-call' : 'audio-call'}" aria-label="Call ${cl.name}">
+                ${renderIcon(cl.isVideo ? 'video' : 'calls')}
+              </button>
+            </div>
+          `).join('')}
+        </div>
+
+        ${renderDock('calls')}
+      `;
+    }
+
+    // SCREEN 5: UPDATES TAB (Stories / Status)
+    function viewUpdates() {
+      return `
+        <header class="page-header">
+          <h2>Updates</h2>
+          <button class="header-icon-btn" data-toast="Search updates" aria-label="Search updates">${renderIcon('search')}</button>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Updates feed">
+          <div class="bento-section-title">Status Stories</div>
+          <div style="display:flex;gap:12px;padding:6px 0 14px;overflow-x:auto">
+            <button style="display:flex;flex-direction:column;align-items:center;gap:6px" data-toast="Create status update modal">
+              <div class="chat-avatar" style="background:var(--phone-surface-elevated);border:2px dashed var(--brand-emerald);color:var(--brand-emerald)">
+                ${renderIcon('plus')}
+              </div>
+              <span style="font-size:10px;color:var(--phone-text-sec)">My Status</span>
+            </button>
+            ${CONTACTS.slice(0, 4).map(c => `
+              <button style="display:flex;flex-direction:column;align-items:center;gap:6px" data-toast="Viewing status story of ${c.name}">
+                <div class="chat-avatar" style="background:${c.color};border:2px solid var(--brand-emerald)">
+                  ${c.name.split(' ').map(n => n[0]).join('')}
+                </div>
+                <span style="font-size:10px;color:var(--phone-text-sec)">${c.name.split(' ')[0]}</span>
+              </button>
+            `).join('')}
+          </div>
+
+          <div class="bento-card" style="padding:16px;margin-top:10px">
+            <div style="font-size:16px;font-weight:750;margin-bottom:4px">Small Moments, Shared</div>
+            <div style="font-size:12px;color:var(--phone-text-sec);line-height:1.5;margin-bottom:12px">
+              Stories disappear after 24 hours. Protected with end-to-end encryption.
+            </div>
+            <button class="studio-btn" style="background:var(--brand-emerald);color:#070b0e;border:none;font-weight:700" data-toast="Status creation tool opened">
+              Add Text or Photo Update
+            </button>
+          </div>
+        </div>
+
+        ${renderDock('updates')}
+      `;
+    }
+
+    // SCREEN 6: COMMUNITIES TAB
+    function viewCommunities() {
+      return `
+        <header class="page-header">
+          <h2>Circles</h2>
+          <button class="header-icon-btn" data-toast="Create new community circle" aria-label="New circle">${renderIcon('plus')}</button>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Communities list">
+          <div class="bento-card" style="padding:16px">
+            <div style="font-size:16px;font-weight:750;margin-bottom:4px">Connected Circles</div>
+            <div style="font-size:12px;color:var(--phone-text-sec);line-height:1.5;margin-bottom:12px">
+              Organize topics, teams, and family chats under shared umbrella circles.
+            </div>
+            <button class="studio-btn" style="background:var(--brand-emerald);color:#070b0e;border:none;font-weight:700" data-toast="Community creation modal">
+              Create Community Circle
+            </button>
+          </div>
+
+          <div class="bento-section-title">Your Circles · 2</div>
+          <div class="bento-card">
+            <div class="menu-row" data-toast="Opened Tech Design Circle">
+              <div class="menu-row-icon">${renderIcon('communities')}</div>
+              <div class="menu-row-content">
+                <span class="menu-row-title">Tech Design Circle</span>
+                <span class="menu-row-desc">3 sub-groups · 42 members</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </div>
+            <div class="menu-row" data-toast="Opened Bengaluru Cyclists Circle">
+              <div class="menu-row-icon cyan">${renderIcon('communities')}</div>
+              <div class="menu-row-content">
+                <span class="menu-row-title">Bengaluru Cyclists</span>
+                <span class="menu-row-desc">Weekend routes &amp; meetups</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </div>
+          </div>
+        </div>
+
+        ${renderDock('communities')}
+      `;
+    }
+
+    // SCREEN 7: SETTINGS HOME ("YOU")
+    function viewSettingsHome() {
+      return `
+        <header class="page-header">
+          <h2>You</h2>
+          <button class="header-icon-btn" data-toast="Search settings" aria-label="Search Settings">${renderIcon('search')}</button>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Settings categories">
+          <!-- Profile Card with Edit shortcut -->
+          <div class="bento-card" style="padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer" data-nav="settings_profile">
+            <div style="width:54px;height:54px;border-radius:18px;background:linear-gradient(135deg, #10b981, #047857);color:#fff;font-size:22px;font-weight:800;display:grid;place-items:center">R</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:16px;font-weight:750">${escapeHTML(userSettings.displayName)}</div>
+              <div style="font-size:12px;color:var(--phone-text-sec)">@${escapeHTML(userSettings.username)} · ${escapeHTML(userSettings.phoneNumber)}</div>
+              <div style="font-size:11.5px;color:var(--brand-emerald);margin-top:2px">${escapeHTML(userSettings.statusAbout)}</div>
+            </div>
+            <span class="chevron-glyph" style="font-size:18px">›</span>
+          </div>
+
+          <!-- Account & Security Section -->
+          <div class="bento-section-title">Account &amp; Security</div>
+          <div class="bento-card">
+            <button class="menu-row" data-nav="settings_account">
+              <div class="menu-row-icon">${renderIcon('shield')}</div>
+              <div class="menu-row-content">
+                <span class="menu-row-title">Account &amp; Login</span>
+                <span class="menu-row-desc">Password, 2-Step verification, Passkeys</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </button>
+            <button class="menu-row" data-nav="settings_privacy">
+              <div class="menu-row-icon cyan">${renderIcon('lock')}</div>
+              <div class="menu-row-content">
+                <span class="menu-row-title">Privacy &amp; Read Receipts</span>
+                <span class="menu-row-desc">Last seen, cyan checkmarks, disappearing chats</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </button>
+            <button class="menu-row" data-nav="settings_devices">
+              <div class="menu-row-icon">${renderIcon('device')}</div>
+              <div class="menu-row-content">
+                <span class="menu-row-title">Linked Devices</span>
+                <span class="menu-row-desc">Web &amp; Desktop active sessions</span>
+              </div>
+              <span class="menu-row-value">${userSettings.linkedDevices.length} active</span>
+              <span class="chevron-glyph">›</span>
+            </button>
+          </div>
+
+          <!-- Chats & Media Section -->
+          <div class="bento-section-title">Chat &amp; Appearance</div>
+          <div class="bento-card">
+            <button class="menu-row" data-nav="settings_appearance">
+              <div class="menu-row-icon cyan">${renderIcon('palette')}</div>
+              <div class="menu-row-content">
+                <span class="menu-row-title">Appearance &amp; Materials</span>
+                <span class="menu-row-desc">Liquid glass, theme, blur, reduced motion</span>
+              </div>
+              <span class="menu-row-value">${userSettings.appearanceMode === 'dark' ? 'Dark Obsidian' : (userSettings.appearanceMode === 'light' ? 'Daylight' : 'System')}</span>
+              <span class="chevron-glyph">›</span>
+            </button>
+            <button class="menu-row" data-nav="settings_chats">
+              <div class="menu-row-icon">${renderIcon('palette')}</div>
+              <div class="menu-row-content">
+                <span class="menu-row-title">Chats &amp; Wallpaper</span>
+                <span class="menu-row-desc">Theme, media visibility, backup</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </button>
+            <button class="menu-row" data-nav="settings_notifications">
+              <div class="menu-row-icon cyan">${renderIcon('bell')}</div>
+              <div class="menu-row-content">
+                <span class="menu-row-title">Notifications</span>
+                <span class="menu-row-desc">Message tones, vibration, priority alerts</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </button>
+            <button class="menu-row" data-nav="settings_language">
+              <div class="menu-row-icon">${renderIcon('globe')}</div>
+              <div class="menu-row-content">
+                <span class="menu-row-title">App Language</span>
+                <span class="menu-row-desc">English, हिन्दी, मराठी, ગુજરાતી...</span>
+              </div>
+              <span class="menu-row-value">English</span>
+              <span class="chevron-glyph">›</span>
+            </button>
+          </div>
+
+          <!-- Network & Danger Zone -->
+          <div class="bento-section-title">System &amp; Session</div>
+          <div class="bento-card">
+            <button class="menu-row" data-nav="settings_server">
+              <div class="menu-row-icon">${renderIcon('cloud')}</div>
+              <div class="menu-row-content">
+                <span class="menu-row-title">Backend Server Settings</span>
+                <span class="menu-row-desc">Configure API host URL</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </button>
+            <button class="menu-row" id="settingsLogoutBtn">
+              <div class="menu-row-icon danger">${renderIcon('trash')}</div>
+              <div class="menu-row-content">
+                <span class="menu-row-title" style="color:var(--accent-danger)">Log Out</span>
+                <span class="menu-row-desc">End session on this device</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </button>
+          </div>
+
+          <div style="text-align:center;font-size:11.5px;color:var(--phone-text-sec);padding:10px 0 20px">
+            IndiChat v1.4.0 · WhatsApp-class Security &amp; Architecture
+          </div>
+        </div>
+
+        ${renderDock('settings')}
+      `;
+    }
+
+    // DEDICATED SETTINGS PAGE 1: EDIT PROFILE
+    function viewSettingsProfile() {
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="settings" aria-label="Back to settings">${renderIcon('back')}</button>
+            <h2>Edit Profile</h2>
+          </div>
+          <button class="header-action-text-btn" id="saveProfileBtn">Save</button>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Edit Profile">
+          <div style="display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:8px">
+            <div style="width:72px;height:72px;border-radius:24px;background:linear-gradient(135deg, #10b981, #047857);color:#fff;font-size:26px;font-weight:800;display:grid;place-items:center;box-shadow:0 6px 16px rgba(0,0,0,0.3)">
+              R
+            </div>
+            <button class="studio-btn" style="font-size:11.5px;padding:5px 12px" data-toast="Avatar selector opened">
+              Change Photo
+            </button>
+          </div>
+
+          <div class="bento-card">
+            <div class="form-field-group">
+              <label class="form-field-label" for="profileNameInput">Display Name</label>
+              <input id="profileNameInput" class="form-text-input" value="${escapeHTML(userSettings.displayName)}" maxlength="40">
+              <div class="form-field-hint">This name will be visible to your IndiChat contacts.</div>
+            </div>
+
+            <div class="form-field-group">
+              <label class="form-field-label" for="profileBioInput">Status / About</label>
+              <input id="profileBioInput" class="form-text-input" value="${escapeHTML(userSettings.statusAbout)}" maxlength="100">
+              <div class="form-field-hint">Share a brief status update with friends.</div>
+            </div>
+
+            <div class="form-field-group">
+              <label class="form-field-label">Username</label>
+              <input class="form-text-input" value="@${escapeHTML(userSettings.username)}" disabled style="opacity:0.6;cursor:not-allowed">
+              <div class="form-field-hint">Username is unique to your identity.</div>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:14px">
+              <button type="button" class="studio-btn" id="cancelProfileBtn" style="flex:1;background:rgba(255,255,255,0.06);color:var(--phone-text);border:1px solid var(--glass-border)">Cancel</button>
+              <button type="button" class="studio-btn" id="saveProfileBtnBottom" style="flex:1;background:var(--brand-emerald);color:#070b0e;border:none;font-weight:700">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // DEDICATED SETTINGS PAGE 2: ACCOUNT OVERVIEW
+    function viewSettingsAccount() {
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="settings" aria-label="Back to settings">${renderIcon('back')}</button>
+            <h2>Account</h2>
+          </div>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Account Settings">
+          <div class="bento-card">
+            <div class="menu-row">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Email Address</span>
+                <span class="menu-row-desc">${escapeHTML(userSettings.email)}</span>
+              </div>
+              <span class="status-badge" style="font-size:9.5px;padding:2px 6px">Verified</span>
+            </div>
+            <button class="menu-row" data-nav="settings_password">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Change Password</span>
+                <span class="menu-row-desc">Update your account login password</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </button>
+            <button class="menu-row" data-nav="settings_two_factor">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Two-Step Verification</span>
+                <span class="menu-row-desc">Require a 6-digit PIN on registration</span>
+              </div>
+              <span class="menu-row-value">${userSettings.twoFactorEnabled ? 'Enabled' : 'Off'}</span>
+              <span class="chevron-glyph">›</span>
+            </button>
+            <button class="menu-row" data-nav="settings_passkeys">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Passkeys &amp; Biometrics</span>
+                <span class="menu-row-desc">Passwordless authentication</span>
+              </div>
+              <span class="menu-row-value">${userSettings.passkeyEnabled ? 'Active' : 'Off'}</span>
+              <span class="chevron-glyph">›</span>
+            </button>
+            <button class="menu-row" data-nav="settings_phone">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Change Phone Number</span>
+                <span class="menu-row-desc">${escapeHTML(userSettings.phoneNumber)}</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </button>
+          </div>
+
+          <div class="bento-section-title" style="color:var(--accent-danger)">Danger Zone</div>
+          <div class="bento-card">
+            <button class="menu-row" data-nav="settings_delete">
+              <div class="menu-row-icon danger">${renderIcon('trash')}</div>
+              <div class="menu-row-content">
+                <span class="menu-row-title" style="color:var(--accent-danger)">Delete My Account</span>
+                <span class="menu-row-desc">Permanently erase your messages and contacts</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // DEDICATED SETTINGS PAGE 3: CHANGE PASSWORD
+    function viewSettingsPassword() {
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="settings_account" aria-label="Back to account">${renderIcon('back')}</button>
+            <h2>Change Password</h2>
+          </div>
+          <button class="header-action-text-btn" id="savePasswordBtn">Update</button>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Email Settings">
+          <div class="bento-card">
+            <div class="form-field-group">
+              <label class="form-field-label" for="currentPassInput">Current Password</label>
+              <input id="currentPassInput" type="password" class="form-text-input" placeholder="Enter current password">
+            </div>
+            <div class="form-field-group">
+              <label class="form-field-label" for="newPassInput">New Password</label>
+              <input id="newPassInput" type="password" class="form-text-input" placeholder="Minimum 8 characters">
+              <div class="form-field-hint">Must contain letters, numbers, and symbols.</div>
+            </div>
+            <div class="form-field-group">
+              <label class="form-field-label" for="confirmPassInput">Confirm New Password</label>
+              <input id="confirmPassInput" type="password" class="form-text-input" placeholder="Repeat new password">
+              <div id="passMismatchError" class="form-field-error" style="display:none">Passwords do not match.</div>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:14px">
+              <button type="button" class="studio-btn" id="cancelPasswordBtn" style="flex:1;background:rgba(255,255,255,0.06);color:var(--phone-text);border:1px solid var(--glass-border)">Cancel</button>
+              <button type="button" class="studio-btn" id="savePasswordBtnBottom" style="flex:1;background:var(--brand-emerald);color:#070b0e;border:none;font-weight:700">Update Password</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // DEDICATED SETTINGS PAGE 4: TWO-STEP VERIFICATION
+    function viewSettingsTwoFactor() {
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="settings_account" aria-label="Back to account">${renderIcon('back')}</button>
+            <h2>Two-Step Verification</h2>
+          </div>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Two Step Verification">
+          <div class="bento-card" style="padding:16px;text-align:center">
+            <div style="width:52px;height:52px;border-radius:26px;background:rgba(16,185,129,0.12);color:var(--brand-emerald);display:grid;place-items:center;margin:0 auto 10px">
+              ${renderIcon('shield')}
+            </div>
+            <div style="font-size:16px;font-weight:750">Extra Layer of Security</div>
+            <div style="font-size:12px;color:var(--phone-text-sec);line-height:1.5;margin-top:6px">
+              When enabled, you must enter a 6-digit security PIN whenever you sign in or register your phone number with IndiChat again.
+            </div>
+          </div>
+
+          <div class="bento-card">
+            <div class="menu-row">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Enable 2-Step PIN</span>
+                <span class="menu-row-desc">${userSettings.twoFactorEnabled ? 'PIN is active on your account' : 'Currently disabled'}</span>
+              </div>
+              <div class="glass-switch ${userSettings.twoFactorEnabled ? 'on' : ''}" id="twoFactorSwitch"></div>
+            </div>
+
+            ${userSettings.twoFactorEnabled ? `
+              <div class="form-field-group">
+                <label class="form-field-label" for="twoFactorPinInput">Change 6-Digit PIN</label>
+                <input id="twoFactorPinInput" type="password" maxlength="6" class="form-text-input" style="letter-spacing:6px;font-weight:700" placeholder="••••••">
+                <button class="studio-btn" id="updatePinBtn" style="margin-top:8px;background:var(--brand-emerald);color:#070b0e;border:none;font-weight:700">
+                  Update PIN
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    // DEDICATED SETTINGS PAGE 5: CHANGE PHONE NUMBER
+    function viewSettingsPhone() {
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="settings_account" aria-label="Back to account">${renderIcon('back')}</button>
+            <h2>Change Phone</h2>
+          </div>
+          <button class="header-action-text-btn" id="savePhoneBtn">Next</button>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Change Phone Number">
+          <div class="bento-card" style="padding:14px">
+            <div style="font-size:13px;color:var(--phone-text-sec);line-height:1.5">
+              Changing your phone number migrates your account info, encrypted groups, and settings.
+            </div>
+          </div>
+
+          <div class="bento-card">
+            <div class="form-field-group">
+              <label class="form-field-label">Current Phone Number</label>
+              <input class="form-text-input" value="${escapeHTML(userSettings.phoneNumber)}" disabled style="opacity:0.6;cursor:not-allowed">
+            </div>
+            <div class="form-field-group">
+              <label class="form-field-label" for="newPhoneInput">New Phone Number (+91...)</label>
+              <input id="newPhoneInput" class="form-text-input" placeholder="+91 9XXXX XXXXX">
+              <div class="form-field-hint">A verification code will be sent to confirm ownership.</div>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:14px">
+              <button type="button" class="studio-btn" id="cancelPhoneBtn" style="flex:1;background:rgba(255,255,255,0.06);color:var(--phone-text);border:1px solid var(--glass-border)">Cancel</button>
+              <button type="button" class="studio-btn" id="savePhoneBtnBottom" style="flex:1;background:var(--brand-emerald);color:#070b0e;border:none;font-weight:700">Save Phone</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // DEDICATED SETTINGS PAGE 6: PASSKEYS & BIOMETRICS
+    function viewSettingsPasskeys() {
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="settings_account" aria-label="Back to account">${renderIcon('back')}</button>
+            <h2>Passkeys</h2>
+          </div>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Passkeys and Biometrics">
+          <div class="bento-card" style="padding:16px;text-align:center">
+            <div style="width:52px;height:52px;border-radius:26px;background:rgba(6,182,212,0.12);color:var(--accent-cyan);display:grid;place-items:center;margin:0 auto 10px">
+              ${renderIcon('key')}
+            </div>
+            <div style="font-size:16px;font-weight:750">Passwordless Sign In</div>
+            <div style="font-size:12px;color:var(--phone-text-sec);line-height:1.5;margin-top:6px">
+              Sign in with your fingerprint, face recognition, or screen lock.
+            </div>
+            <span class="status-badge" style="margin-top:8px;font-size:9.5px">Hardware FIDO2 In Development</span>
+          </div>
+
+          <div class="bento-card">
+            <div class="menu-row">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Passkey Preference</span>
+                <span class="menu-row-desc">Allow biometric authorization</span>
+              </div>
+              <div class="glass-switch ${userSettings.passkeyEnabled ? 'on' : ''}" id="passkeySwitch"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // DEDICATED SETTINGS PAGE 7: DELETE ACCOUNT REVIEW
+    function viewSettingsDelete() {
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="settings_account" aria-label="Back to account">${renderIcon('back')}</button>
+            <h2 style="color:var(--accent-danger)">Delete Account</h2>
+          </div>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Delete Account Confirmation">
+          <div class="bento-card" style="padding:16px;border-color:rgba(244,63,94,0.3)">
+            <div style="font-size:15px;font-weight:750;color:var(--accent-danger);margin-bottom:6px">Warning: Permanent Action</div>
+            <div style="font-size:12px;color:var(--phone-text-sec);line-height:1.5">
+              Deleting your account will:
+              <ul style="margin:8px 0 0 18px;line-height:1.6">
+                <li>Delete your account details and profile photo</li>
+                <li>Delete you from all IndiChat communities</li>
+                <li>Erase message history on all linked devices</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="bento-card">
+            <div class="form-field-group">
+              <label class="form-field-label" for="confirmDeletePhoneInput">To confirm, type your phone number:</label>
+              <input id="confirmDeletePhoneInput" class="form-text-input" placeholder="${escapeHTML(userSettings.phoneNumber)}">
+            </div>
+          </div>
+
+          <button class="studio-btn" id="confirmDeleteAccountBtn" style="background:var(--accent-danger);color:#fff;border:none;padding:12px;font-weight:700;margin-top:8px">
+            Delete My Account
+          </button>
+        </div>
+      `;
+    }
+
+    // DEDICATED SETTINGS PAGE 8: PRIVACY
+    function viewSettingsPrivacy() {
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="settings" aria-label="Back to settings">${renderIcon('back')}</button>
+            <h2>Privacy</h2>
+          </div>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Privacy Settings">
+          <div class="bento-section-title">Who Can See My Info</div>
+          <div class="bento-card">
+            <div class="menu-row" data-toast="Privacy option: Last seen">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Last Seen &amp; Online</span>
+                <span class="menu-row-desc">Everyone</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </div>
+            <div class="menu-row" data-toast="Privacy option: Profile photo">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Profile Photo</span>
+                <span class="menu-row-desc">My Contacts</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </div>
+            <div class="menu-row" data-toast="Privacy option: Status">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Status</span>
+                <span class="menu-row-desc">My Contacts</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </div>
+          </div>
+
+          <div class="bento-section-title">Messaging Receipts</div>
+          <div class="bento-card">
+            <div class="menu-row">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Read Receipts</span>
+                <span class="menu-row-desc">Double cyan checkmarks (#53bdeb). If turned off, you won't send or receive read receipts.</span>
+              </div>
+              <div class="glass-switch ${userSettings.readReceipts ? 'on' : ''}" id="readReceiptsSwitch"></div>
+            </div>
+          </div>
+
+          <div class="bento-section-title">Disappearing Messages</div>
+          <div class="bento-card">
+            <div class="menu-row" data-toast="Default message timer: Off">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Default Message Timer</span>
+                <span class="menu-row-desc">Start new chats with timer (Off, 24h, 7d, 90d)</span>
+              </div>
+              <span class="menu-row-value">Off</span>
+              <span class="chevron-glyph">›</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // DEDICATED SETTINGS PAGE: APPEARANCE & MATERIALS
+    function viewSettingsAppearance() {
+      const currentMode = userSettings.appearanceMode || 'dark';
+      const currentMotion = userSettings.reducedMotion || 'off';
+      const isSolid = !!userSettings.reduceTransparency;
+      const blurVal = userSettings.blurRadius ?? 20;
+
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="settings" aria-label="Back to settings">${renderIcon('back')}</button>
+            <h2>Appearance &amp; Materials</h2>
+          </div>
+          <button class="header-action-text-btn" id="saveAppearanceBtn">Save</button>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Appearance and material settings">
+          <!-- Live Material Preview Hero -->
+          <div class="bento-card" style="padding:16px;text-align:center">
+            <div style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:16px;background:rgba(16,185,129,0.12);color:var(--brand-emerald);font-size:11px;font-weight:700;margin-bottom:8px">
+              ${renderIcon('palette')}
+              <span>In-App Material Engine</span>
+            </div>
+            <div style="font-size:16px;font-weight:750">Liquid Glass &amp; Appearance</div>
+            <div style="font-size:12px;color:var(--phone-text-sec);line-height:1.5;margin-top:4px">
+              Direct in-app controls for theme, backdrop diffusion, and motion. Changes apply across the entire preview immediately.
+            </div>
+          </div>
+
+          <!-- Section 1: Appearance Mode (System / Light / Dark) -->
+          <div class="bento-section-title">Theme Appearance</div>
+          <div class="bento-card" style="padding:14px">
+            <div style="font-size:12px;color:var(--phone-text-sec);margin-bottom:10px">Choose theme or synchronize with device settings:</div>
+            <div class="segmented-control" role="radiogroup" aria-label="Theme mode">
+              <button type="button" class="segmented-btn ${currentMode === 'system' ? 'active' : ''}" data-set-appearance="system">
+                <span>⚙️ System</span>
+              </button>
+              <button type="button" class="segmented-btn ${currentMode === 'light' ? 'active' : ''}" data-set-appearance="light">
+                <span>☀️ Light</span>
+              </button>
+              <button type="button" class="segmented-btn ${currentMode === 'dark' ? 'active' : ''}" data-set-appearance="dark">
+                <span>🌙 Dark</span>
+              </button>
+            </div>
+            <div style="font-size:11px;color:var(--phone-text-sec);margin-top:8px">
+              Current: <strong>${currentMode === 'dark' ? 'Dark Obsidian' : (currentMode === 'light' ? 'Daylight (Light)' : 'System Mode')}</strong>
+            </div>
+          </div>
+
+          <!-- Section 2: Backdrop Blur Radius & Solid Surfaces -->
+          <div class="bento-section-title">Liquid Glass Material</div>
+          <div class="bento-card">
+            <div class="form-field-group">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <label class="form-field-label" for="inAppBlurSlider" style="margin-bottom:0">Backdrop Blur Radius</label>
+                <span id="inAppBlurValueLabel" class="num" style="font-size:13px;font-weight:700;color:var(--brand-emerald);font-family:'JetBrains Mono',monospace">${isSolid ? 'Overridden (0 px)' : blurVal + ' px'}</span>
+              </div>
+              <input id="inAppBlurSlider" type="range" class="range-slider" min="0" max="40" value="${blurVal}" ${isSolid ? 'disabled' : ''} aria-label="Backdrop blur radius in pixels">
+              <div class="form-field-hint" style="margin-top:8px">Controls diffusion of headers, dock, and cards (0 to 40 px).</div>
+              ${isSolid ? `
+                <div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(245,158,11,0.12);color:var(--accent-warning);font-size:11.5px;display:flex;align-items:center;gap:6px">
+                  <span>⚠️</span>
+                  <span>Blur radius is overridden while Solid Surfaces fallback is enabled.</span>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Reduce Transparency Switch -->
+            <div class="menu-row">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Reduce Transparency</span>
+                <span class="menu-row-desc">Switch to opaque surfaces for maximum contrast</span>
+              </div>
+              <div class="glass-switch ${isSolid ? 'on' : ''}" id="inAppReduceSwitch" role="switch" aria-checked="${isSolid}"></div>
+            </div>
+          </div>
+
+          <!-- Section 3: Reduced Motion (System / On / Off) -->
+          <div class="bento-section-title">Motion &amp; Animations</div>
+          <div class="bento-card" style="padding:14px">
+            <div style="font-size:12px;color:var(--phone-text-sec);margin-bottom:10px">Disable nonessential animations and smooth transitions:</div>
+            <div class="segmented-control" role="radiogroup" aria-label="Reduced motion setting">
+              <button type="button" class="segmented-btn ${currentMotion === 'system' ? 'active' : ''}" data-set-motion="system">
+                <span>⚙️ System</span>
+              </button>
+              <button type="button" class="segmented-btn ${currentMotion === 'on' ? 'active' : ''}" data-set-motion="on">
+                <span>🚫 On (Reduced)</span>
+              </button>
+              <button type="button" class="segmented-btn ${currentMotion === 'off' ? 'active' : ''}" data-set-motion="off">
+                <span>✨ Off (Fluid)</span>
+              </button>
+            </div>
+            <div style="font-size:11px;color:var(--phone-text-sec);margin-top:8px;line-height:1.4">
+              When enabled, turns off spring physics, animated tab switches, and bubble transitions.
+            </div>
+          </div>
+
+          <!-- Save / Cancel Action Bar -->
+          <div style="display:flex;gap:10px;margin-top:14px;margin-bottom:20px;flex-shrink:0">
+            <button type="button" class="studio-btn" id="cancelAppearanceBtn" style="flex:1;background:rgba(255,255,255,0.06);color:var(--phone-text);border:1px solid var(--glass-border)">Cancel</button>
+            <button type="button" class="studio-btn" id="saveAppearanceBtnBottom" style="flex:1;background:var(--brand-emerald);color:#070b0e;border:none;font-weight:700">Save Changes</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // DEDICATED SETTINGS PAGE 9: CHAT SETTINGS & WALLPAPER
+    function viewSettingsChats() {
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="settings" aria-label="Back to settings">${renderIcon('back')}</button>
+            <h2>Chat Settings</h2>
+          </div>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Chat Settings">
+          <div class="bento-section-title">Display &amp; Input</div>
+          <div class="bento-card">
+            <div class="menu-row">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Enter is Send</span>
+                <span class="menu-row-desc">Pressing Enter key sends message immediately</span>
+              </div>
+              <div class="glass-switch ${userSettings.enterIsSend ? 'on' : ''}" id="enterSendSwitch"></div>
+            </div>
+            <div class="menu-row">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Media Visibility</span>
+                <span class="menu-row-desc">Show downloaded media in device gallery</span>
+              </div>
+              <div class="glass-switch ${userSettings.mediaVisibility ? 'on' : ''}" id="mediaVisSwitch"></div>
+            </div>
+            <button class="menu-row" data-toast="Wallpaper theme palette opened">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Chat Wallpaper</span>
+                <span class="menu-row-desc">Obsidian mesh with neutral refraction</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </button>
+          </div>
+
+          <div class="bento-section-title">Chat Archive &amp; History</div>
+          <div class="bento-card">
+            <button class="menu-row" data-nav="settings_backup">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Chat Backup</span>
+                <span class="menu-row-desc">Last backup: ${escapeHTML(userSettings.lastBackupDate)}</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </button>
+            <button class="menu-row" id="clearAllMessagesBtn">
+              <div class="menu-row-content">
+                <span class="menu-row-title" style="color:var(--accent-danger)">Clear All Messages</span>
+                <span class="menu-row-desc">Keep conversations but empty text bubbles</span>
+              </div>
+            </button>
+            <button class="menu-row" id="deleteAllChatsBtn">
+              <div class="menu-row-content">
+                <span class="menu-row-title" style="color:var(--accent-danger)">Delete All Chats</span>
+                <span class="menu-row-desc">Erase entire chat history</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // DEDICATED SETTINGS PAGE 10: CHAT BACKUP
+    function viewSettingsBackup() {
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="settings_chats" aria-label="Back to chats settings">${renderIcon('back')}</button>
+            <h2>Chat Backup</h2>
+          </div>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Wallpaper Settings">
+          <div class="bento-card" style="padding:16px;text-align:center">
+            <div style="width:48px;height:48px;border-radius:24px;background:rgba(16,185,129,0.12);color:var(--brand-emerald);display:grid;place-items:center;margin:0 auto 10px">
+              ${renderIcon('cloud')}
+            </div>
+            <div style="font-size:15px;font-weight:750">Cloud &amp; Local Backup</div>
+            <div style="font-size:12px;color:var(--phone-text-sec);line-height:1.5;margin-top:4px">
+              Back up your messages and media to restore if you switch devices.
+            </div>
+            <div style="font-size:11.5px;color:var(--brand-emerald);font-weight:600;margin-top:8px">
+              ${escapeHTML(userSettings.lastBackupDate)}
+            </div>
+            <button class="studio-btn" id="triggerBackupBtn" style="background:var(--brand-emerald);color:#070b0e;border:none;font-weight:700;margin-top:12px;width:100%;padding:10px">
+              Back Up Now
+            </button>
+          </div>
+
+          <div class="bento-section-title">Backup Schedule</div>
+          <div class="bento-card">
+            <div class="menu-row" data-toast="Backup frequency set to Daily">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Auto-Backup Frequency</span>
+                <span class="menu-row-desc">Daily</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </div>
+            <div class="menu-row" data-toast="Include videos: Disabled">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Include Videos</span>
+                <span class="menu-row-desc">Reduces backup size when off</span>
+              </div>
+              <div class="glass-switch"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // DEDICATED SETTINGS PAGE 11: LINKED DEVICES
+    function viewSettingsDevices() {
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="settings" aria-label="Back to settings">${renderIcon('back')}</button>
+            <h2>Linked Devices</h2>
+          </div>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Notification Settings">
+          <div class="bento-card" style="padding:16px;text-align:center">
+            <div style="width:48px;height:48px;border-radius:24px;background:rgba(16,185,129,0.12);color:var(--brand-emerald);display:grid;place-items:center;margin:0 auto 10px">
+              ${renderIcon('device')}
+            </div>
+            <div style="font-size:15px;font-weight:750">Use IndiChat Everywhere</div>
+            <div style="font-size:12px;color:var(--phone-text-sec);line-height:1.5;margin-top:4px">
+              Link up to 4 devices without keeping your phone online.
+            </div>
+            <button class="studio-btn" data-nav="settings_link_code" style="background:var(--brand-emerald);color:#070b0e;border:none;font-weight:700;margin-top:12px;width:100%;padding:10px">
+              Link a Device
+            </button>
+          </div>
+
+          <div class="bento-section-title">Active Device Sessions · ${userSettings.linkedDevices.length}</div>
+          <div class="bento-card">
+            ${userSettings.linkedDevices.map(dev => `
+              <div class="menu-row">
+                <div class="menu-row-icon">${renderIcon('device')}</div>
+                <div class="menu-row-content">
+                  <span class="menu-row-title">${escapeHTML(dev.name)}</span>
+                  <span class="menu-row-desc">${escapeHTML(dev.location)} · ${escapeHTML(dev.active)}</span>
+                </div>
+                <button class="header-icon-btn" data-revoke-id="${dev.id}" style="color:var(--accent-danger)" aria-label="Revoke ${dev.name}">
+                  ${renderIcon('trash')}
+                </button>
+              </div>
+            `).join('')}
+          </div>
+
+          <button class="studio-btn" id="logoutAllDevicesBtn" style="color:var(--accent-danger);border-color:rgba(244,63,94,0.3);margin-top:4px;padding:10px">
+            Log Out From All Other Devices
+          </button>
+        </div>
+      `;
+    }
+
+    // DEDICATED SETTINGS PAGE 12: LINK WITH CODE / QR
+    function viewSettingsLinkCode() {
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="settings_devices" aria-label="Back to devices">${renderIcon('back')}</button>
+            <h2>Link With Code</h2>
+          </div>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Language Settings">
+          <div class="bento-card" style="padding:20px;text-align:center">
+            <div style="font-size:15px;font-weight:750">Enter Pairing Code</div>
+            <div style="font-size:12px;color:var(--phone-text-sec);line-height:1.5;margin:6px 0 16px">
+              Open IndiChat Web or Desktop and enter this pairing code:
+            </div>
+
+            <div style="background:var(--glass-input-bg);border:2px dashed var(--brand-emerald);border-radius:14px;padding:14px;display:inline-block;margin-bottom:14px">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;letter-spacing:4px;color:var(--brand-emerald)">
+                7K4M-9B2X
+              </div>
+            </div>
+
+            <div>
+              <button class="studio-btn" id="copyCodeBtn" style="background:rgba(16,185,129,0.15);color:var(--brand-emerald);border-color:rgba(16,185,129,0.3);font-weight:700">
+                Copy Pairing Code
+              </button>
+            </div>
+          </div>
+
+          <div class="bento-section-title">QR Scanner Alternative</div>
+          <div class="bento-card" style="padding:16px;text-align:center">
+            <div style="font-size:13px;color:var(--phone-text-sec)">Point camera at desktop screen to scan QR code</div>
+            <button class="studio-btn" style="margin-top:10px" data-toast="Camera QR scanner active">
+              Open Camera Scanner
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // DEDICATED SETTINGS PAGE 13: NOTIFICATIONS
+    function viewSettingsNotifications() {
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="settings" aria-label="Back to settings">${renderIcon('back')}</button>
+            <h2>Notifications</h2>
+          </div>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Storage Settings">
+          <div class="bento-section-title">Messages &amp; Groups</div>
+          <div class="bento-card">
+            <div class="menu-row">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Conversation Tones</span>
+                <span class="menu-row-desc">Play sound for incoming messages</span>
+              </div>
+              <div class="glass-switch on"></div>
+            </div>
+            <div class="menu-row">
+              <div class="menu-row-content">
+                <span class="menu-row-title">High Priority Alerts</span>
+                <span class="menu-row-desc">Show notification previews at top of screen</span>
+              </div>
+              <div class="glass-switch on"></div>
+            </div>
+            <div class="menu-row">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Reaction Notifications</span>
+                <span class="menu-row-desc">Notify when someone reacts to your messages</span>
+              </div>
+              <div class="glass-switch on"></div>
+            </div>
+          </div>
+
+          <div class="bento-section-title">Vibration Pattern</div>
+          <div class="bento-card">
+            <div class="menu-row" data-toast="Vibration pattern: Default">
+              <div class="menu-row-content">
+                <span class="menu-row-title">Vibrate</span>
+                <span class="menu-row-desc">Default (Short pulse)</span>
+              </div>
+              <span class="chevron-glyph">›</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // DEDICATED SETTINGS PAGE 14: APP LANGUAGE
+    function viewSettingsLanguage() {
+      const languages = [
+        { code: 'en', name: 'English', native: 'English (US)' },
+        { code: 'hi', name: 'Hindi', native: 'हिन्दी' },
+        { code: 'mr', name: 'Marathi', native: 'मराठी' },
+        { code: 'gu', name: 'Gujarati', native: 'ગુજરાતી' },
+        { code: 'ta', name: 'Tamil', native: 'தமிழ்' },
+        { code: 'te', name: 'Telugu', native: 'తెలుగు' },
+        { code: 'bn', name: 'Bengali', native: 'বাংলা' },
+        { code: 'kn', name: 'Kannada', native: 'ಕನ್ನಡ' }
+      ];
+
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="settings" aria-label="Back to settings">${renderIcon('back')}</button>
+            <h2>App Language</h2>
+          </div>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Network Usage">
+          <div class="bento-card">
+            ${languages.map(l => `
+              <button class="menu-row" data-set-lang="${l.code}">
+                <div class="menu-row-content">
+                  <span class="menu-row-title">${l.native}</span>
+                  <span class="menu-row-desc">${l.name}</span>
+                </div>
+                ${userSettings.language === l.code ? '<span style="color:var(--brand-emerald);font-weight:800">✓</span>' : ''}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // DEDICATED SETTINGS PAGE 15: SERVER CONFIGURATION
+    function viewSettingsServer(fromAuth = false) {
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="${fromAuth ? 'auth' : 'settings'}" aria-label="Back">${renderIcon('back')}</button>
+            <h2>Server Settings</h2>
+          </div>
+          <button class="header-action-text-btn" id="saveServerBtn">Save</button>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Linked Devices">
+          <div class="bento-card">
+            <div class="form-field-group">
+              <label class="form-field-label" for="serverUrlInput">Backend Server URL</label>
+              <input id="serverUrlInput" class="form-text-input" value="${escapeHTML(userSettings.serverUrl)}">
+              <div class="form-field-hint">Specify your host LAN IP address (e.g. http://192.168.0.70:8080) for physical mobile access.</div>
+            </div>
+
+            <div style="padding:12px 14px">
+              <button class="studio-btn" id="testServerBtn" style="background:rgba(16,185,129,0.15);color:var(--brand-emerald);border-color:rgba(16,185,129,0.3);font-weight:700;width:100%">
+                Test Server Connection
+              </button>
+              <div id="serverTestStatus" style="font-size:12px;margin-top:8px;font-weight:600;display:none"></div>
+
+              <div style="display:flex;gap:10px;margin-top:14px">
+                <button type="button" class="studio-btn" id="cancelServerBtn" style="flex:1;background:rgba(255,255,255,0.06);color:var(--phone-text);border:1px solid var(--glass-border)">Cancel</button>
+                <button type="button" class="studio-btn" id="saveServerBtnBottom" style="flex:1;background:var(--brand-emerald);color:#070b0e;border:none;font-weight:700">Save Endpoint</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // AUTH SCREEN: SIGN IN / REGISTER
+    function viewAuth() {
+      return `
+        <header class="page-header">
+          <h2>IndiChat Access</h2>
+          <button class="studio-btn" data-nav="auth_server" style="font-size:11px;padding:4px 8px">
+            Server Config
+          </button>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Help and Support">
+          <div style="text-align:center;padding:16px 0 12px">
+            <div class="brand-mark" style="width:48px;height:48px;font-size:24px;border-radius:14px;margin:0 auto 10px">i</div>
+            <div style="font-size:20px;font-weight:800">IndiChat</div>
+            <div style="font-size:12px;color:var(--phone-text-sec)">${authIsRegister ? 'Create your encrypted account' : 'Sign in to start messaging'}</div>
+          </div>
+
+          <!-- Quick Demo Accounts Fill -->
+          <div class="bento-card" style="padding:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--phone-text-sec);text-transform:uppercase">Quick Demo Fill</span>
+              <span style="font-size:10.5px;color:var(--brand-emerald);font-weight:600">2FA PIN: 112233</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              ${['alice', 'bob', 'charlie'].map(u => `
+                <button class="studio-btn" data-fill-user="${u}" style="font-size:11px;padding:4px 9px">
+                  ${u === 'alice' ? '🔒 Alice' : u}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="bento-card">
+            ${authIsRegister ? `
+              <div class="form-field-group">
+                <label class="form-field-label">Full Display Name</label>
+                <input id="authNameInput" class="form-text-input" placeholder="e.g. Alice Cooper" value="Alice Cooper">
+              </div>
+              <div class="form-field-group">
+                <label class="form-field-label">Phone Number (+91...)</label>
+                <input id="authPhoneInput" class="form-text-input" placeholder="+91 98765 43210" value="+91 98765 43210">
+              </div>
+            ` : ''}
+
+            <div class="form-field-group">
+              <label class="form-field-label">Username or Phone</label>
+              <input id="authUserInput" class="form-text-input" placeholder="alice" value="alice">
+            </div>
+
+            <div class="form-field-group">
+              <label class="form-field-label">Password</label>
+              <input id="authPassInput" type="password" class="form-text-input" placeholder="Password123!" value="Password123!">
+            </div>
+          </div>
+
+          <button class="studio-btn" id="submitAuthBtn" style="background:var(--brand-emerald);color:#070b0e;border:none;padding:12px;font-weight:750;font-size:14px;border-radius:12px;margin-top:4px">
+            ${authIsRegister ? 'Create Account' : 'Sign In'}
+          </button>
+
+          <button class="studio-btn" id="switchAuthModeBtn" style="margin-top:10px;border:none;background:none;color:var(--brand-emerald);font-size:12.5px">
+            ${authIsRegister ? 'Already have an account? Sign In' : "Don't have an account? Register Now"}
+          </button>
+        </div>
+      `;
+    }
+
+    // AUTH SUB-PAGE: 2FA CHALLENGE
+    function viewAuth2FA() {
+      return `
+        <header class="page-header">
+          <div class="page-header-left">
+            <button class="header-icon-btn" data-nav="auth" aria-label="Back to sign in">${renderIcon('back')}</button>
+            <h2>Two-Step Verification</h2>
+          </div>
+        </header>
+
+        <div class="phone-body" tabindex="0" aria-label="Server Settings">
+          <div class="bento-card" style="padding:20px;text-align:center">
+            <div style="width:54px;height:54px;border-radius:27px;background:rgba(16,185,129,0.12);color:var(--brand-emerald);display:grid;place-items:center;margin:0 auto 12px">
+              ${renderIcon('shield')}
+            </div>
+            <div style="font-size:16px;font-weight:750">Enter 6-Digit PIN</div>
+            <div style="font-size:12px;color:var(--phone-text-sec);line-height:1.5;margin:6px 0 16px">
+              This account is protected with two-step verification. Enter your security PIN to authenticate.
+            </div>
+
+            <input id="twoFactorPinVerifyInput" type="password" maxlength="6" class="form-text-input" style="letter-spacing:8px;font-size:22px;font-weight:800;text-align:center;width:180px;margin:0 auto" placeholder="••••••" autofocus>
+            <div style="font-size:11px;color:var(--brand-emerald);margin-top:8px">Demo PIN: 112233</div>
+
+            <button class="studio-btn" id="submitPinAuthBtn" style="background:var(--brand-emerald);color:#070b0e;border:none;font-weight:750;width:100%;padding:11px;margin-top:16px">
+              Verify PIN &amp; Sign In
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Master Render Function
+    function render() {
+      // Update sidebar nav button active states
+      document.querySelectorAll('.nav-item-btn').forEach(btn => {
+        const matches = btn.dataset.nav === currentScreen;
+        btn.classList.toggle('active', matches);
+        btn.setAttribute('aria-pressed', matches);
+      });
+
+      // View Routing Table
+      switch (currentScreen) {
+        case 'chats': phoneView.innerHTML = viewChats(); break;
+        case 'conversation': 
+          phoneView.innerHTML = viewConversation(); 
+          const st = document.getElementById('messagesStream');
+          if (st) st.scrollTop = st.scrollHeight;
+          break;
+        case 'contacts': phoneView.innerHTML = viewContacts(); break;
+        case 'calls': phoneView.innerHTML = viewCalls(); break;
+        case 'updates': phoneView.innerHTML = viewUpdates(); break;
+        case 'communities': phoneView.innerHTML = viewCommunities(); break;
+        case 'settings': phoneView.innerHTML = viewSettingsHome(); break;
+        case 'settings_profile': phoneView.innerHTML = viewSettingsProfile(); break;
+        case 'settings_account': phoneView.innerHTML = viewSettingsAccount(); break;
+        case 'settings_password': phoneView.innerHTML = viewSettingsPassword(); break;
+        case 'settings_two_factor': phoneView.innerHTML = viewSettingsTwoFactor(); break;
+        case 'settings_phone': phoneView.innerHTML = viewSettingsPhone(); break;
+        case 'settings_passkeys': phoneView.innerHTML = viewSettingsPasskeys(); break;
+        case 'settings_delete': phoneView.innerHTML = viewSettingsDelete(); break;
+        case 'settings_privacy': phoneView.innerHTML = viewSettingsPrivacy(); break;
+        case 'settings_appearance': phoneView.innerHTML = viewSettingsAppearance(); break;
+        case 'settings_chats': phoneView.innerHTML = viewSettingsChats(); break;
+        case 'settings_backup': phoneView.innerHTML = viewSettingsBackup(); break;
+        case 'settings_devices': phoneView.innerHTML = viewSettingsDevices(); break;
+        case 'settings_link_code': phoneView.innerHTML = viewSettingsLinkCode(); break;
+        case 'settings_notifications': phoneView.innerHTML = viewSettingsNotifications(); break;
+        case 'settings_language': phoneView.innerHTML = viewSettingsLanguage(); break;
+        case 'settings_server': phoneView.innerHTML = viewSettingsServer(false); break;
+        case 'auth': phoneView.innerHTML = viewAuth(); break;
+        case 'auth_2fa': phoneView.innerHTML = viewAuth2FA(); break;
+        case 'auth_server': phoneView.innerHTML = viewSettingsServer(true); break;
+        default: phoneView.innerHTML = viewChats(); break;
+      }
+      applyMaterialPreferences();
+    }
+
+    let isFormDirty = false;
+
+    // Navigation with Unsaved Changes Protection
+    function attemptNavigation(screen) {
+      if (screen === currentScreen) return;
+      if (isFormDirty) {
+        showDialog(
+          'Discard Unsaved Changes?',
+          'You have unsaved edits on this page. Leaving will discard your modifications.',
+          'Discard & Leave',
+          () => {
+            isFormDirty = false;
+            navigateTo(screen);
+          },
+          true
+        );
+        return;
+      }
+      navigateTo(screen);
+    }
+
+    // Navigation Helper
+    function navigateTo(screen) {
+      isFormDirty = false;
+      previousScreen = currentScreen;
+      currentScreen = screen;
+      render();
+    }
+
+    // Central Appearance & Materials Controller (Synchronizes Phone + Studio Sidebar)
+    function applyMaterialPreferences() {
+      const phone = document.getElementById('phoneDevice');
+      if (!phone) return;
+
+      // 1. Theme Appearance (System / Light / Dark)
+      let isLight = false;
+      if (userSettings.appearanceMode === 'light') {
+        isLight = true;
+      } else if (userSettings.appearanceMode === 'dark') {
+        isLight = false;
+      } else {
+        // System preference
+        isLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      }
+      phone.classList.toggle('light', isLight);
+
+      // Synchronize Studio sidebar theme button & labels
+      const themeLabel = document.getElementById('themeLabelText');
+      const themeBtn = document.getElementById('themeToggleBtn');
+      if (themeLabel) {
+        if (userSettings.appearanceMode === 'system') {
+          themeLabel.textContent = `System (${isLight ? 'Light' : 'Dark'})`;
+        } else {
+          themeLabel.textContent = isLight ? 'Daylight (Light)' : 'Dark Obsidian';
+        }
+      }
+      if (themeBtn) {
+        const spanLast = themeBtn.querySelector('span:last-child');
+        if (spanLast) spanLast.textContent = isLight ? 'Switch to Dark 🌙' : 'Switch to Daylight ☀️';
+      }
+
+      // 2. Reduce Transparency (Solid surfaces fallback overrides blur)
+      const isSolid = !!userSettings.reduceTransparency;
+      phone.classList.toggle('solid', isSolid);
+
+      const blurVal = userSettings.blurRadius ?? 20;
+      phone.style.setProperty('--glass-blur', isSolid ? '0px' : blurVal + 'px');
+
+      // Synchronize Studio sidebar transparency button & blur slider
+      const reduceLabel = document.getElementById('reduceLabelText');
+      const reduceBtn = document.getElementById('reduceToggleBtn');
+      if (reduceLabel) reduceLabel.textContent = isSolid ? 'On (Solid)' : 'Off';
+      if (reduceBtn) {
+        reduceBtn.classList.toggle('active', isSolid);
+        reduceBtn.setAttribute('aria-pressed', isSolid);
+      }
+
+      const blurSlider = document.getElementById('blurSlider');
+      const blurLabel = document.getElementById('blurValueLabel');
+      if (blurSlider) {
+        blurSlider.value = blurVal;
+        blurSlider.disabled = isSolid;
+      }
+      if (blurLabel) blurLabel.textContent = isSolid ? 'Overridden (0 px)' : blurVal + ' px';
+
+      // 3. Reduced Motion (System / On / Off)
+      let isMotionReduced = false;
+      if (userSettings.reducedMotion === 'on') {
+        isMotionReduced = true;
+      } else if (userSettings.reducedMotion === 'off') {
+        isMotionReduced = false;
+      } else {
+        // System preference
+        isMotionReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      }
+      phone.classList.toggle('reduced-motion', isMotionReduced);
+      document.body.classList.toggle('reduced-motion', isMotionReduced);
+
+      // Synchronize Studio sidebar motion button & labels
+      const motionLabel = document.getElementById('motionLabelText');
+      const motionBtn = document.getElementById('motionToggleBtn');
+      if (motionLabel) {
+        if (userSettings.reducedMotion === 'system') {
+          motionLabel.textContent = `System (${isMotionReduced ? 'Reduced' : 'Fluid'})`;
+        } else {
+          motionLabel.textContent = isMotionReduced ? 'On (Reduced)' : 'Off (Fluid)';
+        }
+      }
+      if (motionBtn) {
+        motionBtn.classList.toggle('active', isMotionReduced);
+        motionBtn.setAttribute('aria-pressed', isMotionReduced);
+      }
+    }
+
+    // Studio Sidebar Toggles (Sync with userSettings)
+    function toggleTheme() {
+      if (userSettings.appearanceMode === 'dark') {
+        userSettings.appearanceMode = 'light';
+      } else if (userSettings.appearanceMode === 'light') {
+        userSettings.appearanceMode = 'system';
+      } else {
+        userSettings.appearanceMode = 'dark';
+      }
+      applyMaterialPreferences();
+      showToast(`Appearance: ${userSettings.appearanceMode.toUpperCase()}`);
+      if (currentScreen === 'settings_appearance' || currentScreen === 'settings') render();
+    }
+
+    function toggleReduceTransparency() {
+      userSettings.reduceTransparency = !userSettings.reduceTransparency;
+      applyMaterialPreferences();
+      showToast(userSettings.reduceTransparency ? 'Solid opaque fallback enabled' : 'Liquid glass enabled');
+      if (currentScreen === 'settings_appearance') render();
+    }
+
+    function toggleReducedMotion() {
+      if (userSettings.reducedMotion === 'off') {
+        userSettings.reducedMotion = 'on';
+      } else if (userSettings.reducedMotion === 'on') {
+        userSettings.reducedMotion = 'system';
+      } else {
+        userSettings.reducedMotion = 'off';
+      }
+      applyMaterialPreferences();
+      showToast(`Reduced motion: ${userSettings.reducedMotion.toUpperCase()}`);
+      if (currentScreen === 'settings_appearance') render();
+    }
+
+    // Simulated Call Modal
+    function triggerCallSimulation() {
+      document.querySelector('.dialog-overlay')?.remove();
+      const modal = document.createElement('div');
+      modal.className = 'dialog-overlay';
+      modal.innerHTML = `
+        <div class="dialog-card" style="padding:28px 20px">
+          <div style="width:70px;height:70px;border-radius:35px;background:linear-gradient(135deg, var(--brand-emerald), var(--brand-teal));color:#070b0e;font-size:26px;font-weight:800;display:grid;place-items:center;margin:0 auto 12px">A</div>
+          <div class="dialog-title">Aarav Sharma</div>
+          <div class="dialog-desc" style="color:var(--brand-emerald)">Incoming Voice Call...</div>
+          <div class="dialog-actions" style="margin-top:16px">
+            <button class="dialog-btn destructive" id="declineCallAction">Decline</button>
+            <button class="dialog-btn primary" id="acceptCallAction">Accept</button>
+          </div>
+        </div>
+      `;
+      phoneView.appendChild(modal);
+
+      document.getElementById('declineCallAction').onclick = () => {
+        modal.remove();
+        showToast('Call declined');
+      };
+      document.getElementById('acceptCallAction').onclick = () => {
+        modal.remove();
+        showToast('Call connected · 00:01');
+      };
+    }
+
+    // Simulated Remote Device Revocation Alert
+    function triggerRevocationAlert() {
+      showDialog(
+        'Device Session Revoked',
+        'This device was removed from your linked devices via remote settings. You have been logged out.',
+        'Return to Sign In',
+        () => navigateTo('auth'),
+        true
+      );
+    }
+
+    // Global Click Handler with Event Delegation
+    document.addEventListener('click', e => {
+      const target = e.target.closest('button, [data-nav], [data-chat-id], [data-filter], [data-toast], [data-action], [data-revoke-id], [data-fill-user], [data-set-lang], [data-set-appearance], [data-set-motion], #inAppReduceSwitch');
+      if (!target) return;
+
+      // Screen Navigation with unsaved changes protection
+      if (target.dataset.nav) {
+        attemptNavigation(target.dataset.nav);
+        return;
+      }
+
+      // Chat row selection
+      if (target.dataset.chatId) {
+        const found = CONTACTS.find(c => c.id === target.dataset.chatId);
+        if (found) {
+          activeContact = found;
+          customMessages = [];
+          navigateTo('conversation');
+        }
+        return;
+      }
+
+      // Conversation filter chips
+      if (target.dataset.filter) {
+        activeFilter = target.dataset.filter;
+        render();
+        return;
+      }
+
+      // Call actions
+      if (target.dataset.action === 'audio-call' || target.dataset.action === 'video-call') {
+        const isVideo = target.dataset.action === 'video-call';
+        showToast(`Starting ${isVideo ? 'Video' : 'Audio'} Call with ${activeContact.name}...`);
+        return;
+      }
+
+      // Demo auth fill
+      if (target.dataset.fillUser) {
+        const u = target.dataset.fillUser;
+        const userInput = document.getElementById('authUserInput');
+        if (userInput) userInput.value = u;
+        showToast(`Filled demo credentials for ${u}`);
+        return;
+      }
+
+      // Language selection
+      if (target.dataset.setLang) {
+        userSettings.language = target.dataset.setLang;
+        showToast('Language updated');
+        render();
+        return;
+      }
+
+      // Appearance Theme Selection (System / Light / Dark)
+      if (target.dataset.setAppearance) {
+        userSettings.appearanceMode = target.dataset.setAppearance;
+        isFormDirty = true;
+        applyMaterialPreferences();
+        render();
+        return;
+      }
+
+      // In-App Reduce Transparency switch
+      if (target.id === 'inAppReduceSwitch') {
+        userSettings.reduceTransparency = !userSettings.reduceTransparency;
+        isFormDirty = true;
+        applyMaterialPreferences();
+        render();
+        return;
+      }
+
+      // Reduced Motion Selection (System / On / Off)
+      if (target.dataset.setMotion) {
+        userSettings.reducedMotion = target.dataset.setMotion;
+        isFormDirty = true;
+        applyMaterialPreferences();
+        render();
+        return;
+      }
+
+      // Save / Cancel Appearance Form
+      if (target.id === 'saveAppearanceBtn' || target.id === 'saveAppearanceBtnBottom') {
+        isFormDirty = false;
+        applyMaterialPreferences();
+        showToast('Appearance & materials saved');
+        navigateTo('settings');
+        return;
+      }
+      if (target.id === 'cancelAppearanceBtn') {
+        isFormDirty = false;
+        navigateTo('settings');
+        return;
+      }
+
+      // Save Profile Form (Top & Bottom buttons)
+      if (target.id === 'saveProfileBtn' || target.id === 'saveProfileBtnBottom') {
+        const nameVal = document.getElementById('profileNameInput')?.value.trim();
+        const bioVal = document.getElementById('profileBioInput')?.value.trim();
+        if (!nameVal) {
+          showToast('Display name cannot be empty');
+          return;
+        }
+        userSettings.displayName = nameVal;
+        userSettings.statusAbout = bioVal || userSettings.statusAbout;
+        isFormDirty = false;
+        showToast('Profile updated successfully');
+        navigateTo('settings');
+        return;
+      }
+      if (target.id === 'cancelProfileBtn') {
+        isFormDirty = false;
+        navigateTo('settings');
+        return;
+      }
+
+      // Save Password Form (Top & Bottom buttons)
+      if (target.id === 'savePasswordBtn' || target.id === 'savePasswordBtnBottom') {
+        const cur = document.getElementById('currentPassInput')?.value;
+        const n1 = document.getElementById('newPassInput')?.value;
+        const n2 = document.getElementById('confirmPassInput')?.value;
+        const err = document.getElementById('passMismatchError');
+        if (!cur || !n1 || !n2) {
+          showToast('Please fill in all password fields');
+          return;
+        }
+        if (n1 !== n2) {
+          if (err) err.style.display = 'block';
+          return;
+        }
+        isFormDirty = false;
+        showToast('Password changed successfully');
+        navigateTo('settings_account');
+        return;
+      }
+      if (target.id === 'cancelPasswordBtn') {
+        isFormDirty = false;
+        navigateTo('settings_account');
+        return;
+      }
+
+      // Two-Factor Switch
+      if (target.id === 'twoFactorSwitch') {
+        userSettings.twoFactorEnabled = !userSettings.twoFactorEnabled;
+        showToast(userSettings.twoFactorEnabled ? '2-Step Verification enabled' : '2-Step Verification disabled');
+        render();
+        return;
+      }
+
+      // Update 2FA PIN
+      if (target.id === 'updatePinBtn') {
+        const pin = document.getElementById('twoFactorPinInput')?.value;
+        if (pin && pin.length >= 4) {
+          userSettings.twoFactorPin = pin;
+          isFormDirty = false;
+          showToast('Security PIN saved');
+        } else {
+          showToast('PIN must be at least 4 digits');
+        }
+        return;
+      }
+
+      // Passkey Switch
+      if (target.id === 'passkeySwitch') {
+        userSettings.passkeyEnabled = !userSettings.passkeyEnabled;
+        showToast(userSettings.passkeyEnabled ? 'Passkey preference enabled' : 'Passkey preference disabled');
+        render();
+        return;
+      }
+
+      // Save Phone (Top & Bottom buttons)
+      if (target.id === 'savePhoneBtn' || target.id === 'savePhoneBtnBottom') {
+        const p = document.getElementById('newPhoneInput')?.value.trim();
+        if (p && p.length > 5) {
+          userSettings.phoneNumber = p;
+          isFormDirty = false;
+          showToast('Phone number updated');
+          navigateTo('settings_account');
+        } else {
+          showToast('Please enter a valid phone number');
+        }
+        return;
+      }
+      if (target.id === 'cancelPhoneBtn') {
+        isFormDirty = false;
+        navigateTo('settings_account');
+        return;
+      }
+
+      // Delete Account
+      if (target.id === 'confirmDeleteAccountBtn') {
+        const conf = document.getElementById('confirmDeletePhoneInput')?.value.trim();
+        if (conf !== userSettings.phoneNumber) {
+          showToast('Phone number does not match');
+          return;
+        }
+        showDialog(
+          'Delete Account?',
+          'Are you completely sure? This will delete all your chats and data permanently.',
+          'Confirm Delete',
+          () => {
+            showToast('Account deleted');
+            navigateTo('auth');
+          },
+          true
+        );
+        return;
+      }
+
+      // Read Receipts Switch
+      if (target.id === 'readReceiptsSwitch') {
+        userSettings.readReceipts = !userSettings.readReceipts;
+        showToast(userSettings.readReceipts ? 'Read receipts enabled (Cyan ✓✓)' : 'Read receipts disabled');
+        render();
+        return;
+      }
+
+      // Chat Switches
+      if (target.id === 'enterSendSwitch') {
+        userSettings.enterIsSend = !userSettings.enterIsSend;
+        render();
+        return;
+      }
+      if (target.id === 'mediaVisSwitch') {
+        userSettings.mediaVisibility = !userSettings.mediaVisibility;
+        render();
+        return;
+      }
+
+      // Clear Messages & Delete Chats
+      if (target.id === 'clearAllMessagesBtn') {
+        showDialog('Clear All Messages?', 'This will empty messages across all conversations.', 'Clear All', () => showToast('Messages cleared'), true);
+        return;
+      }
+      if (target.id === 'deleteAllChatsBtn') {
+        showDialog('Delete All Chats?', 'This will erase all conversations from your list.', 'Delete All', () => showToast('Chats deleted'), true);
+        return;
+      }
+
+      // Trigger Backup
+      if (target.id === 'triggerBackupBtn') {
+        showToast('Creating backup snapshot...');
+        setTimeout(() => {
+          userSettings.lastBackupDate = 'Today, ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (14.8 MB)';
+          showToast('Backup completed (14.8 MB)');
+          render();
+        }, 800);
+        return;
+      }
+
+      // Revoke Individual Device
+      if (target.dataset.revokeId) {
+        const id = target.dataset.revokeId;
+        userSettings.linkedDevices = userSettings.linkedDevices.filter(d => d.id !== id);
+        showToast('Device session revoked');
+        render();
+        return;
+      }
+
+      // Log Out All Other Devices
+      if (target.id === 'logoutAllDevicesBtn') {
+        userSettings.linkedDevices = [];
+        showToast('All other sessions terminated');
+        render();
+        return;
+      }
+
+      // Copy Code
+      if (target.id === 'copyCodeBtn') {
+        showToast('Pairing code 7K4M-9B2X copied to clipboard');
+        return;
+      }
+
+      // Server Config Save (Top & Bottom buttons) & Test
+      if (target.id === 'saveServerBtn' || target.id === 'saveServerBtnBottom') {
+        const val = document.getElementById('serverUrlInput')?.value.trim();
+        if (val) {
+          userSettings.serverUrl = val;
+          isFormDirty = false;
+          showToast('Server URL saved');
+          navigateTo(previousScreen === 'auth' ? 'auth' : 'settings');
+        }
+        return;
+      }
+      if (target.id === 'cancelServerBtn') {
+        isFormDirty = false;
+        navigateTo(previousScreen === 'auth' ? 'auth' : 'settings');
+        return;
+      }
+      if (target.id === 'testServerBtn') {
+        const statusBox = document.getElementById('serverTestStatus');
+        if (statusBox) {
+          statusBox.style.display = 'block';
+          statusBox.style.color = 'var(--brand-emerald)';
+          statusBox.textContent = 'Testing connection...';
+          setTimeout(() => {
+            statusBox.textContent = '✅ Connected to backend successfully!';
+          }, 600);
+        }
+        return;
+      }
+
+      // Auth Screen Form
+      if (target.id === 'submitAuthBtn') {
+        const u = document.getElementById('authUserInput')?.value.trim();
+        if (u === 'alice' && !authIsRegister) {
+          // Alice has 2FA enabled!
+          navigateTo('auth_2fa');
+        } else {
+          showToast(`Welcome back, ${u || 'User'}!`);
+          navigateTo('chats');
+        }
+        return;
+      }
+      if (target.id === 'switchAuthModeBtn') {
+        authIsRegister = !authIsRegister;
+        render();
+        return;
+      }
+      if (target.id === 'submitPinAuthBtn') {
+        const pin = document.getElementById('twoFactorPinVerifyInput')?.value;
+        if (pin === '112233' || pin?.length === 6) {
+          showToast('PIN verified · Session authenticated');
+          navigateTo('chats');
+        } else {
+          showToast('Incorrect PIN (Hint: 112233)');
+        }
+        return;
+      }
+
+      // Logout from Settings
+      if (target.id === 'settingsLogoutBtn') {
+        showDialog('Log Out', 'Are you sure you want to end your IndiChat session?', 'Log Out', () => {
+          showToast('Logged out');
+          navigateTo('auth');
+        }, true);
+        return;
+      }
+
+      // Generic Toast triggers
+      if (target.dataset.toast) {
+        showToast(target.dataset.toast);
+        return;
+      }
+    });
+
+    // Chat Composer Submission
+    document.addEventListener('submit', e => {
+      if (e.target.id === 'composerForm') {
+        e.preventDefault();
+        const input = document.getElementById('composerInput');
+        const text = input?.value.trim();
+        if (text) {
+          customMessages.push(text);
+          input.value = '';
+          render();
+          const stream = document.getElementById('messagesStream');
+          if (stream) stream.scrollTop = stream.scrollHeight;
+          const newInput = document.getElementById('composerInput');
+          if (newInput) newInput.focus();
+        }
+      }
+    });
+
+    // Real-Time Search Filtering & Unsaved Changes Tracking
+    document.addEventListener('input', e => {
+      const formInputIds = [
+        'profileNameInput', 'profileBioInput', 'currentPassInput', 
+        'newPassInput', 'confirmPassInput', 'newPhoneInput', 
+        'serverUrlInput', 'twoFactorPinInput'
+      ];
+      if (formInputIds.includes(e.target.id)) {
+        isFormDirty = true;
+      }
+
+      // In-App Blur Slider live update
+      if (e.target.id === 'inAppBlurSlider') {
+        const v = parseInt(e.target.value, 10);
+        userSettings.blurRadius = v;
+        isFormDirty = true;
+        const lbl = document.getElementById('inAppBlurValueLabel');
+        if (lbl) lbl.textContent = userSettings.reduceTransparency ? 'Overridden (0 px)' : v + ' px';
+        applyMaterialPreferences();
+        return;
+      }
+
+      if (e.target.id === 'chatSearchInput') {
+        const q = e.target.value.toLowerCase();
+        const container = document.getElementById('chatsListContainer');
+        if (container) {
+          const rows = container.querySelectorAll('.chat-item-row');
+          rows.forEach(r => {
+            const name = r.querySelector('.chat-name').textContent.toLowerCase();
+            const snip = r.querySelector('.chat-snippet').textContent.toLowerCase();
+            r.style.display = (name.includes(q) || snip.includes(q)) ? 'flex' : 'none';
+          });
+        }
+        return;
+      }
+
+      if (e.target.id === 'contactSearchInput') {
+        const q = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('#phoneView .chat-item-row');
+        rows.forEach(r => {
+          const name = r.querySelector('.chat-name')?.textContent.toLowerCase() || '';
+          const snip = r.querySelector('.chat-snippet')?.textContent.toLowerCase() || '';
+          r.style.display = (name.includes(q) || snip.includes(q)) ? 'flex' : 'none';
+        });
+        return;
+      }
+    });
+
+    // Studio Sidebar Listeners
+    document.getElementById('themeToggleBtn').onclick = toggleTheme;
+    document.getElementById('reduceToggleBtn').onclick = toggleReduceTransparency;
+    const motionBtn = document.getElementById('motionToggleBtn');
+    if (motionBtn) motionBtn.onclick = toggleReducedMotion;
+    document.getElementById('simCallBtn').onclick = triggerCallSimulation;
+    document.getElementById('simRevokeBtn').onclick = triggerRevocationAlert;
+
+    const blurSlider = document.getElementById('blurSlider');
+    const blurValueLabel = document.getElementById('blurValueLabel');
+    blurSlider.oninput = e => {
+      const v = parseInt(e.target.value, 10);
+      userSettings.blurRadius = v;
+      applyMaterialPreferences();
+      if (currentScreen === 'settings_appearance') {
+        const inAppSlider = document.getElementById('inAppBlurSlider');
+        const inAppLbl = document.getElementById('inAppBlurValueLabel');
+        if (inAppSlider) inAppSlider.value = v;
+        if (inAppLbl) inAppLbl.textContent = userSettings.reduceTransparency ? 'Overridden (0 px)' : v + ' px';
+      }
+    };
+
+    // Apply stored appearance & material settings on initial boot
+    applyMaterialPreferences();
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>

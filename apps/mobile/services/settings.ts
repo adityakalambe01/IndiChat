@@ -5,6 +5,8 @@ import { storage, STORAGE_KEYS } from './storage';
 export type PrivacyOption = 'everyone' | 'contacts' | 'contacts_except' | 'nobody';
 export type OnlinePrivacyOption = 'everyone' | 'same_as_last_seen';
 export type FontSizeOption = 'small' | 'medium' | 'large';
+export type AppearanceModeOption = 'system' | 'light' | 'dark';
+export type ReducedMotionOption = 'system' | 'on' | 'off';
 
 export interface LinkedDevice {
   id: string;
@@ -51,6 +53,12 @@ export interface MobileAppSettings {
 
   // App Language
   language: string;
+
+  // Appearance & Materials (Client-side preferences)
+  appearanceMode: AppearanceModeOption;
+  blurRadius: number; // 0 to 40 blur level (maps to native intensity 0-100)
+  reduceTransparency: boolean;
+  reducedMotion: ReducedMotionOption;
 }
 
 const DEFAULT_SETTINGS: MobileAppSettings = {
@@ -81,6 +89,12 @@ const DEFAULT_SETTINGS: MobileAppSettings = {
   backupSize: '0 MB',
 
   language: 'en',
+
+  // System accessibility defaults
+  appearanceMode: 'system',
+  blurRadius: 20,
+  reduceTransparency: false,
+  reducedMotion: 'system',
 };
 
 type SettingsListener = (settings: MobileAppSettings) => void;
@@ -181,7 +195,7 @@ class SettingsService {
     }
   }
 
-  private updateLocal(partial: Partial<MobileAppSettings>): MobileAppSettings {
+  public updateLocal(partial: Partial<MobileAppSettings>): MobileAppSettings {
     this.settings = { ...this.settings, ...partial };
     this.persist();
     this.notify();
@@ -191,14 +205,43 @@ class SettingsService {
   public update(partial: Partial<MobileAppSettings>): MobileAppSettings {
     this.updateLocal(partial);
 
-    // Sync to backend asynchronously
-    storage.getItem(STORAGE_KEYS.ACCESS_TOKEN).then((token) => {
-      if (token) {
-        api.updateUserSettings(partial).catch((err) => {
-          console.warn('Failed to persist settings to backend:', err);
-        });
+    // Sync only backend-supported fields asynchronously
+    const backendKeys = [
+      'passkeyEnabled',
+      'twoFactorEnabled',
+      'securityNotifications',
+      'statusAbout',
+      'privacyLastSeen',
+      'privacyOnline',
+      'privacyProfilePhoto',
+      'privacyLinks',
+      'privacyStatus',
+      'privacyExcludedContacts',
+      'readReceipts',
+      'enterIsSend',
+      'mediaVisibility',
+      'fontSize',
+      'language',
+    ] as const;
+
+    const backendPayload: any = {};
+    let hasBackendKey = false;
+    for (const key of backendKeys) {
+      if (key in partial) {
+        backendPayload[key] = (partial as any)[key];
+        hasBackendKey = true;
       }
-    });
+    }
+
+    if (hasBackendKey) {
+      storage.getItem(STORAGE_KEYS.ACCESS_TOKEN).then((token) => {
+        if (token) {
+          api.updateUserSettings(backendPayload).catch((err) => {
+            console.warn('Failed to persist settings to backend:', err);
+          });
+        }
+      });
+    }
 
     return this.getSettings();
   }
