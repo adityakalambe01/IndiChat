@@ -1,24 +1,25 @@
 import React, { useState } from 'react';
 import { User, Conversation, Message } from '@chat/shared-types';
 import {
-  MessageSquarePlus,
   Search,
-  LogOut,
-  Sun,
-  Moon,
   Check,
   CheckCheck,
   Users,
-  Bell,
-  BellRing,
+  MoreVertical,
+  Plus,
   BellOff,
   X,
-  Settings
+  Archive,
+  Clock,
+  Settings as SettingsIcon,
+  LogOut,
+  Sparkles,
 } from 'lucide-react';
 import { notificationService, NotificationPermissionStatus } from '../../services/notifications';
 import { SettingsView, SettingsSubView } from '../settings/SettingsView';
 import { APP_NAME } from '../../config/appConfig';
 
+type FilterType = 'all' | 'unread' | 'favourites' | 'groups';
 
 interface ChatSidebarProps {
   currentUser: User;
@@ -34,6 +35,10 @@ interface ChatSidebarProps {
   onUpdateUser?: (updated: Partial<User>) => void;
   onClearAllMessages?: () => void;
   onDeleteAllChats?: () => void;
+  onOpenArchived?: () => void;
+  onOpenCommunities?: () => void;
+  onOpenSettings?: () => void;
+  typingUsers?: Record<string, boolean>;
 }
 
 export const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -50,10 +55,17 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onUpdateUser,
   onClearAllMessages,
   onDeleteAllChats,
+  onOpenArchived,
+  onOpenCommunities,
+  onOpenSettings,
+  typingUsers = {},
 }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsSubView, setSettingsSubView] = useState<SettingsSubView>('menu');
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [isBannerDismissed, setIsBannerDismissed] = useState(() => notificationService.isDismissed());
   const [notificationStatus, setNotificationStatus] = useState<NotificationPermissionStatus>(() =>
     notificationService.getPermissionStatus()
   );
@@ -65,35 +77,44 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     }
 
     if (notificationStatus === 'granted') {
-      notificationService.showNotification(`${APP_NAME} Notifications`, {
+      notificationService.showNotification('WhatsApp Notifications', {
         body: 'Push notifications are enabled and active!',
         username: currentUser.username || currentUser.displayName,
       });
       return;
     }
 
-    if (notificationStatus === 'denied') {
-      alert('Notifications are blocked in your browser settings. Please enable notifications for this site to receive message alerts.');
-      return;
-    }
-
     const res = await notificationService.requestPermission();
     setNotificationStatus(res);
     if (res === 'granted') {
-      notificationService.showNotification(`${APP_NAME} Notifications Active`, {
+      setIsBannerDismissed(true);
+      notificationService.showNotification('WhatsApp Notifications Active', {
         body: 'You will now receive desktop alerts for incoming messages.',
         username: currentUser.username || currentUser.displayName,
       });
     }
-
   };
 
-
+  // Filter conversations
   const filteredConversations = conversations.filter((c) => {
     const title = getConversationTitle(c, currentUser.id).toLowerCase();
     const query = searchQuery.toLowerCase();
-    return title.includes(query);
+    if (!title.includes(query)) return false;
+
+    if (activeFilter === 'unread') {
+      return (c.unreadCount || 0) > 0;
+    }
+    if (activeFilter === 'groups') {
+      return c.type === 'GROUP';
+    }
+    if (activeFilter === 'favourites') {
+      const favs: string[] = JSON.parse(localStorage.getItem('wa_favourite_chat_ids') || '[]');
+      return favs.includes(c.id);
+    }
+    return true;
   });
+
+  const totalUnreadCount = conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
 
   function getConversationTitle(c: Conversation, currentUserId: string): string {
     if (c.type === 'GROUP' && c.title) return c.title;
@@ -113,7 +134,12 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     if (date.toDateString() === now.toDateString()) {
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 3600 * 24));
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) {
+      return date.toLocaleDateString([], { weekday: 'long' });
+    }
+    return date.toLocaleDateString([], { month: '2-digit', day: '2-digit', year: 'numeric' });
   }
 
   function renderReceipt(lastMsg: Conversation['lastMessage']) {
@@ -132,9 +158,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   function renderMessageSnippet(msg: Conversation['lastMessage']): string {
     if (!msg) return 'No messages yet';
-    if (msg.type === 'STICKER') {
-      return '🏷️ Sticker';
-    }
+    if (msg.type === 'STICKER') return '🏷️ Sticker';
     if (msg.type === 'IMAGE') {
       try {
         const data = JSON.parse(msg.content);
@@ -143,23 +167,11 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         }
         return data.caption ? `📷 ${data.caption}` : '📷 Photo';
       } catch {
-        if (msg.content?.toLowerCase().includes('.gif')) {
-          return '🎞️ GIF';
-        }
-        return '📷 Photo';
+        return msg.content?.toLowerCase().includes('.gif') ? '🎞️ GIF' : '📷 Photo';
       }
     }
-    if (msg.type === 'VIDEO') {
-      try {
-        const data = JSON.parse(msg.content);
-        return data.caption ? `🎥 ${data.caption}` : '🎥 Video';
-      } catch {
-        return '🎥 Video';
-      }
-    }
-    if (msg.type === 'AUDIO') {
-      return '🎵 Audio';
-    }
+    if (msg.type === 'VIDEO') return '🎥 Video';
+    if (msg.type === 'AUDIO') return '🎵 Audio';
     if (msg.type === 'DOCUMENT') {
       try {
         const data = JSON.parse(msg.content);
@@ -191,89 +203,173 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   return (
     <aside className={`sidebar ${!isMobileOpen ? 'collapsed' : ''}`}>
-      {/* Header */}
-      <div className="sidebar-header">
-        <div
-          className="sidebar-user"
-          title={`${currentUser.displayName} — Click for Settings`}
-          onClick={() => {
-            setSettingsSubView('menu');
-            setIsSettingsOpen(true);
-          }}
-          style={{ cursor: 'pointer' }}
-        >
-          <div className="avatar online">
-            {currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : 'U'}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{currentUser.displayName}</span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>@{currentUser.username}</span>
-          </div>
-        </div>
+      {/* WhatsApp Header matching Screenshot 1 */}
+      <div className="wa-sidebar-header">
+        <h1 className="wa-header-title">WhatsApp</h1>
 
-        <div className="sidebar-actions">
-          <button
-            className={`icon-btn ${notificationStatus === 'granted' ? 'active-accent' : ''}`}
-            onClick={handleToggleNotifications}
-            title={
-              notificationStatus === 'granted'
-                ? 'Notifications Enabled (Click to test)'
-                : notificationStatus === 'denied'
-                ? 'Notifications Blocked in Browser'
-                : 'Enable Desktop Notifications'
-            }
-            aria-label="Toggle Notifications"
-          >
-            {notificationStatus === 'granted' ? (
-              <BellRing size={20} color="#00a884" />
-            ) : notificationStatus === 'denied' ? (
-              <BellOff size={20} color="#ea4335" />
-            ) : (
-              <Bell size={20} />
+        <div className="wa-header-actions">
+          {/* 3-dots Menu */}
+          <div style={{ position: 'relative' }}>
+            <button
+              className="icon-btn"
+              onClick={() => setShowMoreMenu((prev) => !prev)}
+              title="More options"
+              aria-label="More options"
+            >
+              <MoreVertical size={20} />
+            </button>
+
+            {showMoreMenu && (
+              <div className="wa-dropdown-menu">
+                <button
+                  className="wa-dropdown-item"
+                  onClick={() => {
+                    setShowMoreMenu(false);
+                    onOpenNewChat();
+                  }}
+                >
+                  <span>New group</span>
+                </button>
+                <button
+                  className="wa-dropdown-item"
+                  onClick={() => {
+                    setShowMoreMenu(false);
+                    onOpenCommunities?.();
+                  }}
+                >
+                  <span>New community</span>
+                </button>
+                <button
+                  className="wa-dropdown-item"
+                  onClick={() => {
+                    setShowMoreMenu(false);
+                    onOpenArchived?.();
+                  }}
+                >
+                  <span>Starred messages</span>
+                </button>
+                <button
+                  className="wa-dropdown-item"
+                  onClick={() => {
+                    setShowMoreMenu(false);
+                    onOpenSettings ? onOpenSettings() : setIsSettingsOpen(true);
+                  }}
+                >
+                  <SettingsIcon size={16} />
+                  <span>Settings</span>
+                </button>
+                <button
+                  className="wa-dropdown-item"
+                  onClick={() => {
+                    setShowMoreMenu(false);
+                    onToggleTheme();
+                  }}
+                >
+                  <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+                </button>
+                <button
+                  className="wa-dropdown-item"
+                  onClick={() => {
+                    setShowMoreMenu(false);
+                    onLogout();
+                  }}
+                  style={{ color: '#ef4444' }}
+                >
+                  <LogOut size={16} />
+                  <span>Log out</span>
+                </button>
+              </div>
             )}
-          </button>
+          </div>
+
+          {/* Green circular '+' button */}
           <button
-            className="icon-btn"
-            onClick={() => {
-              setSettingsSubView('menu');
-              setIsSettingsOpen(true);
-            }}
-            title="Settings"
-            aria-label="Settings"
-            id="sidebar-settings-btn"
+            className="wa-header-green-btn"
+            onClick={onOpenNewChat}
+            title="New chat"
+            aria-label="New chat"
+            id="btn-whatsapp-new-chat"
           >
-            <Settings size={20} />
-          </button>
-          <button className="icon-btn" onClick={onOpenNewChat} title="New Chat or Group" aria-label="New Chat">
-            <MessageSquarePlus size={20} />
-          </button>
-          <button className="icon-btn" onClick={onToggleTheme} title="Toggle Theme" aria-label="Toggle Theme">
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-          <button className="icon-btn" onClick={onLogout} title="Sign Out" aria-label="Sign Out">
-            <LogOut size={19} />
+            <Plus size={20} strokeWidth={2.6} />
           </button>
         </div>
       </div>
 
-      {/* Notification Banner */}
-      {notificationStatus === 'default' && !notificationService.isDismissed() && (
+      {/* Search Input */}
+      <div className="sidebar-search">
+        <div className="search-input-wrapper">
+          <Search size={18} color="var(--text-muted)" />
+          <input
+            type="text"
+            placeholder="Search or start a new chat"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* Filter Chips Pills Row matching Screenshot 1 */}
+      <div className="wa-filter-chips-row">
+        <button
+          className={`wa-filter-chip ${activeFilter === 'all' ? 'active' : ''}`}
+          onClick={() => setActiveFilter('all')}
+        >
+          All
+        </button>
+
+        <button
+          className={`wa-filter-chip ${activeFilter === 'unread' ? 'active' : ''}`}
+          onClick={() => setActiveFilter('unread')}
+        >
+          <span>Unread</span>
+          {totalUnreadCount > 0 && (
+            <span className="wa-chip-badge">{totalUnreadCount}</span>
+          )}
+        </button>
+
+        <button
+          className={`wa-filter-chip ${activeFilter === 'favourites' ? 'active' : ''}`}
+          onClick={() => setActiveFilter('favourites')}
+        >
+          Favourites
+        </button>
+
+        <button
+          className={`wa-filter-chip ${activeFilter === 'groups' ? 'active' : ''}`}
+          onClick={() => setActiveFilter('groups')}
+        >
+          Groups
+        </button>
+
+        <button
+          className="wa-filter-chip wa-filter-add"
+          onClick={() => {
+            alert('Custom label filters: You can organize your chats with custom tags and labels.');
+          }}
+          title="Add custom filter"
+        >
+          <Plus size={14} />
+        </button>
+      </div>
+
+      {/* Notification Banner matching Screenshot 1 */}
+      {!isBannerDismissed && notificationStatus !== 'granted' && (
         <div className="sidebar-notification-banner" onClick={handleToggleNotifications}>
           <div className="sidebar-notification-banner-icon">
-            <BellRing size={20} color="#00a884" />
+            <BellOff size={18} color="#00a884" />
           </div>
           <div className="sidebar-notification-banner-content">
-            <span className="sidebar-notification-banner-title">Get notified of new messages</span>
-            <span className="sidebar-notification-banner-link">
-              Turn on desktop notifications &gt;
+            <span className="sidebar-notification-banner-title">
+              Message and call notifications are off.{' '}
+              <span className="sidebar-notification-banner-link">Turn on</span>
             </span>
           </div>
           <button
             className="sidebar-notification-banner-close"
             onClick={(e) => {
               e.stopPropagation();
+              setIsBannerDismissed(true);
               notificationService.setDismissed(true);
-              setNotificationStatus(notificationService.getPermissionStatus());
             }}
             aria-label="Dismiss banner"
           >
@@ -282,31 +378,27 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         </div>
       )}
 
-      {/* Search */}
-      <div className="sidebar-search">
-        <div className="search-input-wrapper">
-          <Search size={18} color="var(--text-muted)" />
-          <input
-            type="text"
-            placeholder="Search or start new chat"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+      {/* Archived Row matching Screenshot 1 */}
+      <div
+        className="wa-archived-row"
+        onClick={() => (onOpenArchived ? onOpenArchived() : setActiveFilter('all'))}
+        role="button"
+        tabIndex={0}
+      >
+        <div className="wa-archived-left">
+          <Archive size={19} className="wa-archived-icon" />
+          <span className="wa-archived-title">Archived</span>
         </div>
+        <span className="wa-archived-count">18</span>
       </div>
 
       {/* Conversation List */}
       <div className="conversation-list">
         {filteredConversations.length === 0 ? (
-          <div style={{
-            padding: '32px 16px',
-            textAlign: 'center',
-            color: 'var(--text-secondary)',
-            fontSize: '0.9rem'
-          }}>
+          <div className="wa-empty-list-notice">
             {searchQuery ? 'No chats found matching your search.' : (
               <div>
-                <p>No conversations yet.</p>
+                <p>No conversations in this filter.</p>
                 <button
                   className="btn-primary"
                   style={{ marginTop: '12px', padding: '8px 16px', fontSize: '0.85rem' }}
@@ -324,6 +416,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
             const isOnline = other?.user?.isOnline;
             const isActive = conv.id === activeConversationId;
             const unread = conv.unreadCount || 0;
+            const isContactTyping = other ? Boolean(typingUsers[other.userId]) : false;
 
             return (
               <div
@@ -338,17 +431,23 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 <div className="conversation-content">
                   <div className="conversation-row">
                     <span className="conversation-title">{title}</span>
-                    <span className="conversation-time">
+                    <span
+                      className="conversation-time"
+                      style={unread > 0 ? { color: '#25d366', fontWeight: 600 } : undefined}
+                    >
                       {formatTime(conv.lastMessage?.createdAt || conv.updatedAt)}
                     </span>
                   </div>
 
                   <div className="conversation-subtitle">
                     <div className="last-message-snippet">
-                      {renderReceipt(conv.lastMessage)}
-                      <span>
-                        {renderMessageSnippet(conv.lastMessage)}
-                      </span>
+                      {!isContactTyping && renderReceipt(conv.lastMessage)}
+
+                      {isContactTyping ? (
+                        <span className="wa-typing-snippet">typing...</span>
+                      ) : (
+                        <span>{renderMessageSnippet(conv.lastMessage)}</span>
+                      )}
                     </div>
 
                     {unread > 0 && (

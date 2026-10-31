@@ -1,0 +1,27 @@
+{
+  "short_name": "IndiChat",
+  "name": "IndiChat Real-Time Messenger",
+  "description": "Production-ready real-time messaging platform with end-to-end messaging, presence, receipts, and calls.",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "type": "image/png",
+      "sizes": "32x32"
+    },
+    {
+      "src": "/logo-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/logo-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#111b21",
+  "theme_color": "#111b21",
+  "display": "standalone",
+  "orientation": "portrait"
+}

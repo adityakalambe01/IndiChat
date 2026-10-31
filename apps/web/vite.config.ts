@@ -156,6 +156,7 @@ export default defineConfig(({ mode }) => {
   const appName = env.VITE_APP_NAME || env.APP_NAME || 'IndiChat';
 
   return {
+    base: './',
     envDir: rootDir,
     define: {
       'import.meta.env.VITE_APP_NAME': JSON.stringify(appName),

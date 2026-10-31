@@ -19,6 +19,16 @@ for (const folder of releaseFolders) {
   }
 }
 
+// Synchronize store and distribution graphics
+const androidIconSrc = path.join(rootDir, 'logo', 'android', 'icon-1024x1024.png');
+const playstoreSrc = path.join(rootDir, 'logo', 'android', 'playstore-512.png');
+if (fs.existsSync(androidIconSrc)) {
+  fs.copyFileSync(androidIconSrc, path.join(releaseAndroidDir, 'icon.png'));
+}
+if (fs.existsSync(playstoreSrc)) {
+  fs.copyFileSync(playstoreSrc, path.join(releaseAndroidDir, 'playstore-512.png'));
+}
+
 // Ensure Android SDK environment variables are set
 if (!process.env.ANDROID_HOME && !process.env.ANDROID_SDK_ROOT) {
   const localPropsPath = path.join(androidDir, 'local.properties');
@@ -42,6 +52,15 @@ if (!process.env.ANDROID_HOME && !process.env.ANDROID_SDK_ROOT) {
   }
 }
 
+// Ensure Node module resolution paths are properly configured for monorepo
+const mobileNodeModules = path.join(mobileDir, 'node_modules');
+const rootNodeModules = path.join(rootDir, 'node_modules');
+const nodePaths = [mobileNodeModules, rootNodeModules];
+if (process.env.NODE_PATH) {
+  nodePaths.push(process.env.NODE_PATH);
+}
+process.env.NODE_PATH = nodePaths.join(path.delimiter);
+
 // Ensure Java environment is configured (Java 17/21 compatibility for Gradle)
 if (!process.env.JAVA_HOME) {
   const candidateJavaHomes = [
@@ -56,6 +75,17 @@ if (!process.env.JAVA_HOME) {
       process.env.JAVA_HOME = jhome;
       process.env.PATH = `${path.join(jhome, 'bin')}:${process.env.PATH}`;
       break;
+    }
+  }
+
+  if (!process.env.JAVA_HOME && process.platform === 'darwin') {
+    try {
+      const jh = spawnSync('/usr/libexec/java_home', [], { encoding: 'utf8' });
+      if (jh.status === 0 && jh.stdout.trim()) {
+        process.env.JAVA_HOME = jh.stdout.trim();
+      }
+    } catch (e) {
+      // Ignore error if java_home binary is unavailable
     }
   }
 }
@@ -77,6 +107,9 @@ console.log(`Build Bundle (.aab):  ${buildBundle ? 'YES' : 'NO'}`);
 console.log(`Clean First:          ${cleanBeforeBuild ? 'YES' : 'NO'}`);
 if (process.env.ANDROID_HOME) {
   console.log(`ANDROID_HOME:         ${process.env.ANDROID_HOME}`);
+}
+if (process.env.JAVA_HOME) {
+  console.log(`JAVA_HOME:            ${process.env.JAVA_HOME}`);
 }
 console.log('====================================================\n');
 

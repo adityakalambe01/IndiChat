@@ -9,9 +9,12 @@ import { STORAGE_KEYS, storage } from '../services/storage';
 import { settingsService } from '../services/settings';
 import { callHistoryService } from '../services/callHistory';
 import { Ionicons } from '@expo/vector-icons';
+import { ThemeProvider, useTheme } from '../theme/useTheme';
+import { LiquidGlassSurface } from '../components/LiquidGlassSurface';
 
-export default function RootLayout() {
+function RootNavigation() {
   const router = useRouter();
+  const { palette, isDark } = useTheme();
   const [sessionRevokedReason, setSessionRevokedReason] = useState<string | null>(null);
   const [incomingCall, setIncomingCall] = useState<{
     senderUserId: string;
@@ -70,25 +73,48 @@ export default function RootLayout() {
   }, [router]);
 
   return (
-    <>
-      <StatusBar style="light" />
+    <View style={{ flex: 1, backgroundColor: palette.bg }}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: '#111b21' },
+          contentStyle: { backgroundColor: palette.bg },
+          animation: 'slide_from_right',
         }}
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="chats" options={{ headerShown: false }} />
         <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="settings" options={{ headerShown: false }} />
+        <Stack.Screen name="contacts" options={{ headerShown: false }} />
+
+        {/* Dedicated Settings Stack Screens */}
+        <Stack.Screen name="settings/index" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/appearance" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/profile" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/account" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/password" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/two-factor" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/passkeys" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/phone" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/delete-account" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/privacy" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/chats" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/wallpaper" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/backup" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/notifications" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/language" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/storage" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/linked-devices" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/link-device" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/help" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/server" options={{ headerShown: false }} />
       </Stack>
 
       {/* Global Incoming Call Overlay */}
       {incomingCall && (
         <Modal visible transparent animationType="slide">
           <View style={styles.incomingCallOverlay}>
-            <View style={styles.incomingCallCard}>
+            <LiquidGlassSurface style={styles.incomingCallCard}>
               <View style={styles.incomingCallAvatar}>
                 <Ionicons
                   name={incomingCall.isVideo ? 'videocam' : 'call'}
@@ -96,9 +122,11 @@ export default function RootLayout() {
                   color="#25D366"
                 />
               </View>
-              <Text style={styles.incomingCallName}>{incomingCall.callerName}</Text>
-              <Text style={styles.incomingCallType}>
-                WhatsApp {incomingCall.isVideo ? 'Video' : 'Voice'} Call...
+              <Text style={[styles.incomingCallName, { color: palette.textPrimary }]}>
+                {incomingCall.callerName}
+              </Text>
+              <Text style={[styles.incomingCallType, { color: palette.textSecondary }]}>
+                IndiChat {incomingCall.isVideo ? 'Video' : 'Voice'} Call...
               </Text>
 
               <View style={styles.callButtonsRow}>
@@ -119,6 +147,8 @@ export default function RootLayout() {
                     });
                     setIncomingCall(null);
                   }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Decline Call"
                 >
                   <Ionicons name="call" size={26} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
                   <Text style={styles.callLabel}>Decline</Text>
@@ -167,12 +197,14 @@ export default function RootLayout() {
                       );
                     }
                   }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Accept Call"
                 >
                   <Ionicons name="call" size={26} color="#fff" />
                   <Text style={styles.callLabel}>Accept</Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </LiquidGlassSurface>
           </View>
         </Modal>
       )}
@@ -181,23 +213,33 @@ export default function RootLayout() {
       {sessionRevokedReason && (
         <Modal visible transparent animationType="fade">
           <View style={styles.modalBg}>
-            <View style={styles.modalCard}>
+            <LiquidGlassSurface style={styles.modalCard}>
               <View style={styles.iconCircle}>
                 <Ionicons name="alert-circle" size={36} color="#f15c6d" />
               </View>
-              <Text style={styles.modalTitle}>Session Ended</Text>
-              <Text style={styles.modalText}>{sessionRevokedReason}</Text>
+              <Text style={[styles.modalTitle, { color: palette.textPrimary }]}>Session Ended</Text>
+              <Text style={[styles.modalText, { color: palette.textSecondary }]}>{sessionRevokedReason}</Text>
               <TouchableOpacity
-                style={styles.modalBtn}
+                style={[styles.modalBtn, { backgroundColor: palette.accent }]}
                 onPress={() => setSessionRevokedReason(null)}
+                accessibilityRole="button"
+                accessibilityLabel="Log In Again"
               >
                 <Text style={styles.modalBtnText}>Log In Again</Text>
               </TouchableOpacity>
-            </View>
+            </LiquidGlassSurface>
           </View>
         </Modal>
       )}
-    </>
+    </View>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <RootNavigation />
+    </ThemeProvider>
   );
 }
 
@@ -211,12 +253,9 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     width: '100%',
-    backgroundColor: '#202c33',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 24,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#2a3942',
   },
   iconCircle: {
     width: 64,
@@ -228,28 +267,25 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   modalTitle: {
-    color: '#e9edef',
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 8,
   },
   modalText: {
-    color: '#8696a0',
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 20,
   },
   modalBtn: {
-    backgroundColor: '#00a884',
     paddingVertical: 12,
     paddingHorizontal: 28,
-    borderRadius: 8,
+    borderRadius: 12,
     width: '100%',
     alignItems: 'center',
   },
   modalBtnText: {
-    color: '#111b21',
+    color: '#070b0e',
     fontWeight: '700',
     fontSize: 15,
   },
@@ -262,17 +298,9 @@ const styles = StyleSheet.create({
   },
   incomingCallCard: {
     width: '100%',
-    backgroundColor: '#1f2c34',
     borderRadius: 24,
     padding: 32,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#2a3942',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 10,
   },
   incomingCallAvatar: {
     width: 80,
@@ -286,14 +314,12 @@ const styles = StyleSheet.create({
     borderColor: '#25D366',
   },
   incomingCallName: {
-    color: '#ffffff',
     fontSize: 22,
     fontWeight: '700',
     marginBottom: 6,
     textAlign: 'center',
   },
   incomingCallType: {
-    color: '#8696a0',
     fontSize: 15,
     marginBottom: 32,
     textAlign: 'center',
@@ -310,11 +336,6 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 6,
   },
   declineBtn: {
     backgroundColor: '#ea4335',

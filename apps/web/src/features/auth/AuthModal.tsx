@@ -107,6 +107,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onAuthenticated }) => {
     setDisplayName(name);
     setError(null);
     setTwoFactorPin('');
+    setIsTwoFactorStep(false);
     setLoading(true);
 
     try {
@@ -165,6 +166,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onAuthenticated }) => {
               <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', marginTop: '6px', maxWidth: '320px', margin: '6px auto 0' }}>
                 Account <strong style={{ color: 'var(--accent-primary)' }}>@{username}</strong> has two-step verification enabled. Enter your 6-digit PIN to complete sign in.
               </p>
+              {username === 'alice' && (
+                <div style={{ marginTop: '10px' }}>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ fontSize: '0.78rem', padding: '3px 10px', borderRadius: '12px' }}
+                    onClick={() => setTwoFactorPin('112233')}
+                  >
+                    💡 Fill Demo PIN: 112233
+                  </button>
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleTwoFactorSubmit} className="modal-body" style={{ padding: '20px 24px' }}>
@@ -257,7 +270,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onAuthenticated }) => {
                     style={{ padding: '4px 10px', fontSize: '0.78rem' }}
                     onClick={() => handleQuickLogin('alice', 'Alice')}
                   >
-                    Alice (2FA: 112233)
+                    🔒 Alice (2FA: 112233)
                   </button>
                   <button
                     type="button"
@@ -265,7 +278,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onAuthenticated }) => {
                     style={{ padding: '4px 10px', fontSize: '0.78rem' }}
                     onClick={() => handleQuickLogin('bob', 'Bob')}
                   >
-                    Bob (No 2FA)
+                    Bob
                   </button>
                   <button
                     type="button"
@@ -273,7 +286,39 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onAuthenticated }) => {
                     style={{ padding: '4px 10px', fontSize: '0.78rem' }}
                     onClick={() => handleQuickLogin('charlie', 'Charlie')}
                   >
-                    Charlie (No 2FA)
+                    Charlie
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                    onClick={() => handleQuickLogin('david', 'David Miller')}
+                  >
+                    David
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                    onClick={() => handleQuickLogin('emma', 'Emma Watson')}
+                  >
+                    Emma
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                    onClick={() => handleQuickLogin('frank', 'Frank Castle')}
+                  >
+                    Frank
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                    onClick={() => handleQuickLogin('grace', 'Grace Hopper')}
+                  >
+                    Grace
                   </button>
                 </div>
               </div>
@@ -284,18 +329,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onAuthenticated }) => {
           <div>
             <div style={{ textAlign: 'center', padding: '28px 24px 16px 24px', background: 'linear-gradient(180deg, #182229 0%, #111b21 100%)' }}>
               <div style={{
-                width: '60px',
-                height: '60px',
-                borderRadius: '50%',
-                backgroundColor: '#00a884',
-                display: 'inline-flex',
+                width: '64px',
+                height: '64px',
+                margin: '0 auto 12px auto',
+                display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#111b21',
-                marginBottom: '12px',
-                boxShadow: '0 4px 16px rgba(0, 168, 132, 0.4)'
+                filter: 'drop-shadow(0 4px 14px rgba(0, 168, 132, 0.35))'
               }}>
-                <MessageSquare size={32} />
+                <img
+                  src="/logo-192.png"
+                  alt={APP_NAME}
+                  style={{ width: '64px', height: '64px', borderRadius: '16px', objectFit: 'contain' }}
+                />
               </div>
               <h2 style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                 {APP_NAME} Messenger
@@ -403,7 +449,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onAuthenticated }) => {
                     style={{ padding: '4px 10px', fontSize: '0.78rem' }}
                     onClick={() => handleQuickLogin('alice', 'Alice')}
                   >
-                    Alice (2FA: 112233)
+                    🔒 Alice (2FA: 112233)
                   </button>
                   <button
                     type="button"
@@ -411,7 +457,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onAuthenticated }) => {
                     style={{ padding: '4px 10px', fontSize: '0.78rem' }}
                     onClick={() => handleQuickLogin('bob', 'Bob')}
                   >
-                    Bob (No 2FA)
+                    Bob
                   </button>
                   <button
                     type="button"
@@ -419,7 +465,39 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onAuthenticated }) => {
                     style={{ padding: '4px 10px', fontSize: '0.78rem' }}
                     onClick={() => handleQuickLogin('charlie', 'Charlie')}
                   >
-                    Charlie (No 2FA)
+                    Charlie
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                    onClick={() => handleQuickLogin('david', 'David Miller')}
+                  >
+                    David
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                    onClick={() => handleQuickLogin('emma', 'Emma Watson')}
+                  >
+                    Emma
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                    onClick={() => handleQuickLogin('frank', 'Frank Castle')}
+                  >
+                    Frank
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                    onClick={() => handleQuickLogin('grace', 'Grace Hopper')}
+                  >
+                    Grace
                   </button>
                 </div>
               </div>

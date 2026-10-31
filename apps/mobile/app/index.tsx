@@ -1,3 +1,14 @@
+/**
+ * apps/mobile/app/index.tsx
+ *
+ * IndiChat Authentication Screen:
+ *  - Matches preview/preview-liquid-glass.html (viewAuth, viewAuth2FA, viewSettingsServer)
+ *  - Liquid Glass bento cards, form-field-groups, brand badge, and typography
+ *  - Quick Demo account fill (Alice, Bob, Charlie, David)
+ *  - Dedicated 2FA PIN challenge view
+ *  - Dedicated Server URL configuration with reachability & latency ping
+ */
+
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
@@ -6,23 +17,32 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Modal,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert
+  Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { api, getApiBaseUrl, setApiBaseUrl } from '../services/api';
 import { wsClient } from '../services/websocket';
 import { storage, STORAGE_KEYS } from '../services/storage';
 import { settingsService } from '../services/settings';
 import { registerForPushNotificationsAsync } from '../services/notifications';
-import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../theme/useTheme';
+import { LiquidGlassSurface } from '../components/LiquidGlassSurface';
+import { ScreenHeader } from '../components/ScreenHeader';
+
+type AuthViewMode = 'auth' | 'two_factor' | 'server_config';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ mode?: string }>();
+  const insets = useSafeAreaInsets();
+  const { palette, metrics } = useTheme();
+
+  const [viewMode, setViewMode] = useState<AuthViewMode>('auth');
   const [isRegister, setIsRegister] = useState(false);
   const [username, setUsername] = useState('alice');
   const [password, setPassword] = useState('Password123!');
@@ -33,20 +53,29 @@ export default function LoginScreen() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Two-Factor state
-  const [show2FAModal, setShow2FAModal] = useState(false);
   const [twoFactorPin, setTwoFactorPin] = useState('');
 
-  // Server URL settings modal
-  const [showServerModal, setShowServerModal] = useState(false);
+  // Server URL settings state
   const [serverUrl, setServerUrl] = useState('');
+  const [initialServerUrl, setInitialServerUrl] = useState('');
   const [testingConnection, setTestingConnection] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if already authenticated
+    if (params.mode === '2fa' || params.mode === 'two_factor') {
+      setViewMode('two_factor');
+    } else if (params.mode === 'server' || params.mode === 'server_config') {
+      setViewMode('server_config');
+    } else if (params.mode === 'auth') {
+      setViewMode('auth');
+    }
+  }, [params.mode]);
+
+  useEffect(() => {
     (async () => {
       const currentUrl = await getApiBaseUrl();
       setServerUrl(currentUrl);
+      setInitialServerUrl(currentUrl);
 
       const token = await storage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       if (token) {
@@ -60,7 +89,6 @@ export default function LoginScreen() {
           router.replace('/chats');
           return;
         } catch (e) {
-          // Token expired or invalid
           await storage.clearAuth();
         }
       }
@@ -99,13 +127,12 @@ export default function LoginScreen() {
         });
 
         if (res.requiresTwoFactor) {
-          setShow2FAModal(true);
+          setViewMode('two_factor');
           setLoading(false);
           return;
         }
 
         if (res.tokens && res.user) {
-          setShow2FAModal(false);
           await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, res.tokens.accessToken);
           await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, res.tokens.refreshToken);
           await storage.setJson(STORAGE_KEYS.CURRENT_USER, res.user);
@@ -128,11 +155,13 @@ export default function LoginScreen() {
     setDisplayName(name);
     setPassword('Password123!');
     setErrorMsg(null);
+    setIsRegister(false);
   };
 
   const handleTestConnection = async () => {
     setTestingConnection(true);
     setConnectionStatus(null);
+    const start = Date.now();
     try {
       const clean = serverUrl.trim().replace(/\/+$/, '');
       const testRes = await fetch(`${clean}/api/v1/auth/login`, {
@@ -140,11 +169,11 @@ export default function LoginScreen() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ usernameOrEmail: 'ping_test', password: 'test_password' }),
       });
-      // Any response (even 401/400) confirms backend server is reached!
+      const latency = Date.now() - start;
       if (testRes.status >= 200 && testRes.status < 500) {
-        setConnectionStatus('✅ Connected to backend successfully!');
+        setConnectionStatus(`✅ Connected to backend successfully (${latency}ms)`);
       } else {
-        setConnectionStatus(`⚠️ Server responded with status ${testRes.status}`);
+        setConnectionStatus(`⚠️ Server responded with HTTP ${testRes.status} (${latency}ms)`);
       }
     } catch (err: any) {
       setConnectionStatus(`❌ Connection failed: ${err.message}`);
@@ -154,103 +183,336 @@ export default function LoginScreen() {
   };
 
   const handleSaveServerUrl = async () => {
-    await setApiBaseUrl(serverUrl);
-    setShowServerModal(false);
-    Alert.alert('Saved', 'Server URL updated successfully.');
+    const clean = serverUrl.trim().replace(/\/+$/, '');
+    await setApiBaseUrl(clean);
+    setInitialServerUrl(clean);
+    setViewMode('auth');
+    Alert.alert('Saved', 'Server URL endpoint updated successfully.');
   };
 
   if (checkingAuth) {
     return (
-      <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color="#00a884" />
-        <Text style={[styles.subtitle, { marginTop: 12 }]}>Checking session...</Text>
+      <View style={[styles.centerScreen, { backgroundColor: palette.bg }]}>
+        <ActivityIndicator size="large" color="#10b981" />
+        <Text style={[styles.checkingText, { color: palette.textSecondary }]}>
+          Checking session...
+        </Text>
       </View>
     );
   }
 
+  // =========================================================================
+  // SUB-VIEW 1: Dedicated Server Configuration (viewSettingsServer(true))
+  // =========================================================================
+  if (viewMode === 'server_config') {
+    return (
+      <View style={[styles.screen, { backgroundColor: palette.bg }]}>
+        <ScreenHeader
+          title="Server Settings"
+          showBack={true}
+          onBack={() => {
+            setServerUrl(initialServerUrl);
+            setViewMode('auth');
+          }}
+          rightActionText="Save"
+          onRightAction={handleSaveServerUrl}
+        />
+
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: metrics.scrollBottomPadding },
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <LiquidGlassSurface style={styles.bentoCard}>
+            <View style={styles.formFieldGroup}>
+              <Text style={[styles.formFieldLabel, { color: palette.textSecondary }]}>
+                Backend Server URL
+              </Text>
+              <TextInput
+                style={[
+                  styles.formTextInput,
+                  {
+                    backgroundColor: palette.surfaceInput,
+                    borderColor: palette.border,
+                    color: palette.textPrimary,
+                  },
+                ]}
+                value={serverUrl}
+                onChangeText={setServerUrl}
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder="http://192.168.0.70:8080"
+                placeholderTextColor={palette.textSecondary}
+              />
+              <Text style={[styles.formFieldHint, { color: palette.textSecondary }]}>
+                Specify your host LAN IP address (e.g. http://192.168.0.70:8080) for physical mobile access.
+              </Text>
+            </View>
+
+            <View style={styles.actionPadding}>
+              <TouchableOpacity
+                style={[styles.testServerBtn, { borderColor: 'rgba(16, 185, 129, 0.35)' }]}
+                onPress={handleTestConnection}
+                disabled={testingConnection}
+              >
+                {testingConnection ? (
+                  <ActivityIndicator size="small" color="#10b981" />
+                ) : (
+                  <Text style={styles.testServerBtnText}>Test Server Connection</Text>
+                )}
+              </TouchableOpacity>
+
+              {connectionStatus ? (
+                <Text style={[styles.connectionStatusText, { color: palette.textPrimary }]}>
+                  {connectionStatus}
+                </Text>
+              ) : null}
+
+              <View style={styles.bottomButtonsRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.cancelBtn,
+                    {
+                      borderColor: palette.border,
+                      backgroundColor: palette.surfaceElevated,
+                    },
+                  ]}
+                  onPress={() => {
+                    setServerUrl(initialServerUrl);
+                    setViewMode('auth');
+                  }}
+                >
+                  <Text style={[styles.cancelBtnText, { color: palette.textPrimary }]}>
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.saveEndpointBtn}
+                  onPress={handleSaveServerUrl}
+                >
+                  <Text style={styles.saveEndpointBtnText}>Save Endpoint</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </LiquidGlassSurface>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // =========================================================================
+  // SUB-VIEW 2: Dedicated 2FA PIN Challenge (viewAuth2FA)
+  // =========================================================================
+  if (viewMode === 'two_factor') {
+    return (
+      <View style={[styles.screen, { backgroundColor: palette.bg }]}>
+        <ScreenHeader
+          title="Two-Step Verification"
+          showBack={true}
+          onBack={() => setViewMode('auth')}
+        />
+
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: metrics.scrollBottomPadding },
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <LiquidGlassSurface style={styles.bentoCardPadded}>
+            <View style={styles.shieldIconWrap}>
+              <Ionicons name="shield-checkmark" size={28} color="#10b981" />
+            </View>
+
+            <Text style={[styles.twoFactorTitle, { color: palette.textPrimary }]}>
+              Enter 6-Digit PIN
+            </Text>
+
+            <Text style={[styles.twoFactorDesc, { color: palette.textSecondary }]}>
+              This account is protected with two-step verification. Enter your security PIN to authenticate.
+            </Text>
+
+            <TextInput
+              style={[
+                styles.pinInputHero,
+                {
+                  backgroundColor: palette.surfaceInput,
+                  borderColor: palette.border,
+                  color: palette.textPrimary,
+                },
+              ]}
+              placeholder="••••••"
+              placeholderTextColor={palette.textSecondary}
+              keyboardType="number-pad"
+              maxLength={6}
+              secureTextEntry
+              value={twoFactorPin}
+              onChangeText={setTwoFactorPin}
+              autoFocus
+            />
+
+            <Text style={styles.demoPinNotice}>Demo PIN: 112233</Text>
+
+            {errorMsg ? (
+              <View style={styles.errorBox}>
+                <Ionicons name="alert-circle" size={16} color="#f43f5e" style={{ marginRight: 6 }} />
+                <Text style={styles.errorText}>{errorMsg}</Text>
+              </View>
+            ) : null}
+
+            <TouchableOpacity
+              style={[
+                styles.primaryBtn,
+                (loading || twoFactorPin.length < 4) && styles.btnDisabled,
+              ]}
+              onPress={() => handleAuth(twoFactorPin)}
+              disabled={loading || twoFactorPin.length < 4}
+            >
+              {loading ? (
+                <ActivityIndicator color="#070b0e" size="small" />
+              ) : (
+                <Text style={styles.primaryBtnText}>Verify PIN & Sign In</Text>
+              )}
+            </TouchableOpacity>
+          </LiquidGlassSurface>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // =========================================================================
+  // MAIN VIEW: Sign In / Register (viewAuth)
+  // =========================================================================
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.screen, { backgroundColor: palette.bg }]}>
+      <ScreenHeader
+        title="IndiChat Access"
+        showBack={false}
+        rightActionText="Server Config"
+        onRightAction={() => {
+          setConnectionStatus(null);
+          setViewMode('server_config');
+        }}
+      />
+
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          {/* Top Bar with Server Config Button */}
-          <View style={styles.topRow}>
-            <TouchableOpacity
-              style={styles.serverButton}
-              onPress={() => setShowServerModal(true)}
-            >
-              <Ionicons name="server-outline" size={16} color="#8696a0" />
-              <Text style={styles.serverButtonText}>Server Config</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Logo & Branding */}
-          <View style={styles.logoContainer}>
-            <View style={styles.logoBadge}>
-              <Ionicons name="chatbubbles" size={34} color="#111b21" />
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: metrics.scrollBottomPadding },
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Logo & Branding Hero */}
+          <View style={styles.brandHero}>
+            <View style={styles.brandMark}>
+              <Text style={styles.brandMarkLetter}>i</Text>
             </View>
-            <Text style={styles.title}>IndiChat</Text>
-            <Text style={styles.subtitle}>
-              {isRegister ? 'Create your messaging account' : 'Sign in to start messaging'}
+            <Text style={[styles.brandTitle, { color: palette.textPrimary }]}>IndiChat</Text>
+            <Text style={[styles.brandSubtitle, { color: palette.textSecondary }]}>
+              {isRegister
+                ? 'Create your encrypted account'
+                : 'Sign in to start messaging'}
             </Text>
           </View>
 
           {/* Quick Demo Accounts Fill */}
-          <View style={styles.demoSection}>
-            <Text style={styles.demoLabel}>Quick Demo Fill:</Text>
-            <View style={styles.demoRow}>
-              <TouchableOpacity
-                style={[styles.demoPill, username === 'alice' && styles.demoPillActive]}
-                onPress={() => handleFillDemo('alice', 'Alice')}
-              >
-                <Text style={styles.demoPillText}>Alice</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.demoPill, username === 'bob' && styles.demoPillActive]}
-                onPress={() => handleFillDemo('bob', 'Bob')}
-              >
-                <Text style={styles.demoPillText}>Bob</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.demoPill, username === 'charlie' && styles.demoPillActive]}
-                onPress={() => handleFillDemo('charlie', 'Charlie')}
-              >
-                <Text style={styles.demoPillText}>Charlie</Text>
-              </TouchableOpacity>
+          <LiquidGlassSurface style={styles.bentoCardSmall}>
+            <View style={styles.demoCardHeader}>
+              <Text style={[styles.demoHeaderTitle, { color: palette.textSecondary }]}>
+                QUICK DEMO FILL
+              </Text>
+              <Text style={styles.demoPinText}>2FA PIN: 112233</Text>
             </View>
-          </View>
+
+            <View style={styles.demoChipsWrap}>
+              {(['alice', 'bob', 'charlie', 'david'] as const).map((u) => {
+                const isSelected = username === u;
+                const label = u === 'alice' ? '🔒 Alice' : u.charAt(0).toUpperCase() + u.slice(1);
+                return (
+                  <TouchableOpacity
+                    key={u}
+                    style={[
+                      styles.demoPill,
+                      {
+                        borderColor: isSelected ? '#10b981' : palette.border,
+                        backgroundColor: isSelected
+                          ? 'rgba(16, 185, 129, 0.18)'
+                          : palette.surfaceInput,
+                      },
+                    ]}
+                    onPress={() => handleFillDemo(u, u.charAt(0).toUpperCase() + u.slice(1))}
+                  >
+                    <Text
+                      style={[
+                        styles.demoPillText,
+                        { color: isSelected ? '#10b981' : palette.textPrimary },
+                      ]}
+                    >
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </LiquidGlassSurface>
 
           {/* Error Message */}
           {errorMsg ? (
             <View style={styles.errorBox}>
-              <Ionicons name="alert-circle" size={18} color="#f15c6d" />
+              <Ionicons name="alert-circle" size={16} color="#f43f5e" style={{ marginRight: 6 }} />
               <Text style={styles.errorText}>{errorMsg}</Text>
             </View>
           ) : null}
 
-          {/* Form */}
-          <View style={styles.form}>
+          {/* Form Fields Card */}
+          <LiquidGlassSurface style={styles.bentoCard}>
             {isRegister && (
               <>
-                <View style={styles.inputWrapper}>
-                  <Ionicons name="person-outline" size={20} color="#8696a0" style={styles.inputIcon} />
+                <View style={[styles.formFieldGroup, { borderBottomColor: palette.divider }]}>
+                  <Text style={[styles.formFieldLabel, { color: palette.textSecondary }]}>
+                    Full Display Name
+                  </Text>
                   <TextInput
-                    style={styles.input}
-                    placeholder="Full Display Name"
-                    placeholderTextColor="#8696a0"
+                    style={[
+                      styles.formTextInput,
+                      {
+                        backgroundColor: palette.surfaceInput,
+                        borderColor: palette.border,
+                        color: palette.textPrimary,
+                      },
+                    ]}
+                    placeholder="e.g. Alice Cooper"
+                    placeholderTextColor={palette.textSecondary}
                     value={displayName}
                     onChangeText={setDisplayName}
                   />
                 </View>
 
-                <View style={styles.inputWrapper}>
-                  <Ionicons name="call-outline" size={20} color="#8696a0" style={styles.inputIcon} />
+                <View style={[styles.formFieldGroup, { borderBottomColor: palette.divider }]}>
+                  <Text style={[styles.formFieldLabel, { color: palette.textSecondary }]}>
+                    Phone Number (+91...)
+                  </Text>
                   <TextInput
-                    style={styles.input}
-                    placeholder="Phone Number (+91 ...)"
-                    placeholderTextColor="#8696a0"
+                    style={[
+                      styles.formTextInput,
+                      {
+                        backgroundColor: palette.surfaceInput,
+                        borderColor: palette.border,
+                        color: palette.textPrimary,
+                      },
+                    ]}
+                    placeholder="+91 98765 43210"
+                    placeholderTextColor={palette.textSecondary}
                     value={phoneNumber}
                     onChangeText={setPhoneNumber}
                     keyboardType="phone-pad"
@@ -259,433 +521,347 @@ export default function LoginScreen() {
               </>
             )}
 
-            <View style={styles.inputWrapper}>
-              <Ionicons name="at-outline" size={20} color="#8696a0" style={styles.inputIcon} />
+            <View style={[styles.formFieldGroup, { borderBottomColor: palette.divider }]}>
+              <Text style={[styles.formFieldLabel, { color: palette.textSecondary }]}>
+                Username or Phone
+              </Text>
               <TextInput
-                style={styles.input}
-                placeholder="Username or Phone"
-                placeholderTextColor="#8696a0"
+                style={[
+                  styles.formTextInput,
+                  {
+                    backgroundColor: palette.surfaceInput,
+                    borderColor: palette.border,
+                    color: palette.textPrimary,
+                  },
+                ]}
+                placeholder="alice"
+                placeholderTextColor={palette.textSecondary}
                 value={username}
                 onChangeText={setUsername}
                 autoCapitalize="none"
               />
             </View>
 
-            <View style={styles.inputWrapper}>
-              <Ionicons name="lock-closed-outline" size={20} color="#8696a0" style={styles.inputIcon} />
+            <View style={styles.formFieldGroup}>
+              <Text style={[styles.formFieldLabel, { color: palette.textSecondary }]}>
+                Password
+              </Text>
               <TextInput
-                style={styles.input}
-                placeholder="Password"
-                placeholderTextColor="#8696a0"
+                style={[
+                  styles.formTextInput,
+                  {
+                    backgroundColor: palette.surfaceInput,
+                    borderColor: palette.border,
+                    color: palette.textPrimary,
+                  },
+                ]}
+                placeholder="Password123!"
+                placeholderTextColor={palette.textSecondary}
                 secureTextEntry
                 value={password}
                 onChangeText={setPassword}
               />
             </View>
+          </LiquidGlassSurface>
 
-            <TouchableOpacity
-              style={styles.buttonPrimary}
-              onPress={() => handleAuth()}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#111b21" />
-              ) : (
-                <Text style={styles.buttonText}>
-                  {isRegister ? 'Create Account' : 'Log In'}
-                </Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                setIsRegister(!isRegister);
-                setErrorMsg(null);
-              }}
-              style={styles.switchButton}
-            >
-              <Text style={styles.switchText}>
-                {isRegister
-                  ? 'Already have an account? Sign In'
-                  : "Don't have an account? Register Now"}
+          {/* Submit Action Button */}
+          <TouchableOpacity
+            style={[styles.primaryBtn, loading && styles.btnDisabled]}
+            onPress={() => handleAuth()}
+            disabled={loading}
+            accessibilityRole="button"
+            accessibilityLabel={isRegister ? 'Create Account' : 'Sign In'}
+          >
+            {loading ? (
+              <ActivityIndicator color="#070b0e" size="small" />
+            ) : (
+              <Text style={styles.primaryBtnText}>
+                {isRegister ? 'Create Account' : 'Sign In'}
               </Text>
-            </TouchableOpacity>
-          </View>
+            )}
+          </TouchableOpacity>
+
+          {/* Mode Switch Button */}
+          <TouchableOpacity
+            style={styles.switchModeBtn}
+            onPress={() => {
+              setIsRegister(!isRegister);
+              setErrorMsg(null);
+            }}
+          >
+            <Text style={styles.switchModeText}>
+              {isRegister
+                ? 'Already have an account? Sign In'
+                : "Don't have an account? Register Now"}
+            </Text>
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-
-      {/* Two-Factor Authentication Modal */}
-      <Modal visible={show2FAModal} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalIconBadge}>
-              <Ionicons name="shield-checkmark" size={32} color="#00a884" />
-            </View>
-            <Text style={styles.modalTitle}>Two-Step Verification</Text>
-            <Text style={styles.modalSubtitle}>
-              Enter your 6-digit PIN to authenticate this login.
-            </Text>
-
-            <TextInput
-              style={styles.pinInput}
-              placeholder="••••••"
-              placeholderTextColor="#8696a0"
-              keyboardType="number-pad"
-              maxLength={6}
-              value={twoFactorPin}
-              onChangeText={setTwoFactorPin}
-              autoFocus
-            />
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.modalCancelBtn}
-                onPress={() => setShow2FAModal(false)}
-              >
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalSubmitBtn}
-                onPress={() => handleAuth(twoFactorPin)}
-                disabled={loading || twoFactorPin.length < 4}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#111b21" size="small" />
-                ) : (
-                  <Text style={styles.modalSubmitText}>Verify PIN</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Server Configuration Modal */}
-      <Modal visible={showServerModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Backend Server Config</Text>
-            <Text style={styles.modalSubtitle}>
-              Specify the IndiChat backend URL (e.g. your Mac local IP address).
-            </Text>
-
-            <TextInput
-              style={styles.serverInput}
-              value={serverUrl}
-              onChangeText={setServerUrl}
-              autoCapitalize="none"
-              autoCorrect={false}
-              placeholder="http://192.168.0.70:8080"
-              placeholderTextColor="#8696a0"
-            />
-
-            {connectionStatus && (
-              <Text style={styles.connectionStatusText}>{connectionStatus}</Text>
-            )}
-
-            <TouchableOpacity
-              style={styles.testBtn}
-              onPress={handleTestConnection}
-              disabled={testingConnection}
-            >
-              {testingConnection ? (
-                <ActivityIndicator size="small" color="#00a884" />
-              ) : (
-                <Text style={styles.testBtnText}>Test Server Connection</Text>
-              )}
-            </TouchableOpacity>
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.modalCancelBtn}
-                onPress={() => setShowServerModal(false)}
-              >
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalSubmitBtn}
-                onPress={handleSaveServerUrl}
-              >
-                <Text style={styles.modalSubmitText}>Save URL</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: '#111b21',
   },
-  center: {
-    justifyContent: 'center',
+  centerScreen: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkingText: {
+    fontSize: 14,
+    marginTop: 12,
+  },
+  scrollView: {
+    flex: 1,
   },
   scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
+    padding: 16,
   },
-  topRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: 8,
-  },
-  serverButton: {
-    flexDirection: 'row',
+  brandHero: {
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: '#202c33',
-    borderWidth: 1,
-    borderColor: '#2a3942',
+    paddingVertical: 14,
   },
-  serverButtonText: {
-    color: '#8696a0',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  logoBadge: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: '#00a884',
+  brandMark: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#10b981',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
-    shadowColor: '#00a884',
+    marginBottom: 10,
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 10,
-    elevation: 6,
+    elevation: 4,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#e9edef',
-    letterSpacing: 0.3,
+  brandMarkLetter: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#05080b',
   },
-  subtitle: {
-    fontSize: 14,
-    color: '#8696a0',
-    marginTop: 4,
-    textAlign: 'center',
+  brandTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.4,
   },
-  demoSection: {
-    backgroundColor: '#202c33',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#222e35',
-  },
-  demoLabel: {
-    color: '#8696a0',
+  brandSubtitle: {
     fontSize: 12,
+    marginTop: 3,
+  },
+  bentoCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    overflow: 'hidden',
+    marginBottom: 14,
+  },
+  bentoCardSmall: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 14,
+  },
+  bentoCardPadded: {
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 20,
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  demoCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 8,
-    fontWeight: '600',
+  },
+  demoHeaderTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.1,
     textTransform: 'uppercase',
   },
-  demoRow: {
+  demoPinText: {
+    fontSize: 10.5,
+    color: '#10b981',
+    fontWeight: '600',
+  },
+  demoChipsWrap: {
     flexDirection: 'row',
-    gap: 8,
+    flexWrap: 'wrap',
+    gap: 6,
   },
   demoPill: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 6,
-    backgroundColor: '#111b21',
-    alignItems: 'center',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#2a3942',
-  },
-  demoPillActive: {
-    borderColor: '#00a884',
-    backgroundColor: '#005c4b',
   },
   demoPillText: {
-    color: '#e9edef',
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '600',
+  },
+  formFieldGroup: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  formFieldLabel: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  formTextInput: {
+    width: '100%',
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    fontSize: 13.5,
+  },
+  formFieldHint: {
+    fontSize: 11,
+    marginTop: 6,
+    lineHeight: 15,
   },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(241, 92, 109, 0.12)',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
+    backgroundColor: 'rgba(244, 63, 94, 0.12)',
+    borderColor: 'rgba(244, 63, 94, 0.35)',
     borderWidth: 1,
-    borderColor: 'rgba(241, 92, 109, 0.3)',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 14,
   },
   errorText: {
-    color: '#f15c6d',
-    fontSize: 13,
+    color: '#f43f5e',
+    fontSize: 12,
     flex: 1,
   },
-  form: {
-    gap: 12,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
+  primaryBtn: {
+    backgroundColor: '#10b981',
+    borderRadius: 12,
+    paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#202c33',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#222e35',
-    paddingHorizontal: 12,
+    justifyContent: 'center',
+    marginTop: 4,
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  inputIcon: {
-    marginRight: 8,
+  primaryBtnText: {
+    color: '#070b0e',
+    fontSize: 14,
+    fontWeight: '700',
   },
-  input: {
-    flex: 1,
-    paddingVertical: 14,
-    color: '#e9edef',
-    fontSize: 16,
+  btnDisabled: {
+    opacity: 0.5,
   },
-  buttonPrimary: {
-    backgroundColor: '#00a884',
-    paddingVertical: 14,
-    borderRadius: 8,
+  switchModeBtn: {
     alignItems: 'center',
+    paddingVertical: 12,
     marginTop: 6,
   },
-  buttonText: {
-    color: '#111b21',
-    fontWeight: '700',
-    fontSize: 16,
-  },
-  switchButton: {
-    alignItems: 'center',
-    marginTop: 10,
-    paddingVertical: 8,
-  },
-  switchText: {
-    color: '#00a884',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  modalCard: {
-    width: '100%',
-    backgroundColor: '#202c33',
-    borderRadius: 14,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: '#2a3942',
-    alignItems: 'center',
-  },
-  modalIconBadge: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(0,168,132,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#e9edef',
-    marginBottom: 6,
-  },
-  modalSubtitle: {
-    fontSize: 13,
-    color: '#8696a0',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  pinInput: {
-    backgroundColor: '#111b21',
-    borderRadius: 8,
-    width: '100%',
-    paddingVertical: 14,
-    textAlign: 'center',
-    fontSize: 26,
-    letterSpacing: 12,
-    color: '#00a884',
-    borderWidth: 1,
-    borderColor: '#2a3942',
-    marginBottom: 20,
-  },
-  serverInput: {
-    backgroundColor: '#111b21',
-    borderRadius: 8,
-    width: '100%',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: '#e9edef',
-    borderWidth: 1,
-    borderColor: '#2a3942',
-    marginBottom: 12,
-  },
-  testBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    backgroundColor: '#111b21',
-    borderWidth: 1,
-    borderColor: '#2a3942',
-    marginBottom: 16,
-  },
-  testBtnText: {
-    color: '#00a884',
-    fontSize: 13,
+  switchModeText: {
+    color: '#10b981',
+    fontSize: 12.5,
     fontWeight: '600',
+  },
+  // 2FA Specific Styles
+  shieldIconWrap: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  twoFactorTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  twoFactorDesc: {
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginVertical: 8,
+    paddingHorizontal: 12,
+  },
+  pinInputHero: {
+    letterSpacing: 8,
+    fontSize: 22,
+    fontWeight: '800',
+    textAlign: 'center',
+    width: 180,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 8,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  demoPinNotice: {
+    fontSize: 11,
+    color: '#10b981',
+    fontWeight: '600',
+    marginBottom: 14,
+  },
+  // Server Config Specific Styles
+  actionPadding: {
+    padding: 14,
+  },
+  testServerBtn: {
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  testServerBtnText: {
+    color: '#10b981',
+    fontSize: 12.5,
+    fontWeight: '700',
   },
   connectionStatusText: {
-    color: '#8696a0',
     fontSize: 12,
-    marginBottom: 12,
+    fontWeight: '600',
+    marginTop: 8,
     textAlign: 'center',
   },
-  modalActions: {
+  bottomButtonsRow: {
     flexDirection: 'row',
-    gap: 12,
-    width: '100%',
+    gap: 10,
+    marginTop: 14,
   },
-  modalCancelBtn: {
+  cancelBtn: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: '#111b21',
-    alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#2a3942',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  modalCancelText: {
-    color: '#8696a0',
+  cancelBtnText: {
+    fontSize: 13,
     fontWeight: '600',
   },
-  modalSubmitBtn: {
+  saveEndpointBtn: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: '#00a884',
+    backgroundColor: '#10b981',
+    borderRadius: 10,
+    paddingVertical: 10,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  modalSubmitText: {
-    color: '#111b21',
+  saveEndpointBtnText: {
+    color: '#070b0e',
+    fontSize: 13,
     fontWeight: '700',
   },
 });

@@ -75,7 +75,7 @@ public class AuthService {
 
         String encodedPassword = passwordEncoder.encode(req.password());
         User user = new User(req.username(), req.email(), req.phoneNumber(), encodedPassword, req.displayName());
-        user = userRepository.save(user);
+        user = userRepository.saveAndFlush(user);
 
         // Record initial device session
         recordDeviceLogin(user, null, null, null, null, null, servletRequest);

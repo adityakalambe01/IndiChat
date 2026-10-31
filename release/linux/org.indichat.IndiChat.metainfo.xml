@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.indichat.IndiChat</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>IndiChat</name>
+  <summary>Fast, secure, production-grade real-time messaging application</summary>
+  <description>
+    <p>
+      IndiChat is a real-time messaging client designed with a modern user experience,
+      featuring direct and group conversations, delivery and read ticks, audio and video calls,
+      end-to-end media sharing, dynamic GIF search, and stickers.
+    </p>
+    <p>Features include:</p>
+    <ul>
+      <li>Real-time instant messaging with typing indicators and online presence</li>
+      <li>WhatsApp-grade checkmark receipts (Sent, Delivered, Read)</li>
+      <li>WebRTC peer-to-peer audio and high-definition video calls</li>
+      <li>Instant photo, video, document, and audio message attachments</li>
+      <li>Searchable Tenor GIFs and multi-CDN sticker collections</li>
+      <li>Multi-device synchronization and remote session management</li>
+      <li>Native Linux desktop integration, system tray, and notifications</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">org.indichat.IndiChat.desktop</launchable>
+  <url type="homepage">https://github.com/adityakalambe01/IndiChat</url>
+  <url type="bugtracker">https://github.com/adityakalambe01/IndiChat/issues</url>
+  <url type="help">https://github.com/adityakalambe01/IndiChat</url>
+  <developer_name>Aditya Kalambe</developer_name>
+  <categories>
+    <category>Network</category>
+    <category>Chat</category>
+    <category>InstantMessaging</category>
+    <category>AudioVideo</category>
+  </categories>
+  <content_rating type="oars-1.1">
+    <content_attribute id="social-chat">intense</content_attribute>
+    <content_attribute id="social-audio">intense</content_attribute>
+  </content_rating>
+  <releases>
+    <release version="1.0.0" date="2026-10-23">
+      <description>
+        <p>Initial production release of IndiChat for Linux desktop.</p>
+      </description>
+    </release>
+  </releases>
+</component>
