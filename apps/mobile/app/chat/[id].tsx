@@ -49,6 +49,8 @@ import { StickerView } from '../../components/StickerView';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../theme/useTheme';
+import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -337,6 +339,7 @@ function mergeMessagesWithCalls(
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
+  const { palette, metrics, isDark } = useTheme();
   const router = useRouter();
   const {
     id: conversationId,
@@ -1121,7 +1124,7 @@ export default function ChatScreen() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const renderBubbleContent = (msg: Message) => {
+  const renderBubbleContent = (msg: Message, isOutgoing: boolean = false) => {
     const parsed = parseAttachment(msg.content);
 
     // 1. Sticker Message
@@ -1159,7 +1162,11 @@ export default function ChatScreen() {
           >
             <GifMediaImage uri={imgUrl} style={isGif ? styles.gifBubble : styles.imageBubble} resizeMode="cover" />
           </TouchableOpacity>
-          {parsed?.caption ? <Text style={styles.messageText}>{parsed.caption}</Text> : null}
+          {parsed?.caption ? (
+            <Text style={[styles.messageText, { color: isOutgoing ? palette.bubbleOutText : palette.bubbleInText }]}>
+              {parsed.caption}
+            </Text>
+          ) : null}
         </View>
       );
     }
@@ -1182,7 +1189,13 @@ export default function ChatScreen() {
           </View>
         )}
 
-        <Text style={[styles.messageText, singleOrFewEmoji && styles.bigEmojiText]}>
+        <Text
+          style={[
+            styles.messageText,
+            { color: isOutgoing ? palette.bubbleOutText : palette.bubbleInText },
+            singleOrFewEmoji && styles.bigEmojiText,
+          ]}
+        >
           {msg.content}
         </Text>
       </View>
@@ -1309,8 +1322,8 @@ export default function ChatScreen() {
       <View key={item.id || item.clientMessageId || `msg-${index}`}>
         {showDateSeparator && (
           <View style={styles.dateSeparatorWrap}>
-            <View style={styles.dateSeparatorPill}>
-              <Text style={styles.dateSeparatorText}>{currentDateLabel}</Text>
+            <View style={[styles.dateSeparatorPill, { backgroundColor: palette.pillDateBg }]}>
+              <Text style={[styles.dateSeparatorText, { color: palette.pillDateText }]}>{currentDateLabel}</Text>
             </View>
           </View>
         )}
@@ -1328,26 +1341,46 @@ export default function ChatScreen() {
               style={[
                 styles.bubble,
                 isOutgoing ? styles.outgoingBubble : styles.incomingBubble,
+                {
+                  backgroundColor: isOutgoing ? palette.bubbleOutBg : palette.bubbleInBg,
+                  borderColor: isOutgoing ? palette.bubbleOutBorder : palette.bubbleInBorder,
+                },
                 isFrameless && styles.framelessBubbleContainer,
               ]}
             >
-              {renderBubbleContent(item)}
+              {renderBubbleContent(item, isOutgoing)}
 
               {/* Timestamp and Delivery Receipts */}
               <View style={[styles.metaRow, isFrameless && styles.framelessMetaRow]}>
-                <Text style={[styles.timeText, isFrameless && styles.framelessTimeText]}>{timeStr}</Text>
+                <Text
+                  style={[
+                    styles.timeText,
+                    { color: isOutgoing && !isDark ? palette.textSecondary : isDark ? 'rgba(233, 237, 239, 0.65)' : palette.textSecondary },
+                    isFrameless && styles.framelessTimeText,
+                  ]}
+                >
+                  {timeStr}
+                </Text>
                 {isOutgoing && (
-                  <Ionicons
-                    name={
-                      isRead || isDelivered
-                        ? 'checkmark-done'
-                        : item.status === 'sending'
-                        ? 'time-outline'
-                        : 'checkmark'
-                    }
-                    size={14}
-                    color={isRead ? '#53bdeb' : isFrameless ? '#ffffff' : 'rgba(233, 237, 239, 0.6)'}
-                  />
+                  <View style={!isDark && isRead ? { backgroundColor: palette.tickBacking, borderRadius: 3, paddingHorizontal: 3, paddingVertical: 1 } : undefined}>
+                    <Ionicons
+                      name={
+                        isRead || isDelivered
+                          ? 'checkmark-done'
+                          : item.status === 'sending'
+                          ? 'time-outline'
+                          : 'checkmark'
+                      }
+                      size={14}
+                      color={
+                        isRead
+                          ? '#53bdeb'
+                          : isFrameless
+                          ? '#ffffff'
+                          : 'rgba(233, 237, 239, 0.6)'
+                      }
+                    />
+                  </View>
                 )}
               </View>
             </View>
@@ -1359,59 +1392,77 @@ export default function ChatScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: palette.bg }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      {/* WhatsApp Exact Top Header */}
-      <View
+      {/* Top Liquid Glass Header matching preview viewConversation() */}
+      <LiquidGlassSurface
+        variant="chrome"
         style={[
           styles.topHeader,
           {
             paddingTop: insets.top,
             height: 56 + insets.top,
+            borderBottomColor: palette.border,
+            borderBottomWidth: 1,
           },
         ]}
       >
-        {/* Back Button with dynamic unread indicator */}
-        <TouchableOpacity style={styles.backBadgePill} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={24} color="#e9edef" />
-          {queryUnread && Number(queryUnread) > 0 ? (
-            <Text style={styles.backBadgeText}>{queryUnread}</Text>
-          ) : null}
-        </TouchableOpacity>
+        <View style={styles.topHeaderLeft}>
+          <TouchableOpacity
+            style={styles.headerBackBtn}
+            onPress={() => router.back()}
+            accessibilityLabel="Back"
+          >
+            <Ionicons name="chevron-back" size={24} color={palette.textPrimary} />
+            {queryUnread && Number(queryUnread) > 0 ? (
+              <View style={styles.backBadgePill}>
+                <Text style={styles.backBadgeText}>{queryUnread}</Text>
+              </View>
+            ) : null}
+          </TouchableOpacity>
 
-        {/* Contact Avatar */}
-        <View style={styles.avatarBox}>
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarInitialText}>
+          {/* Contact Avatar: 34x34 squircle with 12px radius */}
+          <View style={[styles.contactHeaderAvatar, { backgroundColor: '#10b981' }]}>
+            <Text style={styles.contactHeaderAvatarText}>
               {(contactName || 'C').charAt(0).toUpperCase()}
             </Text>
+            <View style={[styles.onlineIndicatorDotSmall, { borderColor: palette.bg }]} />
+          </View>
+
+          {/* Contact Name & Online Status in Emerald */}
+          <View style={styles.contactHeaderMeta}>
+            <Text style={[styles.contactHeaderTitle, { color: palette.textPrimary }]} numberOfLines={1}>
+              {contactName}
+            </Text>
+            <Text style={styles.contactHeaderSubtitle}>Online now</Text>
           </View>
         </View>
 
-        {/* Contact Name */}
-        <Text style={styles.headerContactName} numberOfLines={1}>
-          {contactName}
-        </Text>
-
-        <View style={{ flex: 1 }} />
-
-        {/* Video & Voice Call Capsule Pill */}
-        <View style={styles.callCapsule}>
-          <TouchableOpacity style={styles.callIconBtn} onPress={() => handleStartCall(true)}>
-            <Ionicons name="videocam-outline" size={22} color="#e9edef" />
+        {/* Video & Voice Call Action Buttons */}
+        <View style={styles.topHeaderRight}>
+          <TouchableOpacity
+            style={styles.headerCallBtn}
+            onPress={() => handleStartCall(false)}
+            accessibilityLabel="Audio Call"
+          >
+            <Ionicons name="call-outline" size={20} color={palette.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.callIconBtn} onPress={() => handleStartCall(false)}>
-            <Ionicons name="call-outline" size={20} color="#e9edef" />
+          <TouchableOpacity
+            style={styles.headerCallBtn}
+            onPress={() => handleStartCall(true)}
+            accessibilityLabel="Video Call"
+          >
+            <Ionicons name="videocam-outline" size={22} color={palette.textSecondary} />
           </TouchableOpacity>
         </View>
-      </View>
+      </LiquidGlassSurface>
 
       {/* Messages List Area */}
       {loading ? (
         <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color="#25D366" />
+          <ActivityIndicator size="large" color="#10b981" />
         </View>
       ) : (
         <FlatList
@@ -1427,13 +1478,13 @@ export default function ChatScreen() {
           ]}
           ListEmptyComponent={
             <View style={styles.emptyMessagesContainer}>
-              <View style={styles.e2eeBanner}>
-                <Ionicons name="lock-closed" size={13} color="#facc15" style={{ marginBottom: 4 }} />
-                <Text style={styles.e2eeBannerText}>
+              <View style={[styles.e2eeBanner, { backgroundColor: palette.pillDateBg, borderColor: palette.border }]}>
+                <Ionicons name="lock-closed" size={13} color="#10b981" style={{ marginBottom: 4 }} />
+                <Text style={[styles.e2eeBannerText, { color: palette.pillDateText }]}>
                   Messages and calls are end-to-end encrypted. No one outside of this chat can read or listen to them.
                 </Text>
               </View>
-              <Text style={styles.emptyMessagesSubtitle}>
+              <Text style={[styles.emptyMessagesSubtitle, { color: palette.textSecondary }]}>
                 Say hello to start the conversation! 👋
               </Text>
             </View>
@@ -1443,30 +1494,39 @@ export default function ChatScreen() {
         />
       )}
 
-      {/* WhatsApp Exact Bottom Input Bar: [+] [ Message 📄 ] (₹) 📷 (🎙️) */}
+      {/* Floating Modern Liquid Glass Chat Composer matching preview */}
       <View
         style={[
-          styles.bottomBarRow,
+          styles.composerWrapper,
           {
             paddingBottom: isKeyboardOpen ? 6 : Math.max(insets.bottom, 10),
           },
         ]}
       >
-        {/* Left: Plus (+) Button */}
-        <TouchableOpacity
-          style={styles.plusBtn}
-          onPress={() => setShowAttachmentMenu(true)}
-          activeOpacity={0.8}
+        <LiquidGlassSurface
+          variant="chrome"
+          style={[
+            styles.floatingComposerCapsule,
+            {
+              borderColor: palette.border,
+            },
+          ]}
         >
-          <Ionicons name="add" size={28} color="#e9edef" />
-        </TouchableOpacity>
+          {/* Plus (+) Button for Attachments */}
+          <TouchableOpacity
+            style={styles.composerIconBtn}
+            onPress={() => setShowAttachmentMenu(true)}
+            activeOpacity={0.7}
+            accessibilityLabel="Attachments"
+          >
+            <Ionicons name="add" size={24} color={palette.textSecondary} />
+          </TouchableOpacity>
 
-        {/* Center: Rounded Input Capsule with Star / Sparkles Picker Button */}
-        <View style={styles.inputCapsule}>
+          {/* Text Input */}
           <TextInput
-            style={styles.messageInput}
-            placeholder="Message"
-            placeholderTextColor="#8696a0"
+            style={[styles.composerTextInput, { color: palette.textPrimary }]}
+            placeholder="Type a message..."
+            placeholderTextColor={palette.textSecondary}
             value={inputText}
             onChangeText={setInputText}
             multiline
@@ -1477,8 +1537,10 @@ export default function ChatScreen() {
               }, 150);
             }}
           />
+
+          {/* Sparkles / Stickers Shortcut */}
           <TouchableOpacity
-            style={styles.stickerPageBtn}
+            style={styles.composerIconBtn}
             onPress={() => {
               if (!showMediaPicker) {
                 Keyboard.dismiss();
@@ -1487,51 +1549,55 @@ export default function ChatScreen() {
                 setShowMediaPicker(false);
               }
             }}
+            accessibilityLabel="Stickers"
           >
             <Ionicons
               name={showMediaPicker ? 'keypad-outline' : 'sparkles-outline'}
-              size={21}
-              color={showMediaPicker ? '#25D366' : '#8696a0'}
+              size={20}
+              color={showMediaPicker ? '#10b981' : palette.textSecondary}
             />
           </TouchableOpacity>
-        </View>
 
-        {/* Right: Rupee (₹) Button */}
-        <TouchableOpacity
-          style={styles.rupeeCircleBtn}
-          onPress={() => Alert.alert('Payments', 'Send money via UPI')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.rupeeSymbolText}>₹</Text>
-        </TouchableOpacity>
+          {/* Quick ₹ Rupee Button */}
+          <TouchableOpacity
+            style={styles.composerIconBtn}
+            onPress={() => Alert.alert('UPI Payment', 'Quick ₹ Rupee payment demo on IndiChat')}
+            activeOpacity={0.7}
+            accessibilityLabel="Rupee"
+          >
+            <Text style={[styles.rupeeGlyph, { color: palette.textSecondary }]}>₹</Text>
+          </TouchableOpacity>
 
-        {/* Right: Camera Button */}
-        <TouchableOpacity
-          style={styles.cameraCircleBtn}
-          onPress={handleCaptureCamera}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="camera-outline" size={24} color="#e9edef" />
-        </TouchableOpacity>
+          {/* Camera Button */}
+          <TouchableOpacity
+            style={styles.composerIconBtn}
+            onPress={handleCaptureCamera}
+            activeOpacity={0.7}
+            accessibilityLabel="Camera"
+          >
+            <Ionicons name="camera-outline" size={22} color={palette.textSecondary} />
+          </TouchableOpacity>
 
-        {/* Far Right: WhatsApp Green Circular Send / Mic Button */}
-        <TouchableOpacity
-          style={styles.greenActionCircle}
-          onPress={() => {
-            if (inputText.trim()) {
-              handleSendMessage(inputText, 'TEXT');
-            } else {
-              handleSendMessage('🎵 Voice message', 'AUDIO');
-            }
-          }}
-          activeOpacity={0.8}
-        >
-          <Ionicons
-            name={inputText.trim() ? 'send' : 'mic'}
-            size={20}
-            color="#000000"
-          />
-        </TouchableOpacity>
+          {/* Emerald Green Circular Send Button */}
+          <TouchableOpacity
+            style={styles.composerSendBtn}
+            onPress={() => {
+              if (inputText.trim()) {
+                handleSendMessage(inputText, 'TEXT');
+              } else {
+                handleSendMessage('🎵 Voice message', 'AUDIO');
+              }
+            }}
+            activeOpacity={0.8}
+            accessibilityLabel="Send message"
+          >
+            <Ionicons
+              name={inputText.trim() ? 'send' : 'mic'}
+              size={18}
+              color="#070b0e"
+            />
+          </TouchableOpacity>
+        </LiquidGlassSurface>
       </View>
 
       {/* Attachment Options Action Modal */}
@@ -2138,28 +2204,86 @@ const styles = StyleSheet.create({
     backgroundColor: '#0a0f13',
   },
   topHeader: {
-    height: 60,
-    backgroundColor: '#0a0f13',
+    height: 56,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1a2026',
-    paddingTop: Platform.OS === 'android' ? 8 : 0,
+    justifyContent: 'space-between',
+    zIndex: 10,
+  },
+  topHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    minWidth: 0,
+    gap: 8,
+  },
+  headerBackBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingRight: 4,
+  },
+  contactHeaderAvatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  contactHeaderAvatarText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  onlineIndicatorDotSmall: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
+    backgroundColor: '#10b981',
+    borderWidth: 1.5,
+  },
+  contactHeaderMeta: {
+    flex: 1,
+    minWidth: 0,
+  },
+  contactHeaderTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  contactHeaderSubtitle: {
+    fontSize: 10.5,
+    color: '#10b981',
+    fontWeight: '500',
+  },
+  topHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  headerCallBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backBadgePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1f2428',
-    borderRadius: 16,
-    paddingRight: 10,
-    paddingLeft: 4,
-    paddingVertical: 4,
-    marginRight: 10,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderRadius: 12,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 2,
   },
   backBadgeText: {
-    color: '#e9edef',
-    fontSize: 15,
+    color: '#10b981',
+    fontSize: 11,
     fontWeight: '700',
   },
   avatarBox: {
@@ -2167,16 +2291,16 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   avatarCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#1e3a5f',
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    backgroundColor: '#10b981',
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarInitialText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '700',
   },
   clockBadge: {
@@ -2192,13 +2316,12 @@ const styles = StyleSheet.create({
   },
   headerContactName: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '700',
   },
   callCapsule: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1f2428',
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -2333,21 +2456,20 @@ const styles = StyleSheet.create({
   bubble: {
     maxWidth: '82%',
     paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    position: 'relative',
   },
   outgoingBubble: {
-    backgroundColor: '#005c4b',
-    borderTopRightRadius: 2,
+    borderTopRightRadius: 4,
   },
   incomingBubble: {
-    backgroundColor: '#1f2428',
-    borderTopLeftRadius: 2,
+    borderTopLeftRadius: 4,
   },
   messageText: {
-    color: '#ffffff',
-    fontSize: 15.5,
-    lineHeight: 20.5,
+    fontSize: 13.5,
+    lineHeight: 19,
   },
   replyPreviewCard: {
     flexDirection: 'row',
@@ -2465,63 +2587,42 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  bottomBarRow: {
+  composerWrapper: {
+    paddingHorizontal: 12,
+    paddingTop: 4,
+  },
+  floatingComposerCapsule: {
+    borderRadius: 28,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    backgroundColor: '#0a0f13',
-    gap: 8,
+    gap: 6,
+    borderWidth: 1,
   },
-  plusBtn: {
-    width: 36,
-    height: 36,
+  composerIconBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  inputCapsule: {
+  composerTextInput: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1f2428',
-    borderRadius: 22,
-    paddingHorizontal: 12,
-    minHeight: 44,
-  },
-  messageInput: {
-    flex: 1,
-    color: '#ffffff',
-    fontSize: 16,
-    paddingVertical: 8,
+    fontSize: 13.5,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
     maxHeight: 100,
   },
-  stickerPageBtn: {
-    padding: 4,
-  },
-  rupeeCircleBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#1f2428',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rupeeSymbolText: {
-    color: '#e9edef',
+  rupeeGlyph: {
     fontSize: 17,
     fontWeight: '700',
   },
-  cameraCircleBtn: {
-    width: 38,
-    height: 38,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  greenActionCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#25D366',
+  composerSendBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#10b981',
     alignItems: 'center',
     justifyContent: 'center',
   },

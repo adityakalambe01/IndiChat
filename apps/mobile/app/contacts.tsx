@@ -19,6 +19,9 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../theme/useTheme';
+import { LiquidGlassSurface } from '../components/LiquidGlassSurface';
+import { CompactSearchField } from '../components/CompactSearchField';
 import { api } from '../services/api';
 import {
   checkContactsPermission,
@@ -28,24 +31,25 @@ import {
   DeviceContactItem,
   ContactDiscoveryResult,
 } from '../services/contacts';
+import { ScreenHeader } from '../components/ScreenHeader';
 
 // Design tokens matching preview-find-contacts.html exactly
 const COLORS = {
   bgDark: '#0b1014',
-  appBg: '#111b21',
-  surface1: '#202c33',
-  surface2: '#222e35',
-  surface3: '#2a3942',
-  primaryGreen: '#25D366',
+  appBg: '#0b1016',
+  surface1: 'rgba(255, 255, 255, 0.05)',
+  surface2: 'rgba(255, 255, 255, 0.08)',
+  surface3: 'rgba(255, 255, 255, 0.12)',
+  primaryGreen: '#10b981',
   primaryTeal: '#00a884',
-  primaryTealDark: '#0a332c',
+  primaryTealDark: 'rgba(16, 185, 129, 0.15)',
   textPrimary: '#ffffff',
   textSecondary: '#8696a0',
   textMuted: '#667781',
-  textBio: '#aebac1',
-  borderSubtle: 'rgba(134, 150, 160, 0.15)',
-  borderLight: 'rgba(255, 255, 255, 0.05)',
-  borderCard: 'rgba(255, 255, 255, 0.03)',
+  textBio: '#8696a0',
+  borderSubtle: 'rgba(255, 255, 255, 0.08)',
+  borderLight: 'rgba(255, 255, 255, 0.08)',
+  borderCard: 'rgba(255, 255, 255, 0.05)',
   dangerRed: '#ea4335',
   warningAmber: '#fbbc04',
   blueAccent: '#53bdeb',
@@ -137,6 +141,7 @@ export default function FindContactsScreen() {
   const router = useRouter();
   const searchParams = useLocalSearchParams<{ state?: string; q?: string }>();
   const insets = useSafeAreaInsets();
+  const { palette, metrics, isDark } = useTheme();
   const searchInputRef = useRef<any>(null);
 
   const initialStatus: ScreenStatus = useMemo(() => {
@@ -381,75 +386,51 @@ export default function FindContactsScreen() {
     }
 
     return (
-      <View style={[styles.appHeader, { paddingTop: Math.max(insets.top, 8) }]}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity
-            style={styles.navBtn}
-            onPress={() => router.back()}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            accessibilityLabel="Back"
-          >
-            <Ionicons name="chevron-back" size={22} color="#aebac1" />
-          </TouchableOpacity>
-          <View style={styles.headerTitleBox}>
-            <Text style={styles.headerTitleText} numberOfLines={1}>
-              {headerTitle}
-            </Text>
-            <Text style={styles.headerSubtitleText} numberOfLines={1}>
-              {headerSubtitle}
-            </Text>
-          </View>
-        </View>
-
-        {status === 'ready' && (
-          <View style={styles.headerRight}>
-            <TouchableOpacity
-              style={styles.navBtn}
-              onPress={() => searchInputRef.current?.focus()}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              accessibilityLabel="Search"
-            >
-              <Ionicons name="search" size={20} color="#aebac1" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.navBtn, { marginLeft: 2 }]}
-              onPress={performDiscovery}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              accessibilityLabel="Refresh"
-            >
-              <Ionicons name="refresh" size={18} color="#aebac1" />
-            </TouchableOpacity>
-          </View>
-        )}
+      <View style={{ backgroundColor: palette.bg }}>
+        <ScreenHeader
+          title="Find Contacts"
+          showBack={true}
+          onBack={() => router.back()}
+          rightIconName="sync-outline"
+          onRightIconPress={performDiscovery}
+          rightIconLabel="Refresh contacts"
+        />
       </View>
     );
   };
 
+  // Bento Sync Address Book Hero Card matching preview
+  const renderListHeader = () => (
+    <View style={styles.listHeaderWrap}>
+      <LiquidGlassSurface variant="card" style={styles.bentoCard}>
+        <View style={styles.statusBadge}>
+          <Text style={styles.statusBadgeText}>● SHA-256 Encrypted</Text>
+        </View>
+        <Text style={[styles.bentoTitle, { color: palette.textPrimary }]}>
+          Your People. One Tap Away.
+        </Text>
+        <Text style={[styles.bentoSubtitle, { color: palette.textSecondary }]}>
+          Find contacts who are already on IndiChat. Phone numbers are hashed using SHA-256 before matching.
+        </Text>
+        <TouchableOpacity
+          style={styles.syncBtn}
+          onPress={performDiscovery}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.syncBtnText}>Sync Address Book</Text>
+        </TouchableOpacity>
+      </LiquidGlassSurface>
+    </View>
+  );
+
   // 2. Search Bar
   const renderSearchBar = () => (
     <View style={styles.searchBarWrap}>
-      <View style={styles.searchBox}>
-        <Ionicons name="search" size={16} color={COLORS.textSecondary} />
-        <TextInput
-          ref={searchInputRef}
-          style={styles.searchInput}
-          placeholder="Search contacts..."
-          placeholderTextColor={COLORS.textSecondary}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          autoCorrect={false}
-          autoCapitalize="none"
-          returnKeyType="search"
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity
-            onPress={() => setSearchQuery('')}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons name="close-circle" size={16} color={COLORS.textSecondary} />
-          </TouchableOpacity>
-        )}
-      </View>
+      <CompactSearchField
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        placeholder="Search contacts..."
+      />
     </View>
   );
 
@@ -462,32 +443,24 @@ export default function FindContactsScreen() {
 
     return (
       <TouchableOpacity
-        style={styles.contactItem}
+        style={[styles.contactItem, { borderBottomColor: palette.border }]}
         activeOpacity={0.7}
         onPress={() => handleStartChat(item)}
       >
         <View style={[styles.avatar, { backgroundColor: avatarBg }]}>
           <Text style={styles.avatarText}>{initial}</Text>
-          {item.isOnline && <View style={styles.onlineIndicator} />}
+          {item.isOnline && <View style={[styles.onlineIndicator, { borderColor: palette.bg }]} />}
         </View>
 
         <View style={styles.contactInfo}>
           <View style={styles.contactNameRow}>
-            <Text style={styles.contactNameText} numberOfLines={1}>
+            <Text style={[styles.contactNameText, { color: palette.textPrimary }]} numberOfLines={1}>
               {item.contactName || item.displayName}
             </Text>
-            <View style={styles.badgeIndichat}>
-              <Text style={styles.badgeIndichatText}>IndiChat</Text>
-            </View>
+            <Text style={styles.usernameTag}>@{item.username}</Text>
           </View>
 
-          <View style={styles.contactMeta}>
-            <Text style={styles.contactMetaText} numberOfLines={1}>
-              @{item.username} • {item.phoneNumber}
-            </Text>
-          </View>
-
-          <Text style={styles.contactBio} numberOfLines={1}>
+          <Text style={[styles.contactBio, { color: palette.textSecondary }]} numberOfLines={1}>
             {bioText}
           </Text>
         </View>
@@ -498,17 +471,9 @@ export default function FindContactsScreen() {
           disabled={isStarting}
         >
           {isStarting ? (
-            <ActivityIndicator size="small" color={COLORS.primaryGreen} />
+            <ActivityIndicator size="small" color="#10b981" />
           ) : (
-            <>
-              <Ionicons
-                name="chatbubble"
-                size={14}
-                color={COLORS.primaryGreen}
-                style={{ marginRight: 5 }}
-              />
-              <Text style={styles.chatActionText}>Chat</Text>
-            </>
+            <Text style={styles.chatActionText}>Message</Text>
           )}
         </TouchableOpacity>
       </TouchableOpacity>
@@ -520,27 +485,30 @@ export default function FindContactsScreen() {
     const initial = (item.name || '?')[0].toUpperCase();
 
     return (
-      <View style={styles.contactItem}>
-        <View style={[styles.avatar, { backgroundColor: COLORS.surface2 }]}>
-          <Text style={[styles.avatarText, { color: COLORS.textSecondary }]}>{initial}</Text>
+      <View style={[styles.contactItem, { borderBottomColor: palette.border }]}>
+        <View style={[styles.avatar, { backgroundColor: palette.surface }]}>
+          <Text style={[styles.avatarText, { color: palette.textSecondary }]}>{initial}</Text>
         </View>
 
         <View style={styles.contactInfo}>
           <View style={styles.contactNameRow}>
-            <Text style={styles.contactNameText} numberOfLines={1}>
+            <Text style={[styles.contactNameText, { color: palette.textPrimary }]} numberOfLines={1}>
               {item.name}
             </Text>
           </View>
 
           <View style={styles.contactMeta}>
-            <Text style={styles.contactMetaText} numberOfLines={1}>
+            <Text style={[styles.contactMetaText, { color: palette.textSecondary }]} numberOfLines={1}>
               {item.phoneNumber}
             </Text>
           </View>
         </View>
 
-        <TouchableOpacity style={styles.inviteActionBtn} onPress={() => handleInvite(item)}>
-          <Text style={styles.inviteActionText}>Invite</Text>
+        <TouchableOpacity
+          style={[styles.inviteActionBtn, { backgroundColor: palette.surface, borderColor: palette.border }]}
+          onPress={() => handleInvite(item)}
+        >
+          <Text style={[styles.inviteActionText, { color: palette.textPrimary }]}>Invite</Text>
         </TouchableOpacity>
       </View>
     );
@@ -794,7 +762,7 @@ export default function FindContactsScreen() {
                 style={styles.privacyIcon}
               />
               <Text style={styles.privacyText}>
-                <Text style={styles.boldWhite}>Private &amp; Encrypted: </Text>
+                <Text style={styles.boldWhite}>Private & Encrypted: </Text>
                 Phone numbers are hashed using SHA-256 before matching.
               </Text>
             </View>
@@ -879,15 +847,19 @@ export default function FindContactsScreen() {
             keyExtractor={(item: any) =>
               'userId' in item ? `matched-${item.userId}` : `invite-${item.id}`
             }
-            stickySectionHeadersEnabled={true}
+            ListHeaderComponent={renderListHeader}
+            stickySectionHeadersEnabled={false}
             renderSectionHeader={({ section }: { section: SectionData }) => (
               <View
                 style={[
                   styles.sectionHeaderWrap,
+                  { backgroundColor: palette.bg },
                   section.type === 'invite' && { marginTop: 12 },
                 ]}
               >
-                <Text style={styles.sectionHeaderText}>{section.title}</Text>
+                <Text style={[styles.sectionHeaderText, { color: palette.textSecondary }]}>
+                  {section.title} · {section.data.length}
+                </Text>
               </View>
             )}
             renderItem={({ item, section }: { item: any; section: SectionData }) => {
@@ -1008,10 +980,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.appBg,
   },
   sectionHeaderText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
-    color: COLORS.primaryTeal,
-    letterSpacing: 0.6,
+    letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   emptySectionRow: {
@@ -1025,7 +996,56 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // 4. Contact Cards
+  // 4. Contact Cards & Bento Hero Card
+  listHeaderWrap: {
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    paddingBottom: 6,
+  },
+  bentoCard: {
+    padding: 16,
+    borderRadius: 18,
+  },
+  statusBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    marginBottom: 8,
+  },
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#10b981',
+  },
+  bentoTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  bentoSubtitle: {
+    fontSize: 12,
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  syncBtn: {
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#10b981',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  syncBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#070b0e',
+  },
+  usernameTag: {
+    fontSize: 11,
+    color: '#10b981',
+    fontWeight: '600',
+  },
   listContent: {
     paddingBottom: 40,
   },
@@ -1036,12 +1056,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 14,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderCard,
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 46,
+    height: 46,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -1054,14 +1073,13 @@ const styles = StyleSheet.create({
   },
   onlineIndicator: {
     position: 'absolute',
-    bottom: 1,
-    right: 1,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: COLORS.primaryGreen,
+    bottom: -1,
+    right: -1,
+    width: 11,
+    height: 11,
+    borderRadius: 5.5,
+    backgroundColor: '#10b981',
     borderWidth: 2,
-    borderColor: COLORS.appBg,
   },
   contactInfo: {
     flex: 1,
@@ -1096,42 +1114,39 @@ const styles = StyleSheet.create({
   },
   contactMetaText: {
     fontSize: 12,
-    color: COLORS.textSecondary,
   },
   contactBio: {
     fontSize: 12,
-    color: COLORS.textBio,
     marginTop: 2,
   },
   chatActionBtn: {
-    backgroundColor: COLORS.primaryTealDark,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
     borderWidth: 1,
-    borderColor: COLORS.primaryTeal,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexShrink: 0,
-  },
-  chatActionText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.primaryGreen,
-  },
-  inviteActionBtn: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: COLORS.borderSubtle,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  chatActionText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#10b981',
+  },
+  inviteActionBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
     flexShrink: 0,
   },
   inviteActionText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    color: COLORS.blueAccent,
   },
 
   // 5. Loading Scanner State (View 2)
