@@ -26,16 +26,17 @@ export const PALETTE = {
 
   // Dark Obsidian
   dark: {
-    bg: '#0b1016',
-    surface: '#131c24',
-    surfaceElevated: '#1a2530',
-    surfaceTranslucent: 'rgba(19, 28, 36, 0.78)',
-    surfaceHeader: 'rgba(11, 16, 22, 0.85)',
-    surfaceDock: 'rgba(19, 28, 36, 0.88)',
-    surfaceInput: 'rgba(26, 37, 48, 0.75)',
-    border: 'rgba(255, 255, 255, 0.10)',
+    bg: '#070b0e',
+    surface: '#0e141a',
+    surfaceElevated: '#131c24',
+    surfaceTranslucent: 'rgba(19, 28, 36, 0.65)',
+    surfaceHeader: 'rgba(11, 16, 21, 0.84)',
+    surfaceDock: 'rgba(14, 20, 26, 0.78)',
+    surfaceInput: 'rgba(255, 255, 255, 0.06)',
+    glassInputBg: 'rgba(255, 255, 255, 0.06)',
+    border: 'rgba(255, 255, 255, 0.12)',
     borderStrong: 'rgba(255, 255, 255, 0.18)',
-    divider: 'rgba(255, 255, 255, 0.08)',
+    divider: 'rgba(255, 255, 255, 0.07)',
     textPrimary: '#ffffff',
     textSecondary: '#8696a0',
     textTertiary: '#5f707a',
@@ -63,21 +64,22 @@ export const PALETTE = {
     warning: '#f59e0b',
     indigo: '#6366f1',
     bgSecondary: '#1a2530',
-    glassBorder: 'rgba(255, 255, 255, 0.10)',
+    glassBorder: 'rgba(255, 255, 255, 0.12)',
   },
 
   // Daylight (Light)
   light: {
     bg: '#f2f5f3',
     surface: '#ffffff',
-    surfaceElevated: '#e8ecea',
-    surfaceTranslucent: 'rgba(255, 255, 255, 0.84)',
+    surfaceElevated: '#e6ece8',
+    surfaceTranslucent: 'rgba(255, 255, 255, 0.75)',
     surfaceHeader: 'rgba(242, 245, 243, 0.88)',
-    surfaceDock: 'rgba(255, 255, 255, 0.90)',
-    surfaceInput: 'rgba(230, 236, 232, 0.85)',
+    surfaceDock: 'rgba(255, 255, 255, 0.84)',
+    surfaceInput: 'rgba(0, 0, 0, 0.04)',
+    glassInputBg: 'rgba(0, 0, 0, 0.04)',
     border: 'rgba(0, 0, 0, 0.08)',
     borderStrong: 'rgba(0, 0, 0, 0.14)',
-    divider: 'rgba(0, 0, 0, 0.06)',
+    divider: 'rgba(0, 0, 0, 0.07)',
     textPrimary: '#0f172a',
     textSecondary: '#5f707a',
     textTertiary: '#8696a0',
@@ -113,7 +115,7 @@ export const PALETTE = {
 export const METRICS = {
   // Navigation & Headers
   headerHeight: 56,
-  dockHeight: 60,
+  dockHeight: 64,
   dockBottomSpacing: 12,
 
   // Search Fields (Compact 44-48px)
@@ -136,3 +138,39 @@ export const METRICS = {
   scrollBottomPadding: 120, // Guarantees last card clears the dock by at least 40px
   horizontalPadding: 16,
 };
+
+/**
+ * Shared typography font tokens strictly using bundled Inter:
+ * Consistent across Web Preview, iOS, and Android.
+ */
+export const FONTS = {
+  regular: 'Inter-Regular',
+  medium: 'Inter-Medium',
+  semiBold: 'Inter-SemiBold',
+  bold: 'Inter-Bold',
+} as const;
+
+/**
+ * Deterministic avatar palette matching preview/preview-liquid-glass.html:
+ * 8 varied deterministic squircle avatar background colors.
+ */
+export const PREVIEW_AVATAR_PALETTE = [
+  '#10b981', // Emerald
+  '#ec4899', // Pink
+  '#3b82f6', // Blue
+  '#8b5cf6', // Violet
+  '#f59e0b', // Amber
+  '#00a884', // Teal
+  '#06b6d4', // Cyan
+  '#f43f5e', // Rose
+];
+
+export function getDeterministicAvatarColor(seed: string): string {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const idx = Math.abs(hash) % PREVIEW_AVATAR_PALETTE.length;
+  return PREVIEW_AVATAR_PALETTE[idx];
+}
+

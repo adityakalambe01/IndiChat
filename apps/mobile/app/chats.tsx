@@ -30,6 +30,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/useTheme';
 import { LiquidGlassSurface } from '../components/LiquidGlassSurface';
 import { CompactSearchField } from '../components/CompactSearchField';
+import { AmbientCanvas } from '../components/AmbientCanvas';
+import { FloatingDock } from '../components/FloatingDock';
+import { BlurTargetView } from 'expo-blur';
+import { BlurTargetProvider } from '../theme/BlurTargetContext';
+import { getDeterministicAvatarColor, PREVIEW_AVATAR_PALETTE, FONTS } from '../theme/tokens';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -59,26 +64,6 @@ interface ChatItemData {
 }
 
 export type { CallHistoryItem };
-
-const PREVIEW_AVATAR_PALETTE = [
-  '#10b981', // Emerald
-  '#ec4899', // Pink
-  '#3b82f6', // Blue
-  '#8b5cf6', // Violet
-  '#f59e0b', // Amber
-  '#00a884', // Teal
-  '#06b6d4', // Cyan
-  '#f43f5e', // Rose
-];
-
-function getDeterministicAvatarColor(seed: string): string {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const idx = Math.abs(hash) % PREVIEW_AVATAR_PALETTE.length;
-  return PREVIEW_AVATAR_PALETTE[idx];
-}
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -214,6 +199,7 @@ export default function ChatsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isScrolledDown, setIsScrolledDown] = useState(false);
   const searchInputRef = useRef<TextInput>(null);
+  const blurTargetRef = useRef<any>(null);
 
   useEffect(() => {
     if (params.tab && ['updates', 'calls', 'communities', 'chats', 'you'].includes(params.tab)) {
@@ -678,10 +664,9 @@ export default function ChatsScreen() {
         value={searchQuery}
         onChangeText={setSearchQuery}
         placeholder="Search conversations..."
-        style={{ marginBottom: 6 }}
       />
 
-      {/* Filter Chips: [ All ] [ Unread (n) ] [ Favourites ] [ Groups ] */}
+      {/* Filter Chips: [ All ] [ Unread ] [ Favourites ] [ Groups ] */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -696,11 +681,12 @@ export default function ChatsScreen() {
             },
           ]}
           onPress={() => setActiveFilter('all')}
+          activeOpacity={0.7}
         >
           <Text
             style={[
               styles.filterChipText,
-              { color: activeFilter === 'all' ? '#10b981' : palette.textSecondary, fontWeight: activeFilter === 'all' ? '700' : '500' },
+              { color: activeFilter === 'all' ? '#10b981' : palette.textSecondary, fontWeight: '600' },
             ]}
           >
             All
@@ -716,14 +702,15 @@ export default function ChatsScreen() {
             },
           ]}
           onPress={() => setActiveFilter('unread')}
+          activeOpacity={0.7}
         >
           <Text
             style={[
               styles.filterChipText,
-              { color: activeFilter === 'unread' ? '#10b981' : palette.textSecondary, fontWeight: activeFilter === 'unread' ? '700' : '500' },
+              { color: activeFilter === 'unread' ? '#10b981' : palette.textSecondary, fontWeight: '600' },
             ]}
           >
-            {unreadChatsCount > 0 ? `Unread ${unreadChatsCount}` : 'Unread'}
+            Unread
           </Text>
         </TouchableOpacity>
 
@@ -736,11 +723,12 @@ export default function ChatsScreen() {
             },
           ]}
           onPress={() => setActiveFilter('favourites')}
+          activeOpacity={0.7}
         >
           <Text
             style={[
               styles.filterChipText,
-              { color: activeFilter === 'favourites' ? '#10b981' : palette.textSecondary, fontWeight: activeFilter === 'favourites' ? '700' : '500' },
+              { color: activeFilter === 'favourites' ? '#10b981' : palette.textSecondary, fontWeight: '600' },
             ]}
           >
             Favourites
@@ -756,11 +744,12 @@ export default function ChatsScreen() {
             },
           ]}
           onPress={() => setActiveFilter('groups')}
+          activeOpacity={0.7}
         >
           <Text
             style={[
               styles.filterChipText,
-              { color: activeFilter === 'groups' ? '#10b981' : palette.textSecondary, fontWeight: activeFilter === 'groups' ? '700' : '500' },
+              { color: activeFilter === 'groups' ? '#10b981' : palette.textSecondary, fontWeight: '600' },
             ]}
           >
             Groups
@@ -1155,7 +1144,10 @@ export default function ChatsScreen() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: palette.bg }]}>
+    <BlurTargetProvider value={blurTargetRef}>
+      <View style={[styles.container, { backgroundColor: palette.bg }]}>
+        <AmbientCanvas />
+
       {/* Sticky Liquid Glass Page Header */}
       <LiquidGlassSurface
         variant="chrome"
@@ -1201,19 +1193,11 @@ export default function ChatsScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.headerIconBtn}
-                onPress={() => router.push('/contacts')}
-                activeOpacity={0.7}
-                accessibilityLabel="Find or Add Contacts"
-              >
-                <Ionicons name="add" size={24} color={palette.textSecondary} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.headerIconBtn}
                 onPress={() => setShowTopMenu(!showTopMenu)}
                 activeOpacity={0.7}
-                accessibilityLabel="More Options"
+                accessibilityLabel="New Chat and Actions"
               >
-                <Ionicons name="ellipsis-horizontal" size={18} color={palette.textSecondary} />
+                <Ionicons name="add" size={24} color={palette.textSecondary} />
               </TouchableOpacity>
             </>
           )}
@@ -1461,132 +1445,18 @@ export default function ChatsScreen() {
       )}
 
       {/* Floating Modern Bottom Navigation Dock: [ Updates | Calls | Circles | Chats (dot) | You ] */}
-      <LiquidGlassSurface
-        variant="chrome"
-        style={[
-          styles.floatingBottomDock,
-          {
-            bottom: Math.max(insets.bottom, 12) + 6,
-            borderColor: palette.border,
-          },
-        ]}
-      >
-        {/* 1. Updates */}
-        <TouchableOpacity
-          style={[
-            styles.dockTab,
-            activeTab === 'updates' && { backgroundColor: palette.dockActiveBg },
-          ]}
-          onPress={() => setActiveTab('updates')}
-        >
-          <Ionicons
-            name={activeTab === 'updates' ? 'disc' : 'disc-outline'}
-            size={20}
-            color={activeTab === 'updates' ? palette.dockActiveColor : palette.dockInactiveColor}
-          />
-          <Text
-            style={[
-              styles.dockLabel,
-              { color: activeTab === 'updates' ? palette.dockActiveColor : palette.dockInactiveColor },
-              activeTab === 'updates' && { fontWeight: '700' },
-            ]}
-          >
-            Updates
-          </Text>
-        </TouchableOpacity>
-
-        {/* 2. Calls */}
-        <TouchableOpacity
-          style={[
-            styles.dockTab,
-            activeTab === 'calls' && { backgroundColor: palette.dockActiveBg },
-          ]}
-          onPress={() => setActiveTab('calls')}
-        >
-          <Ionicons
-            name={activeTab === 'calls' ? 'call' : 'call-outline'}
-            size={20}
-            color={activeTab === 'calls' ? palette.dockActiveColor : palette.dockInactiveColor}
-          />
-          <Text
-            style={[
-              styles.dockLabel,
-              { color: activeTab === 'calls' ? palette.dockActiveColor : palette.dockInactiveColor },
-              activeTab === 'calls' && { fontWeight: '700' },
-            ]}
-          >
-            Calls
-          </Text>
-        </TouchableOpacity>
-
-        {/* 3. Circles (Communities) */}
-        <TouchableOpacity
-          style={[
-            styles.dockTab,
-            activeTab === 'communities' && { backgroundColor: palette.dockActiveBg },
-          ]}
-          onPress={() => setActiveTab('communities')}
-        >
-          <Ionicons
-            name={activeTab === 'communities' ? 'people' : 'people-outline'}
-            size={20}
-            color={activeTab === 'communities' ? palette.dockActiveColor : palette.dockInactiveColor}
-          />
-          <Text
-            style={[
-              styles.dockLabel,
-              { color: activeTab === 'communities' ? palette.dockActiveColor : palette.dockInactiveColor },
-              activeTab === 'communities' && { fontWeight: '700' },
-            ]}
-          >
-            Circles
-          </Text>
-        </TouchableOpacity>
-
-        {/* 4. Chats */}
-        <TouchableOpacity
-          style={[
-            styles.dockTab,
-            activeTab === 'chats' && { backgroundColor: palette.dockActiveBg },
-          ]}
-          onPress={() => setActiveTab('chats')}
-        >
-          <View style={{ position: 'relative' }}>
-            <Ionicons
-              name={activeTab === 'chats' ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'}
-              size={20}
-              color={activeTab === 'chats' ? palette.dockActiveColor : palette.dockInactiveColor}
-            />
-            {totalUnreadCount > 0 && (
-              <View style={styles.dockBadge}>
-                <Text style={styles.dockBadgeText}>{totalUnreadCount}</Text>
-              </View>
-            )}
-          </View>
-          <Text
-            style={[
-              styles.dockLabel,
-              { color: activeTab === 'chats' ? palette.dockActiveColor : palette.dockInactiveColor },
-              activeTab === 'chats' && { fontWeight: '700' },
-            ]}
-          >
-            Chats
-          </Text>
-        </TouchableOpacity>
-
-        {/* 5. You (Settings/Profile) */}
-        <TouchableOpacity
-          style={styles.dockTab}
-          onPress={() => router.push('/settings')}
-        >
-          <View style={[styles.youAvatar, { backgroundColor: '#10b981' }]}>
-            <Text style={styles.youAvatarText}>
-              {(currentUser?.displayName || currentUser?.username || 'Y').charAt(0).toUpperCase()}
-            </Text>
-          </View>
-          <Text style={[styles.dockLabel, { color: palette.dockInactiveColor }]}>You</Text>
-        </TouchableOpacity>
-      </LiquidGlassSurface>
+      <FloatingDock
+        activeTab={activeTab}
+        unreadCount={totalUnreadCount}
+        userInitial={(currentUser?.displayName || currentUser?.username || 'Y').charAt(0).toUpperCase()}
+        onTabPress={(tab) => {
+          if (tab === 'you') {
+            router.push('/settings');
+          } else {
+            setActiveTab(tab as BottomTabType);
+          }
+        }}
+      />
 
       {/* Call Details Modal (opened via ⓘ button) */}
       {selectedCallDetails && (
@@ -1594,8 +1464,10 @@ export default function ChatsScreen() {
           <View style={styles.modalBackdrop}>
             <View style={styles.callDetailsCard}>
               <View style={styles.callDetailsHeader}>
-                <View style={styles.callAvatarCircle}>
-                  <Ionicons name="person" size={26} color="#53bdeb" />
+                <View style={[styles.callAvatarCircle, { backgroundColor: getDeterministicAvatarColor(selectedCallDetails.contactName) }]}>
+                  <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: '700' }}>
+                    {selectedCallDetails.contactName.charAt(0).toUpperCase()}
+                  </Text>
                 </View>
                 <View style={{ flex: 1, marginLeft: 14 }}>
                   <Text style={styles.callDetailsName}>{selectedCallDetails.contactName}</Text>
@@ -1780,7 +1652,7 @@ export default function ChatsScreen() {
                         : member?.user?.displayName || member?.user?.username || conv.title || 'Chat';
                     return (
                       <View key={conv.id} style={styles.callRow}>
-                        <View style={styles.callAvatarCircle}>
+                        <View style={[styles.callAvatarCircle, { backgroundColor: getDeterministicAvatarColor(name) }]}>
                           <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
                             {name.charAt(0).toUpperCase()}
                           </Text>
@@ -2143,6 +2015,7 @@ export default function ChatsScreen() {
         </Modal>
       )}
     </View>
+    </BlurTargetProvider>
   );
 }
 
@@ -2165,6 +2038,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pageHeaderTitle: {
+    fontFamily: FONTS.bold,
     fontSize: 19,
     fontWeight: '700',
     letterSpacing: -0.4,
@@ -2182,6 +2056,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   bentoSectionTitle: {
+    fontFamily: FONTS.bold,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.1,
@@ -2191,11 +2066,13 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
   },
   bentoHeroTitle: {
+    fontFamily: FONTS.bold,
     fontSize: 16,
     fontWeight: '700',
     marginBottom: 4,
   },
   bentoHeroDesc: {
+    fontFamily: FONTS.regular,
     fontSize: 12,
     lineHeight: 17,
     marginBottom: 12,
@@ -2382,10 +2259,12 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(16, 185, 129, 0.4)',
   },
   filterChipText: {
+    fontFamily: FONTS.medium,
     fontSize: 11.5,
     fontWeight: '600',
   },
   filterChipTextActive: {
+    fontFamily: FONTS.bold,
     color: '#10b981',
   },
   archivedRow: {
@@ -2461,16 +2340,19 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   contactName: {
+    fontFamily: FONTS.bold,
     fontSize: 14,
     fontWeight: '700',
     flex: 1,
     marginRight: 8,
   },
   timeLabel: {
+    fontFamily: FONTS.regular,
     fontSize: 11,
     fontWeight: '400',
   },
   timeLabelGreen: {
+    fontFamily: FONTS.semiBold,
     color: '#10b981',
     fontWeight: '600',
   },
@@ -2486,6 +2368,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   snippetText: {
+    fontFamily: FONTS.regular,
     fontSize: 12.5,
     lineHeight: 16,
   },
@@ -2499,6 +2382,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
   },
   unreadCountNumber: {
+    fontFamily: FONTS.bold,
     color: '#070b0e',
     fontSize: 10.5,
     fontWeight: '800',

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { registerForPushNotificationsAsync, setupNotificationListeners } from '../services/notifications';
 import { wsClient } from '../services/websocket';
 import { api, onSessionExpired } from '../services/api';
@@ -9,8 +9,10 @@ import { STORAGE_KEYS, storage } from '../services/storage';
 import { settingsService } from '../services/settings';
 import { callHistoryService } from '../services/callHistory';
 import { Ionicons } from '@expo/vector-icons';
+import { useFonts } from 'expo-font';
 import { ThemeProvider, useTheme } from '../theme/useTheme';
 import { LiquidGlassSurface } from '../components/LiquidGlassSurface';
+import { AmbientCanvas } from '../components/AmbientCanvas';
 
 function RootNavigation() {
   const router = useRouter();
@@ -64,21 +66,37 @@ function RootNavigation() {
       }
     });
 
+    const unsubLinking = Linking.addEventListener('url', (event) => {
+      try {
+        const url = event.url;
+        const match = url.match(/indichat:\/\/([^?]+)(\?.*)?/);
+        if (match) {
+          const route = '/' + match[1];
+          const query = match[2] || '';
+          router.navigate(`${route}${query}` as any);
+        }
+      } catch (e) {
+        console.warn('Deep link routing failed:', e);
+      }
+    });
+
     return () => {
       cleanupNotifications?.();
       unsubDeviceRemoved();
       unsubExpired();
       unsubCall();
+      unsubLinking.remove();
     };
   }, [router]);
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.bg }}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
+      <AmbientCanvas />
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: palette.bg },
+          contentStyle: { backgroundColor: 'transparent' },
           animation: 'slide_from_right',
         }}
       >
@@ -236,6 +254,17 @@ function RootNavigation() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    'Inter-Regular': require('../assets/fonts/Inter-Regular.ttf'),
+    'Inter-Medium': require('../assets/fonts/Inter-Medium.ttf'),
+    'Inter-SemiBold': require('../assets/fonts/Inter-SemiBold.ttf'),
+    'Inter-Bold': require('../assets/fonts/Inter-Bold.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <ThemeProvider>
       <RootNavigation />

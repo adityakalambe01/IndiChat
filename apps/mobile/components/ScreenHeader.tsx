@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LiquidGlassSurface } from './LiquidGlassSurface';
 import { useTheme } from '../theme/useTheme';
+import { FONTS } from '../theme/tokens';
 
 export interface ScreenHeaderProps {
   title: string;
@@ -162,6 +163,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   title: {
+    fontFamily: FONTS.bold,
     fontSize: 18,
     fontWeight: '700',
     letterSpacing: -0.3,
@@ -186,6 +188,7 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   actionText: {
+    fontFamily: FONTS.bold,
     color: '#10b981',
     fontSize: 14,
     fontWeight: '700',

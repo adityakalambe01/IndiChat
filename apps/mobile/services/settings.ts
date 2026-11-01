@@ -136,8 +136,10 @@ class SettingsService {
   }
 
   private async persist(): Promise<void> {
-    const key = this.currentUserId ? `${STORAGE_KEYS.SETTINGS}_${this.currentUserId}` : STORAGE_KEYS.SETTINGS;
-    await storage.setJson(key, this.settings);
+    await storage.setJson(STORAGE_KEYS.SETTINGS, this.settings);
+    if (this.currentUserId) {
+      await storage.setJson(`${STORAGE_KEYS.SETTINGS}_${this.currentUserId}`, this.settings);
+    }
   }
 
   public getSettings(): MobileAppSettings {

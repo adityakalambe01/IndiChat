@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -14,7 +14,9 @@
     "ios": {
       "bundleIdentifier": "com.indichat.app",
       "supportsTablet": true,
+      "userInterfaceStyle": "automatic",
       "infoPlist": {
+        "UIUserInterfaceStyle": "Automatic",
         "NSContactsUsageDescription": "IndiChat uses your contacts to find friends who are already on IndiChat. Your contacts are not stored on our servers.",
         "NSCameraUsageDescription": "IndiChat requires access to the camera to take and send photos and videos.",
         "NSPhotoLibraryUsageDescription": "IndiChat requires access to your photo library to select and send photos and media.",
@@ -27,6 +29,7 @@
     },
     "android": {
       "package": "com.indichat.app",
+      "userInterfaceStyle": "automatic",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#111b21"
@@ -38,6 +41,17 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Inter-Regular.ttf",
+            "./assets/fonts/Inter-Medium.ttf",
+            "./assets/fonts/Inter-SemiBold.ttf",
+            "./assets/fonts/Inter-Bold.ttf"
+          ]
+        }
+      ],
       [
         "expo-notifications",
         {

@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/useTheme';
+import { FONTS } from '../theme/tokens';
 
 export interface CompactSearchFieldProps extends TextInputProps {
   value: string;
@@ -33,12 +34,15 @@ export const CompactSearchField = React.forwardRef<TextInput, CompactSearchField
       onChangeText,
       placeholder = 'Search conversations...',
       onClear,
+      onFocus,
+      onBlur,
       style,
       ...rest
     },
     ref
   ) {
     const { palette } = useTheme();
+    const [isFocused, setIsFocused] = React.useState(false);
 
     return (
       <View style={styles.wrapper}>
@@ -47,7 +51,7 @@ export const CompactSearchField = React.forwardRef<TextInput, CompactSearchField
             styles.pill,
             {
               backgroundColor: palette.surfaceInput,
-              borderColor: palette.border,
+              borderColor: isFocused ? '#10b981' : palette.border,
             },
             style,
           ]}
@@ -70,26 +74,35 @@ export const CompactSearchField = React.forwardRef<TextInput, CompactSearchField
             accessibilityLabel={placeholder}
             autoCorrect={false}
             autoCapitalize="none"
+            onFocus={(e) => {
+              setIsFocused(true);
+              onFocus?.(e);
+            }}
+            onBlur={(e) => {
+              setIsFocused(false);
+              onBlur?.(e);
+            }}
             {...rest}
           />
-        {value.length > 0 && (
-          <TouchableOpacity
-            onPress={() => {
-              onChangeText('');
-              onClear?.();
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Clear search"
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={styles.clearBtn}
-          >
-            <Ionicons name="close-circle" size={16} color={palette.textSecondary} />
-          </TouchableOpacity>
-        )}
+          {value.length > 0 && (
+            <TouchableOpacity
+              onPress={() => {
+                onChangeText('');
+                onClear?.();
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Clear search"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={styles.clearBtn}
+            >
+              <Ionicons name="close-circle" size={16} color={palette.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-    </View>
-  );
-});
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -118,6 +131,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   input: {
+    fontFamily: FONTS.regular,
     flex: 1,
     minWidth: 0,
     height: '100%',

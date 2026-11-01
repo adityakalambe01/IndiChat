@@ -17,16 +17,17 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  Switch,
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
+import { InAppSwitch } from '../../components/InAppSwitch';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
 import { useUnsavedChangesGuard } from '../../utils/useUnsavedChangesGuard';
 import { AppearanceModeOption, ReducedMotionOption } from '../../services/settings';
+import { FONTS } from '../../theme/tokens';
 
 export default function AppearanceSettingsScreen() {
   const router = useRouter();
@@ -253,12 +254,9 @@ export default function AppearanceSettingsScreen() {
                 Switch to opaque surfaces for maximum contrast
               </Text>
             </View>
-            <Switch
+            <InAppSwitch
               value={stagedSolid}
               onValueChange={(val) => updateStaged(stagedMode, stagedBlur, val, stagedMotion)}
-              trackColor={{ false: 'rgba(255,255,255,0.2)', true: '#10b981' }}
-              thumbColor="#ffffff"
-              accessibilityRole="switch"
               accessibilityLabel="Reduce Transparency"
             />
           </View>
@@ -364,17 +362,20 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   heroTitle: {
+    fontFamily: FONTS.bold,
     fontSize: 16,
     fontWeight: '700',
     textAlign: 'center',
   },
   heroDesc: {
+    fontFamily: FONTS.regular,
     fontSize: 12,
     lineHeight: 18,
     textAlign: 'center',
     marginTop: 6,
   },
   sectionHeader: {
+    fontFamily: FONTS.bold,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.1,
@@ -388,6 +389,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   fieldHint: {
+    fontFamily: FONTS.regular,
     fontSize: 12,
     marginBottom: 10,
   },
@@ -405,10 +407,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   segmentText: {
+    fontFamily: FONTS.medium,
     fontSize: 12,
     fontWeight: '600',
   },
   segmentTextActive: {
+    fontFamily: FONTS.bold,
     fontWeight: '700',
   },
   controlRow: {
@@ -430,10 +434,12 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
   controlTitle: {
+    fontFamily: FONTS.semiBold,
     fontSize: 13.5,
     fontWeight: '600',
   },
   controlDesc: {
+    fontFamily: FONTS.regular,
     fontSize: 11.5,
     marginTop: 2,
   },
@@ -469,6 +475,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   warningText: {
+    fontFamily: FONTS.regular,
     color: '#f59e0b',
     fontSize: 11,
     flex: 1,
@@ -477,6 +484,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   techNoteText: {
+    fontFamily: FONTS.regular,
     fontSize: 11,
   },
   actionRow: {
@@ -494,6 +502,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   cancelBtnText: {
+    fontFamily: FONTS.semiBold,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -509,6 +518,7 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   saveBtnText: {
+    fontFamily: FONTS.bold,
     color: '#070b0e',
     fontSize: 14,
     fontWeight: '700',

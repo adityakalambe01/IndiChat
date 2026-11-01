@@ -14,7 +14,6 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  Switch,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +21,8 @@ import { settingsService, FontSizeOption } from '../../services/settings';
 import { useTheme } from '../../theme/useTheme';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
+import { InAppSwitch } from '../../components/InAppSwitch';
+import { FONTS } from '../../theme/tokens';
 
 export default function ChatsSettingsScreen() {
   const router = useRouter();
@@ -68,11 +69,10 @@ export default function ChatsSettingsScreen() {
                 Pressing Enter key on keyboard sends message immediately
               </Text>
             </View>
-            <Switch
+            <InAppSwitch
               value={enterIsSend}
               onValueChange={handleEnterToggle}
-              trackColor={{ false: 'rgba(255,255,255,0.2)', true: '#10b981' }}
-              thumbColor="#ffffff"
+              accessibilityLabel="Enter is Send"
             />
           </View>
 
@@ -83,11 +83,10 @@ export default function ChatsSettingsScreen() {
                 Show newly downloaded media in device gallery
               </Text>
             </View>
-            <Switch
+            <InAppSwitch
               value={mediaVisibility}
               onValueChange={handleMediaToggle}
-              trackColor={{ false: 'rgba(255,255,255,0.2)', true: '#10b981' }}
-              thumbColor="#ffffff"
+              accessibilityLabel="Media Visibility"
             />
           </View>
         </LiquidGlassSurface>
@@ -175,6 +174,7 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   scrollContent: { padding: 16 },
   sectionHeader: {
+    fontFamily: FONTS.bold,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.1,
@@ -206,8 +206,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   metaCol: { flex: 1, paddingRight: 8 },
-  title: { fontSize: 14, fontWeight: '600' },
-  desc: { fontSize: 11.5, marginTop: 2 },
+  title: { fontFamily: FONTS.semiBold, fontSize: 14, fontWeight: '600' },
+  desc: { fontFamily: FONTS.regular, fontSize: 11.5, marginTop: 2 },
   segmentedRow: { flexDirection: 'row', gap: 8 },
   segmentBtn: {
     flex: 1,
@@ -217,6 +217,6 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
     alignItems: 'center',
   },
-  segmentText: { fontSize: 12, fontWeight: '600' },
-  segmentTextActive: { fontWeight: '700' },
+  segmentText: { fontFamily: FONTS.medium, fontSize: 12, fontWeight: '600' },
+  segmentTextActive: { fontFamily: FONTS.bold, fontWeight: '700' },
 });

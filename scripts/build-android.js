@@ -29,6 +29,18 @@ if (fs.existsSync(playstoreSrc)) {
   fs.copyFileSync(playstoreSrc, path.join(releaseAndroidDir, 'playstore-512.png'));
 }
 
+// Synchronize Inter font bundle into Android assets/fonts
+const fontSrcDir = path.join(mobileDir, 'assets', 'fonts');
+const fontDestDir = path.join(androidDir, 'app', 'src', 'main', 'assets', 'fonts');
+if (fs.existsSync(fontSrcDir)) {
+  fs.mkdirSync(fontDestDir, { recursive: true });
+  for (const font of fs.readdirSync(fontSrcDir)) {
+    if (font.endsWith('.ttf')) {
+      fs.copyFileSync(path.join(fontSrcDir, font), path.join(fontDestDir, font));
+    }
+  }
+}
+
 // Ensure Android SDK environment variables are set
 if (!process.env.ANDROID_HOME && !process.env.ANDROID_SDK_ROOT) {
   const localPropsPath = path.join(androidDir, 'local.properties');

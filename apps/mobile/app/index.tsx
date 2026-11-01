@@ -33,6 +33,7 @@ import { registerForPushNotificationsAsync } from '../services/notifications';
 import { useTheme } from '../theme/useTheme';
 import { LiquidGlassSurface } from '../components/LiquidGlassSurface';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { FONTS } from '../theme/tokens';
 
 type AuthViewMode = 'auth' | 'two_factor' | 'server_config';
 
@@ -639,16 +640,19 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   brandMarkLetter: {
+    fontFamily: FONTS.bold,
     fontSize: 24,
     fontWeight: '800',
     color: '#05080b',
   },
   brandTitle: {
+    fontFamily: FONTS.bold,
     fontSize: 20,
     fontWeight: '800',
     letterSpacing: -0.4,
   },
   brandSubtitle: {
+    fontFamily: FONTS.regular,
     fontSize: 12,
     marginTop: 3,
   },
@@ -678,12 +682,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   demoHeaderTitle: {
+    fontFamily: FONTS.bold,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.1,
     textTransform: 'uppercase',
   },
   demoPinText: {
+    fontFamily: FONTS.semiBold,
     fontSize: 10.5,
     color: '#10b981',
     fontWeight: '600',
@@ -700,6 +706,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   demoPillText: {
+    fontFamily: FONTS.semiBold,
     fontSize: 11,
     fontWeight: '600',
   },
@@ -709,11 +716,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   formFieldLabel: {
+    fontFamily: FONTS.semiBold,
     fontSize: 11.5,
     fontWeight: '600',
     marginBottom: 6,
   },
   formTextInput: {
+    fontFamily: FONTS.regular,
     width: '100%',
     borderRadius: 10,
     borderWidth: 1,
@@ -722,6 +731,7 @@ const styles = StyleSheet.create({
     fontSize: 13.5,
   },
   formFieldHint: {
+    fontFamily: FONTS.regular,
     fontSize: 11,
     marginTop: 6,
     lineHeight: 15,
@@ -737,6 +747,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   errorText: {
+    fontFamily: FONTS.medium,
     color: '#f43f5e',
     fontSize: 12,
     flex: 1,
@@ -755,6 +766,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   primaryBtnText: {
+    fontFamily: FONTS.bold,
     color: '#070b0e',
     fontSize: 14,
     fontWeight: '700',
@@ -768,6 +780,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   switchModeText: {
+    fontFamily: FONTS.semiBold,
     color: '#10b981',
     fontSize: 12.5,
     fontWeight: '600',
@@ -783,10 +796,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   twoFactorTitle: {
+    fontFamily: FONTS.bold,
     fontSize: 16,
     fontWeight: '700',
   },
   twoFactorDesc: {
+    fontFamily: FONTS.regular,
     fontSize: 12,
     textAlign: 'center',
     lineHeight: 18,
@@ -794,6 +809,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   pinInputHero: {
+    fontFamily: FONTS.bold,
     letterSpacing: 8,
     fontSize: 22,
     fontWeight: '800',
@@ -806,6 +822,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   demoPinNotice: {
+    fontFamily: FONTS.semiBold,
     fontSize: 11,
     color: '#10b981',
     fontWeight: '600',
@@ -824,11 +841,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   testServerBtnText: {
+    fontFamily: FONTS.bold,
     color: '#10b981',
     fontSize: 12.5,
     fontWeight: '700',
   },
   connectionStatusText: {
+    fontFamily: FONTS.semiBold,
     fontSize: 12,
     fontWeight: '600',
     marginTop: 8,
@@ -848,6 +867,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cancelBtnText: {
+    fontFamily: FONTS.semiBold,
     fontSize: 13,
     fontWeight: '600',
   },
@@ -860,6 +880,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveEndpointBtnText: {
+    fontFamily: FONTS.bold,
     color: '#070b0e',
     fontSize: 13,
     fontWeight: '700',

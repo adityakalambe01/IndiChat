@@ -51,6 +51,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
 import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
+import { getDeterministicAvatarColor, FONTS } from '../../theme/tokens';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -1424,7 +1425,7 @@ export default function ChatScreen() {
           </TouchableOpacity>
 
           {/* Contact Avatar: 34x34 squircle with 12px radius */}
-          <View style={[styles.contactHeaderAvatar, { backgroundColor: '#10b981' }]}>
+          <View style={[styles.contactHeaderAvatar, { backgroundColor: getDeterministicAvatarColor(contactName || (conversationId as string) || 'Chat') }]}>
             <Text style={styles.contactHeaderAvatarText}>
               {(contactName || 'C').charAt(0).toUpperCase()}
             </Text>
@@ -2252,10 +2253,12 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   contactHeaderTitle: {
+    fontFamily: FONTS.bold,
     fontSize: 14,
     fontWeight: '700',
   },
   contactHeaderSubtitle: {
+    fontFamily: FONTS.medium,
     fontSize: 10.5,
     color: '#10b981',
     fontWeight: '500',
@@ -2356,6 +2359,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   dateSeparatorText: {
+    fontFamily: FONTS.medium,
     color: '#8696a0',
     fontSize: 12,
     fontWeight: '600',
@@ -2468,6 +2472,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 4,
   },
   messageText: {
+    fontFamily: FONTS.regular,
     fontSize: 13.5,
     lineHeight: 19,
   },
@@ -2488,12 +2493,14 @@ const styles = StyleSheet.create({
     paddingLeft: 6,
   },
   replyAuthor: {
+    fontFamily: FONTS.bold,
     color: '#f43f5e',
     fontSize: 12.5,
     fontWeight: '700',
     marginBottom: 2,
   },
   replySnippet: {
+    fontFamily: FONTS.regular,
     color: '#94a3b8',
     fontSize: 13,
   },
@@ -2505,6 +2512,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   timeText: {
+    fontFamily: FONTS.regular,
     color: 'rgba(233, 237, 239, 0.65)',
     fontSize: 11,
   },
@@ -2608,6 +2616,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   composerTextInput: {
+    fontFamily: FONTS.regular,
     flex: 1,
     fontSize: 13.5,
     paddingVertical: 6,
@@ -2615,6 +2624,7 @@ const styles = StyleSheet.create({
     maxHeight: 100,
   },
   rupeeGlyph: {
+    fontFamily: FONTS.bold,
     fontSize: 17,
     fontWeight: '700',
   },

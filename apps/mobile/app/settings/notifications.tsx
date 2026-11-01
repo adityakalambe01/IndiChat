@@ -7,10 +7,12 @@
  */
 
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, Switch } from 'react-native';
+import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
+import { InAppSwitch } from '../../components/InAppSwitch';
+import { FONTS } from '../../theme/tokens';
 
 export default function NotificationsSettingsScreen() {
   const { palette, metrics } = useTheme();
@@ -44,11 +46,10 @@ export default function NotificationsSettingsScreen() {
                 Show incoming message notifications
               </Text>
             </View>
-            <Switch
+            <InAppSwitch
               value={messageAlerts}
               onValueChange={setMessageAlerts}
-              trackColor={{ false: 'rgba(255,255,255,0.2)', true: '#10b981' }}
-              thumbColor="#ffffff"
+              accessibilityLabel="Conversation Alerts"
             />
           </View>
 
@@ -61,11 +62,10 @@ export default function NotificationsSettingsScreen() {
                 Play ringtone & message chime
               </Text>
             </View>
-            <Switch
+            <InAppSwitch
               value={soundEnabled}
               onValueChange={setSoundEnabled}
-              trackColor={{ false: 'rgba(255,255,255,0.2)', true: '#10b981' }}
-              thumbColor="#ffffff"
+              accessibilityLabel="Sound Effects"
             />
           </View>
 
@@ -78,11 +78,10 @@ export default function NotificationsSettingsScreen() {
                 Vibrate device on incoming alerts
               </Text>
             </View>
-            <Switch
+            <InAppSwitch
               value={vibrateEnabled}
               onValueChange={setVibrateEnabled}
-              trackColor={{ false: 'rgba(255,255,255,0.2)', true: '#10b981' }}
-              thumbColor="#ffffff"
+              accessibilityLabel="Vibration"
             />
           </View>
 
@@ -95,11 +94,10 @@ export default function NotificationsSettingsScreen() {
                 Show sender name and message text in banner
               </Text>
             </View>
-            <Switch
+            <InAppSwitch
               value={previewEnabled}
               onValueChange={setPreviewEnabled}
-              trackColor={{ false: 'rgba(255,255,255,0.2)', true: '#10b981' }}
-              thumbColor="#ffffff"
+              accessibilityLabel="Message Previews"
             />
           </View>
         </LiquidGlassSurface>
@@ -113,6 +111,7 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   scrollContent: { padding: 16 },
   sectionHeader: {
+    fontFamily: FONTS.bold,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.1,
@@ -130,6 +129,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   metaCol: { flex: 1, paddingRight: 8 },
-  title: { fontSize: 14, fontWeight: '600' },
-  desc: { fontSize: 11.5, marginTop: 2 },
+  title: { fontFamily: FONTS.semiBold, fontSize: 14, fontWeight: '600' },
+  desc: { fontFamily: FONTS.regular, fontSize: 11.5, marginTop: 2 },
 });

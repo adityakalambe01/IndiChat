@@ -12,6 +12,7 @@ import React from 'react';
 import { StyleSheet, View, ViewProps, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useTheme } from '../theme/useTheme';
+import { useBlurTarget } from '../theme/BlurTargetContext';
 
 export interface LiquidGlassSurfaceProps extends ViewProps {
   /**
@@ -20,22 +21,26 @@ export interface LiquidGlassSurfaceProps extends ViewProps {
    */
   variant?: 'card' | 'chrome';
   tintOverride?: 'dark' | 'light' | 'default';
+  blurTarget?: React.RefObject<any>;
   children?: React.ReactNode;
 }
 
 export function LiquidGlassSurface({
   variant = 'card',
   tintOverride,
+  blurTarget,
   style,
   children,
   ...rest
 }: LiquidGlassSurfaceProps) {
   const { isDark, palette, isSolid, blurIntensity } = useTheme();
+  const contextBlurTarget = useBlurTarget();
+  const effectiveBlurTarget = blurTarget || contextBlurTarget;
 
   const tint = tintOverride || (isDark ? 'dark' : 'light');
 
-  // Solid Surface Fallback (Reduce Transparency active or intensity is 0)
-  if (isSolid || blurIntensity === 0) {
+  // Solid Surface Fallback (Reduce Transparency active)
+  if (isSolid) {
     return (
       <View
         style={[
@@ -60,10 +65,11 @@ export function LiquidGlassSurface({
         intensity={blurIntensity}
         tint={tint}
         blurMethod={Platform.OS === 'android' ? 'dimezisBlurViewSdk31Plus' : undefined}
+        blurTarget={effectiveBlurTarget || undefined}
         style={[
           styles.base,
           {
-            backgroundColor: isDark ? 'rgba(11, 16, 22, 0.45)' : 'rgba(242, 245, 243, 0.60)',
+            backgroundColor: palette.surfaceHeader,
             borderColor: palette.border,
           },
           style,
@@ -82,7 +88,7 @@ export function LiquidGlassSurface({
         styles.base,
         styles.cardShadow,
         {
-          backgroundColor: isDark ? 'rgba(19, 28, 36, 0.78)' : 'rgba(255, 255, 255, 0.84)',
+          backgroundColor: palette.surfaceTranslucent,
           borderColor: palette.border,
         },
         style,

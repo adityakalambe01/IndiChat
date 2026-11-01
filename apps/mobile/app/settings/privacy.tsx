@@ -14,13 +14,14 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { settingsService, PrivacyOption } from '../../services/settings';
 import { useTheme } from '../../theme/useTheme';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
+import { InAppSwitch } from '../../components/InAppSwitch';
+import { FONTS } from '../../theme/tokens';
 
 export default function PrivacySettingsScreen() {
   const { palette, metrics, userSettings } = useTheme();
@@ -76,12 +77,9 @@ export default function PrivacySettingsScreen() {
                 Send and receive double cyan checkmarks (#53bdeb) when messages are read.
               </Text>
             </View>
-            <Switch
+            <InAppSwitch
               value={readReceipts}
               onValueChange={handleReadReceiptsToggle}
-              trackColor={{ false: 'rgba(255,255,255,0.2)', true: '#10b981' }}
-              thumbColor="#ffffff"
-              accessibilityRole="switch"
               accessibilityLabel="Toggle Read Receipts"
             />
           </View>
@@ -154,6 +152,7 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   scrollContent: { padding: 16 },
   sectionHeader: {
+    fontFamily: FONTS.bold,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.1,
@@ -166,23 +165,24 @@ const styles = StyleSheet.create({
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   metaCol: { flex: 1, paddingRight: 10 },
   titleWithTick: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  switchTitle: { fontSize: 14, fontWeight: '600' },
+  switchTitle: { fontFamily: FONTS.semiBold, fontSize: 14, fontWeight: '600' },
   tickBadge: {
     paddingHorizontal: 4,
     paddingVertical: 1,
     borderRadius: 4,
   },
   cyanTickText: {
+    fontFamily: FONTS.bold,
     fontSize: 12,
     fontWeight: '800',
   },
-  switchDesc: { fontSize: 11.5, marginTop: 4, lineHeight: 16 },
-  hintFootnote: { fontSize: 11, marginTop: 10, lineHeight: 15 },
+  switchDesc: { fontFamily: FONTS.regular, fontSize: 11.5, marginTop: 4, lineHeight: 16 },
+  hintFootnote: { fontFamily: FONTS.regular, fontSize: 11, marginTop: 10, lineHeight: 15 },
   optionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 12,
   },
-  optionText: { fontSize: 14, fontWeight: '500' },
+  optionText: { fontFamily: FONTS.medium, fontSize: 14, fontWeight: '500' },
 });
