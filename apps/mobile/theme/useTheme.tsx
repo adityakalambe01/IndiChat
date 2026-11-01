@@ -17,13 +17,8 @@ import {
 } from 'react-native';
 import { settingsService, MobileAppSettings, AppearanceModeOption, ReducedMotionOption } from '../services/settings';
 import { PALETTE, METRICS } from './tokens';
-
-export interface StagedAppearance {
-  appearanceMode?: AppearanceModeOption;
-  blurRadius?: number;
-  reduceTransparency?: boolean;
-  reducedMotion?: ReducedMotionOption;
-}
+import { resolveEffectiveTheme, StagedAppearance } from './resolveTheme';
+export type { StagedAppearance };
 
 export interface ThemeContextValue {
   isDark: boolean;
@@ -79,37 +74,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // 3. Resolve effective properties (incorporating staged preview if active)
-  const effectiveMode: AppearanceModeOption = stagedPreview?.appearanceMode ?? settings.appearanceMode ?? 'system';
-  const effectiveBlurRadius: number = stagedPreview?.blurRadius ?? settings.blurRadius ?? 20;
-  const effectiveReduceTransparency: boolean = stagedPreview?.reduceTransparency ?? settings.reduceTransparency ?? false;
-  const effectiveReducedMotion: ReducedMotionOption = stagedPreview?.reducedMotion ?? settings.reducedMotion ?? 'system';
+  const resolved = useMemo(() => {
+    return resolveEffectiveTheme(
+      settings,
+      stagedPreview,
+      systemScheme,
+      systemReducedTransparency,
+      systemReducedMotion
+    );
+  }, [settings, stagedPreview, systemScheme, systemReducedTransparency, systemReducedMotion]);
 
-  // Effective isDark
-  const isDark = useMemo(() => {
-    if (effectiveMode === 'light') return false;
-    if (effectiveMode === 'dark') return true;
-    return systemScheme !== 'light';
-  }, [effectiveMode, systemScheme]);
-
-  // Effective isSolid (user switch OR system preference)
-  const isSolid = useMemo(() => {
-    return effectiveReduceTransparency || systemReducedTransparency;
-  }, [effectiveReduceTransparency, systemReducedTransparency]);
-
-  // Effective isReducedMotion (user switch OR system preference)
-  const isReducedMotion = useMemo(() => {
-    if (effectiveReducedMotion === 'on') return true;
-    if (effectiveReducedMotion === 'off') return false;
-    return systemReducedMotion;
-  }, [effectiveReducedMotion, systemReducedMotion]);
-
-  // Blur intensity: 0 if solid or blurRadius 0; otherwise mapped from 0-40 to 0-100
-  const blurIntensity = useMemo(() => {
-    if (isSolid) return 0;
-    return Math.max(0, Math.min(100, Math.round((effectiveBlurRadius / 40) * 100)));
-  }, [isSolid, effectiveBlurRadius]);
-
-  const palette = isDark ? PALETTE.dark : PALETTE.light;
+  const { effectiveBlurRadius, isDark, isSolid, isReducedMotion, blurIntensity, palette } = resolved;
 
   const saveStagedAppearance = () => {
     if (!stagedPreview) return;

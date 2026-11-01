@@ -407,7 +407,7 @@ export default function ChatsScreen() {
 
         setIncomingCall({
           senderUserId: signal.senderUserId,
-          callerName: caller?.displayName || caller?.username || 'Incoming Caller',
+          callerName: (signal.data as any)?.callerName || caller?.displayName || caller?.username || 'Incoming Caller',
           isVideo: Boolean((signal.data as any)?.isVideo),
         });
       } else if (signal.signalType === 'hangup') {
@@ -1033,7 +1033,7 @@ export default function ChatsScreen() {
   const renderUpdatesView = () => (
     <ScrollView
       style={{ flex: 1 }}
-      contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 12) + 96 }}
+      contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 56 + insets.top + 8, paddingBottom: Math.max(insets.bottom, 12) + 96 }}
     >
       <Text style={[styles.bentoSectionTitle, { paddingHorizontal: 0 }]}>Status Stories</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 6 }}>
@@ -1089,7 +1089,7 @@ export default function ChatsScreen() {
   const renderCommunitiesView = () => (
     <ScrollView
       style={{ flex: 1 }}
-      contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 12) + 96 }}
+      contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 56 + insets.top + 8, paddingBottom: Math.max(insets.bottom, 12) + 96 }}
     >
       <LiquidGlassSurface variant="card" style={{ padding: 16, marginTop: 4, marginBottom: 14 }}>
         <Text style={[styles.bentoHeroTitle, { color: palette.textPrimary }]}>Connected Circles</Text>
@@ -1146,317 +1146,322 @@ export default function ChatsScreen() {
   return (
     <BlurTargetProvider value={blurTargetRef}>
       <View style={[styles.container, { backgroundColor: palette.bg }]}>
-        <AmbientCanvas />
+        {/* BlurTargetView encapsulates background canvas and scrollable lists for Android header/dock blur */}
+        <BlurTargetView ref={blurTargetRef} style={StyleSheet.absoluteFill}>
+          <AmbientCanvas />
 
-      {/* Sticky Liquid Glass Page Header */}
-      <LiquidGlassSurface
-        variant="chrome"
-        style={[
-          styles.pageHeader,
-          {
-            paddingTop: insets.top,
-            height: 56 + insets.top,
-            borderBottomColor: palette.border,
-          },
-        ]}
-      >
-        <View style={styles.pageHeaderLeft}>
-          <Text style={[styles.pageHeaderTitle, { color: palette.textPrimary }]}>
-            {activeTab === 'chats'
-              ? 'IndiChat'
-              : activeTab === 'calls'
-              ? 'Calls'
-              : activeTab === 'updates'
-              ? 'Updates'
-              : 'Circles'}
-          </Text>
-        </View>
-
-        <View style={styles.pageHeaderRight}>
-          {activeTab === 'chats' && (
-            <>
-              <TouchableOpacity
-                style={styles.headerIconBtn}
-                onPress={handleLaunchCamera}
-                activeOpacity={0.7}
-                accessibilityLabel="Camera"
-              >
-                <Ionicons name="camera-outline" size={20} color={palette.textSecondary} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.headerIconBtn}
-                onPress={() => (searchInputRef.current as any)?.focus()}
-                activeOpacity={0.7}
-                accessibilityLabel="Search"
-              >
-                <Ionicons name="search-outline" size={20} color={palette.textSecondary} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.headerIconBtn}
-                onPress={() => setShowTopMenu(!showTopMenu)}
-                activeOpacity={0.7}
-                accessibilityLabel="New Chat and Actions"
-              >
-                <Ionicons name="add" size={24} color={palette.textSecondary} />
-              </TouchableOpacity>
-            </>
-          )}
-
-          {activeTab === 'calls' && (
-            <>
-              <TouchableOpacity
-                style={styles.headerIconBtn}
-                onPress={() => setShowNewCallModal(true)}
-                activeOpacity={0.7}
-                accessibilityLabel="Start Call"
-              >
-                <Ionicons name="add" size={24} color={palette.textSecondary} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.headerIconBtn}
-                onPress={() => setShowTopMenu(!showTopMenu)}
-                activeOpacity={0.7}
-                accessibilityLabel="Menu"
-              >
-                <Ionicons name="ellipsis-horizontal" size={18} color={palette.textSecondary} />
-              </TouchableOpacity>
-            </>
-          )}
-
-          {activeTab === 'updates' && (
-            <>
-              <TouchableOpacity
-                style={styles.headerIconBtn}
-                onPress={handleLaunchCamera}
-                activeOpacity={0.7}
-                accessibilityLabel="Add Story"
-              >
-                <Ionicons name="camera-outline" size={20} color={palette.textSecondary} />
-              </TouchableOpacity>
-            </>
-          )}
-
-          {activeTab === 'communities' && (
-            <>
-              <TouchableOpacity
-                style={styles.headerIconBtn}
-                onPress={() => {
-                  setIsGroupMode(true);
-                  setShowNewChatModal(true);
-                }}
-                activeOpacity={0.7}
-                accessibilityLabel="New Circle"
-              >
-                <Ionicons name="add" size={24} color={palette.textSecondary} />
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
-      </LiquidGlassSurface>
-
-      {/* Top Dropdown Menu */}
-      {showTopMenu && (
-        <Modal visible transparent animationType="fade">
-          <TouchableOpacity
-            style={styles.menuOverlay}
-            activeOpacity={1}
-            onPress={() => setShowTopMenu(false)}
-          >
-            <View
-              style={[
-                styles.dropdownMenu,
-                {
-                  top: insets.top + 54,
-                  backgroundColor: palette.surfaceElevated || '#1a2530',
-                  borderColor: palette.border,
-                },
-              ]}
-            >
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => {
-                  setShowTopMenu(false);
-                  setShowAiModal(true);
-                }}
-              >
-                <Ionicons name="sparkles" size={18} color="#a855f7" style={{ marginRight: 10 }} />
-                <Text style={[styles.menuItemText, { color: palette.textPrimary }]}>Meta AI Assistant</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => {
-                  setShowTopMenu(false);
-                  setShowPaymentsModal(true);
-                }}
-              >
-                <Ionicons name="card-outline" size={18} color="#10b981" style={{ marginRight: 10 }} />
-                <Text style={[styles.menuItemText, { color: palette.textPrimary }]}>Payments (₹)</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => {
-                  setShowTopMenu(false);
-                  setIsGroupMode(true);
-                  setShowNewChatModal(true);
-                }}
-              >
-                <Ionicons name="people-outline" size={18} color={palette.textSecondary} style={{ marginRight: 10 }} />
-                <Text style={[styles.menuItemText, { color: palette.textPrimary }]}>New group</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => {
-                  setShowTopMenu(false);
-                  router.push('/contacts');
-                }}
-              >
-                <Ionicons name="person-add-outline" size={18} color={palette.textSecondary} style={{ marginRight: 10 }} />
-                <Text style={[styles.menuItemText, { color: palette.textPrimary }]}>Find contacts</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => {
-                  setShowTopMenu(false);
-                  router.push('/settings/linked-devices');
-                }}
-              >
-                <Ionicons name="laptop-outline" size={18} color={palette.textSecondary} style={{ marginRight: 10 }} />
-                <Text style={[styles.menuItemText, { color: palette.textPrimary }]}>Linked devices</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => {
-                  setShowTopMenu(false);
-                  router.push('/settings');
-                }}
-              >
-                <Ionicons name="settings-outline" size={18} color={palette.textSecondary} style={{ marginRight: 10 }} />
-                <Text style={[styles.menuItemText, { color: palette.textPrimary }]}>Settings</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </Modal>
-      )}
-
-      {/* Main List Area: Updates vs Communities vs Calls vs Chats */}
-      {activeTab === 'updates' ? (
-        renderUpdatesView()
-      ) : activeTab === 'communities' ? (
-        renderCommunitiesView()
-      ) : activeTab === 'calls' ? (
-        <Animated.FlatList
-          data={displayCallsList}
-          keyExtractor={(item) => item.id}
-          renderItem={renderCallRow}
-          ListHeaderComponent={renderCallsHeader}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconCircle}>
-                <Ionicons name="call-outline" size={32} color="#8696a0" />
-              </View>
-              <Text style={[styles.emptyTitle, { color: palette.textPrimary }]}>
-                {callsSearchQuery ? 'No calls found' : 'No recent calls'}
-              </Text>
-              <Text style={[styles.emptySubtitle, { color: palette.textSecondary }]}>
-                {callsSearchQuery
-                  ? `No call records match "${callsSearchQuery}"`
-                  : 'Start a voice or video call with friends using the Keypad or New Call button.'}
-              </Text>
-            </View>
-          }
-          ItemSeparatorComponent={() => <View style={[styles.rowSeparator, { backgroundColor: palette.border }]} />}
-          contentContainerStyle={{
-            paddingBottom: Math.max(insets.bottom, 12) + 96,
-          }}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: callsScrollY } } }],
-            { useNativeDriver: true, listener: handleCallsScroll }
-          )}
-          scrollEventThrottle={16}
-        />
-      ) : loading ? (
-        <View style={styles.centerLoading}>
-          <ActivityIndicator size="large" color="#10b981" />
-        </View>
-      ) : (
-        <Animated.FlatList
-          data={displayChatsList}
-          keyExtractor={(item) => item.id}
-          renderItem={renderChatRow}
-          ListHeaderComponent={renderListHeader}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconCircle}>
-                <Ionicons name="chatbubbles-outline" size={36} color="#10b981" />
-              </View>
-              <Text style={[styles.emptyTitle, { color: palette.textPrimary }]}>
-                {searchQuery
-                  ? 'No results found'
-                  : activeFilter === 'unread'
-                  ? 'No unread chats'
-                  : activeFilter === 'groups'
-                  ? 'No group chats yet'
-                  : 'No chats yet'}
-              </Text>
-              <Text style={[styles.emptySubtitle, { color: palette.textSecondary }]}>
-                {searchQuery
-                  ? `No conversations match "${searchQuery}"`
-                  : activeFilter === 'all'
-                  ? 'Tap the + button to start a conversation with any registered user.'
-                  : `You don't have any ${activeFilter} chats at the moment.`}
-              </Text>
-              {activeFilter === 'all' && !searchQuery && (
-                <TouchableOpacity
-                  style={styles.emptyActionBtn}
-                  onPress={() => setShowNewChatModal(true)}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="chatbubble-ellipses" size={18} color="#070b0e" style={{ marginRight: 6 }} />
-                  <Text style={styles.emptyActionBtnText}>Start New Chat</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          }
-          ItemSeparatorComponent={() => <View style={[styles.rowSeparator, { backgroundColor: palette.border }]} />}
-          contentContainerStyle={{
-            paddingBottom: Math.max(insets.bottom, 12) + 96,
-          }}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true, listener: handleScroll }
-          )}
-          scrollEventThrottle={16}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => {
-                setRefreshing(true);
-                loadData();
+          {/* Main List Area: Updates vs Communities vs Calls vs Chats */}
+          {activeTab === 'updates' ? (
+            renderUpdatesView()
+          ) : activeTab === 'communities' ? (
+            renderCommunitiesView()
+          ) : activeTab === 'calls' ? (
+            <Animated.FlatList
+              data={displayCallsList}
+              keyExtractor={(item) => item.id}
+              renderItem={renderCallRow}
+              ListHeaderComponent={renderCallsHeader}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <View style={styles.emptyIconCircle}>
+                    <Ionicons name="call-outline" size={32} color="#8696a0" />
+                  </View>
+                  <Text style={[styles.emptyTitle, { color: palette.textPrimary }]}>
+                    {callsSearchQuery ? 'No calls found' : 'No recent calls'}
+                  </Text>
+                  <Text style={[styles.emptySubtitle, { color: palette.textSecondary }]}>
+                    {callsSearchQuery
+                      ? `No call records match "${callsSearchQuery}"`
+                      : 'Start a voice or video call with friends using the Keypad or New Call button.'}
+                  </Text>
+                </View>
+              }
+              ItemSeparatorComponent={() => <View style={[styles.rowSeparator, { backgroundColor: palette.border }]} />}
+              contentContainerStyle={{
+                paddingTop: 56 + insets.top,
+                paddingBottom: Math.max(insets.bottom, 12) + 96,
               }}
-              tintColor="#10b981"
+              onScroll={Animated.event(
+                [{ nativeEvent: { contentOffset: { y: callsScrollY } } }],
+                { useNativeDriver: true, listener: handleCallsScroll }
+              )}
+              scrollEventThrottle={16}
             />
-          }
-        />
-      )}
+          ) : loading ? (
+            <View style={[styles.centerLoading, { paddingTop: 56 + insets.top }]}>
+              <ActivityIndicator size="large" color="#10b981" />
+            </View>
+          ) : (
+            <Animated.FlatList
+              data={displayChatsList}
+              keyExtractor={(item) => item.id}
+              renderItem={renderChatRow}
+              ListHeaderComponent={renderListHeader}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <View style={styles.emptyIconCircle}>
+                    <Ionicons name="chatbubbles-outline" size={36} color="#10b981" />
+                  </View>
+                  <Text style={[styles.emptyTitle, { color: palette.textPrimary }]}>
+                    {searchQuery
+                      ? 'No results found'
+                      : activeFilter === 'unread'
+                      ? 'No unread chats'
+                      : activeFilter === 'groups'
+                      ? 'No group chats yet'
+                      : 'No chats yet'}
+                  </Text>
+                  <Text style={[styles.emptySubtitle, { color: palette.textSecondary }]}>
+                    {searchQuery
+                      ? `No conversations match "${searchQuery}"`
+                      : activeFilter === 'all'
+                      ? 'Tap the + button to start a conversation with any registered user.'
+                      : `You don't have any ${activeFilter} chats at the moment.`}
+                  </Text>
+                  {activeFilter === 'all' && !searchQuery && (
+                    <TouchableOpacity
+                      style={styles.emptyActionBtn}
+                      onPress={() => setShowNewChatModal(true)}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="chatbubble-ellipses" size={18} color="#070b0e" style={{ marginRight: 6 }} />
+                      <Text style={styles.emptyActionBtnText}>Start New Chat</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              }
+              ItemSeparatorComponent={() => <View style={[styles.rowSeparator, { backgroundColor: palette.border }]} />}
+              contentContainerStyle={{
+                paddingTop: 56 + insets.top,
+                paddingBottom: Math.max(insets.bottom, 12) + 96,
+              }}
+              onScroll={Animated.event(
+                [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                { useNativeDriver: true, listener: handleScroll }
+              )}
+              scrollEventThrottle={16}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={() => {
+                    setRefreshing(true);
+                    loadData();
+                  }}
+                  tintColor="#10b981"
+                />
+              }
+            />
+          )}
+        </BlurTargetView>
 
-      {/* Floating Modern Bottom Navigation Dock: [ Updates | Calls | Circles | Chats (dot) | You ] */}
-      <FloatingDock
-        activeTab={activeTab}
-        unreadCount={totalUnreadCount}
-        userInitial={(currentUser?.displayName || currentUser?.username || 'Y').charAt(0).toUpperCase()}
-        onTabPress={(tab) => {
-          if (tab === 'you') {
-            router.push('/settings');
-          } else {
-            setActiveTab(tab as BottomTabType);
-          }
-        }}
-      />
+        {/* Sticky Liquid Glass Page Header */}
+        <LiquidGlassSurface
+          variant="chrome"
+          style={[
+            styles.pageHeader,
+            {
+              paddingTop: insets.top,
+              height: 56 + insets.top,
+              borderBottomColor: palette.border,
+            },
+          ]}
+        >
+          <View style={styles.pageHeaderLeft}>
+            <Text style={[styles.pageHeaderTitle, { color: palette.textPrimary }]}>
+              {activeTab === 'chats'
+                ? 'IndiChat'
+                : activeTab === 'calls'
+                ? 'Calls'
+                : activeTab === 'updates'
+                ? 'Updates'
+                : 'Circles'}
+            </Text>
+          </View>
+
+          <View style={styles.pageHeaderRight}>
+            {activeTab === 'chats' && (
+              <>
+                <TouchableOpacity
+                  style={styles.headerIconBtn}
+                  onPress={handleLaunchCamera}
+                  activeOpacity={0.7}
+                  accessibilityLabel="Camera"
+                >
+                  <Ionicons name="camera-outline" size={20} color={palette.textSecondary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.headerIconBtn}
+                  onPress={() => (searchInputRef.current as any)?.focus()}
+                  activeOpacity={0.7}
+                  accessibilityLabel="Search"
+                >
+                  <Ionicons name="search-outline" size={20} color={palette.textSecondary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.headerIconBtn}
+                  onPress={() => setShowTopMenu(!showTopMenu)}
+                  activeOpacity={0.7}
+                  accessibilityLabel="New Chat and Actions"
+                >
+                  <Ionicons name="add" size={24} color={palette.textSecondary} />
+                </TouchableOpacity>
+              </>
+            )}
+
+            {activeTab === 'calls' && (
+              <>
+                <TouchableOpacity
+                  style={styles.headerIconBtn}
+                  onPress={() => setShowNewCallModal(true)}
+                  activeOpacity={0.7}
+                  accessibilityLabel="Start Call"
+                >
+                  <Ionicons name="add" size={24} color={palette.textSecondary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.headerIconBtn}
+                  onPress={() => setShowTopMenu(!showTopMenu)}
+                  activeOpacity={0.7}
+                  accessibilityLabel="Menu"
+                >
+                  <Ionicons name="ellipsis-horizontal" size={18} color={palette.textSecondary} />
+                </TouchableOpacity>
+              </>
+            )}
+
+            {activeTab === 'updates' && (
+              <>
+                <TouchableOpacity
+                  style={styles.headerIconBtn}
+                  onPress={handleLaunchCamera}
+                  activeOpacity={0.7}
+                  accessibilityLabel="Add Story"
+                >
+                  <Ionicons name="camera-outline" size={20} color={palette.textSecondary} />
+                </TouchableOpacity>
+              </>
+            )}
+
+            {activeTab === 'communities' && (
+              <>
+                <TouchableOpacity
+                  style={styles.headerIconBtn}
+                  onPress={() => {
+                    setIsGroupMode(true);
+                    setShowNewChatModal(true);
+                  }}
+                  activeOpacity={0.7}
+                  accessibilityLabel="New Circle"
+                >
+                  <Ionicons name="add" size={24} color={palette.textSecondary} />
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </LiquidGlassSurface>
+
+        {/* Top Dropdown Menu */}
+        {showTopMenu && (
+          <Modal visible transparent animationType="fade">
+            <TouchableOpacity
+              style={styles.menuOverlay}
+              activeOpacity={1}
+              onPress={() => setShowTopMenu(false)}
+            >
+              <View
+                style={[
+                  styles.dropdownMenu,
+                  {
+                    top: insets.top + 54,
+                    backgroundColor: palette.surfaceElevated || '#1a2530',
+                    borderColor: palette.border,
+                  },
+                ]}
+              >
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setShowTopMenu(false);
+                    setShowAiModal(true);
+                  }}
+                >
+                  <Ionicons name="sparkles" size={18} color="#a855f7" style={{ marginRight: 10 }} />
+                  <Text style={[styles.menuItemText, { color: palette.textPrimary }]}>Meta AI Assistant</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setShowTopMenu(false);
+                    setShowPaymentsModal(true);
+                  }}
+                >
+                  <Ionicons name="card-outline" size={18} color="#10b981" style={{ marginRight: 10 }} />
+                  <Text style={[styles.menuItemText, { color: palette.textPrimary }]}>Payments (₹)</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setShowTopMenu(false);
+                    setIsGroupMode(true);
+                    setShowNewChatModal(true);
+                  }}
+                >
+                  <Ionicons name="people-outline" size={18} color={palette.textSecondary} style={{ marginRight: 10 }} />
+                  <Text style={[styles.menuItemText, { color: palette.textPrimary }]}>New group</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setShowTopMenu(false);
+                    router.push('/contacts');
+                  }}
+                >
+                  <Ionicons name="person-add-outline" size={18} color={palette.textSecondary} style={{ marginRight: 10 }} />
+                  <Text style={[styles.menuItemText, { color: palette.textPrimary }]}>Find contacts</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setShowTopMenu(false);
+                    router.push('/settings/linked-devices');
+                  }}
+                >
+                  <Ionicons name="laptop-outline" size={18} color={palette.textSecondary} style={{ marginRight: 10 }} />
+                  <Text style={[styles.menuItemText, { color: palette.textPrimary }]}>Linked devices</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setShowTopMenu(false);
+                    router.push('/settings');
+                  }}
+                >
+                  <Ionicons name="settings-outline" size={18} color={palette.textSecondary} style={{ marginRight: 10 }} />
+                  <Text style={[styles.menuItemText, { color: palette.textPrimary }]}>Settings</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </Modal>
+        )}
+
+        {/* Floating Modern Bottom Navigation Dock: [ Updates | Calls | Circles | Chats (dot) | You ] */}
+        <FloatingDock
+          activeTab={activeTab}
+          unreadCount={totalUnreadCount}
+          userInitial={(currentUser?.displayName || currentUser?.username || 'Y').charAt(0).toUpperCase()}
+          onTabPress={(tab) => {
+            if (tab === 'you') {
+              router.push('/settings');
+            } else {
+              setActiveTab(tab as BottomTabType);
+            }
+          }}
+        />
 
       {/* Call Details Modal (opened via ⓘ button) */}
       {selectedCallDetails && (
@@ -1952,7 +1957,7 @@ export default function ChatsScreen() {
               </View>
               <Text style={styles.incomingCallName}>{incomingCall.callerName}</Text>
               <Text style={styles.incomingCallType}>
-                WhatsApp {incomingCall.isVideo ? 'Video' : 'Voice'} Call...
+                IndiChat {incomingCall.isVideo ? 'Video' : 'Voice'} Call...
               </Text>
 
               <View style={styles.callButtonsRow}>
@@ -2025,6 +2030,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#0a0f13',
   },
   pageHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     height: 56,
     paddingHorizontal: 16,
     flexDirection: 'row',

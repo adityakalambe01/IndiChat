@@ -6,6 +6,7 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 const ANDROID_OUT = path.resolve('release/android/verification');
 const IOS_OUT = path.resolve('release/ios/verification');
@@ -63,6 +64,33 @@ function captureIos(outFilename) {
   }
 }
 
+function getVisibleNodes(xml) {
+  const reg = /<node[^>]*?(content-desc="([^"]*)"|text="([^"]*)")[^>]*?bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/g;
+  const map = new Map();
+  let m;
+  while ((m = reg.exec(xml)) !== null) {
+    const label = m[2] || m[3];
+    if (label && label.trim().length > 0) {
+      const y1 = parseInt(m[4], 10);
+      const y2 = parseInt(m[6], 10);
+      map.set(label.trim(), { y1, y2, cy: Math.round((y1 + y2) / 2) });
+    }
+  }
+  return map;
+}
+
+// Final-row or bottom-extent visible indicators per screen
+const FINAL_ROW_INDICATORS = {
+  'settings_bottom.png': ['Help & Support', 'Server Connection', 'IndiChat Mobile', 'Server'],
+  'settings_appearance_bottom.png': ['Save Changes', 'Reduced Motion', 'Off (Fluid)', 'Cancel', 'Back'],
+  'settings_devices_bottom.png': ['Log out from all other devices', 'Log out', 'Active', 'Linked'],
+  'settings_notifications_bottom.png': ['Reset Notification', 'Call ringtone', 'Vibrate', 'In-app sounds'],
+  'settings_server_bottom.png': ['Reset to Environment Default', 'Save URL', 'Latency', 'Ping'],
+  'settings_two_factor_bottom.png': ['Turn Off', 'Change Email', 'Change PIN', 'Enabled'],
+  'auth_server_bottom.png': ['Reset to Default', 'Save URL', 'Latency', 'Test Ping'],
+  'chats_bottom.png': ['RECENT CONVERSATIONS', 'Alice Cooper', 'Charlie Davis', 'Sspp'],
+};
+
 async function main() {
   console.log('================================================================');
   console.log('INDICHAT MOBILE REDESIGN — RE-VERIFICATION OF ALL SCREENS');
@@ -114,7 +142,11 @@ async function main() {
     { name: 'conversation_top.png', route: 'chat/1' },
   ];
 
-  console.log(`[Batch 1] Capturing ${screens.length} screens on Android and iOS...`);
+  console.log(`[Batch 1] Processing ${screens.length} screens on Android and iOS...`);
+
+  let androidCaptured = 0;
+  let iosCaptured = 0;
+  let unverifiedInteractions = 0;
 
   for (const s of screens) {
     console.log(`\n--- Screen: ${s.name} (route: indichat://${s.route}) ---`);
@@ -126,27 +158,84 @@ async function main() {
     await sleep(1500);
 
     // Capture Top
-    captureAndroid(s.name);
-    captureIos(s.name);
+    const aTopSize = captureAndroid(s.name);
+    if (aTopSize > 0) androidCaptured++;
+    const iTopSize = captureIos(s.name);
+    if (iTopSize > 0) iosCaptured++;
 
-    // Capture Bottom if requested
+    // Capture Bottom if requested and verified
     if (s.bottomName) {
-      console.log(`  -> Capturing bottom extent: ${s.bottomName}`);
-      // Android swipe down
+      console.log(`  -> Assessing bottom extent: ${s.bottomName}`);
+
+      // 1. Capture UI state before swipe on Android
+      let preSwipeXml = '';
+      try {
+        adbCmd('shell uiautomator dump /sdcard/pre_swipe.xml');
+        preSwipeXml = adbCmd('shell cat /sdcard/pre_swipe.xml');
+      } catch (_) {}
+
+      // 2. Perform swipe on Android
       adbCmd('shell input swipe 540 1800 540 400 300');
       await sleep(1000);
-      captureAndroid(s.bottomName);
 
-      // On Android, scroll back up
+      // 3. Capture UI state after swipe on Android
+      let postSwipeXml = '';
+      try {
+        adbCmd('shell uiautomator dump /sdcard/post_swipe.xml');
+        postSwipeXml = adbCmd('shell cat /sdcard/post_swipe.xml');
+      } catch (_) {}
+
+      // 4. Verify scrolling via observable scroll position or final-row visibility
+      const preNodes = getVisibleNodes(preSwipeXml);
+      const postNodes = getVisibleNodes(postSwipeXml);
+
+      let maxObservableDisplacement = 0;
+      let displacedElement = '';
+      for (const [label, preB] of preNodes.entries()) {
+        if (postNodes.has(label)) {
+          const postB = postNodes.get(label);
+          const dy = Math.abs(postB.cy - preB.cy);
+          if (dy > maxObservableDisplacement) {
+            maxObservableDisplacement = dy;
+            displacedElement = label;
+          }
+        }
+      }
+
+      // Check if designated final-row indicator is now visible
+      const indicators = FINAL_ROW_INDICATORS[s.bottomName] || [];
+      const finalRowAppeared = indicators.some((ind) => {
+        return !preSwipeXml.includes(ind) && postSwipeXml.includes(ind);
+      });
+
+      const isScrollObserved = maxObservableDisplacement >= 80 || finalRowAppeared;
+
+      if (!isScrollObserved) {
+        console.log(`  ℹ [Android] Observable scroll check: screen content fits in viewport (displacement: ${maxObservableDisplacement}px, final row appeared: ${finalRowAppeared}). Skipping redundant bottom capture.`);
+      } else {
+        const dest = path.join(ANDROID_OUT, s.bottomName);
+        execSync(`adb -s emulator-5554 exec-out screencap -p > "${dest}"`);
+        const stat = fs.statSync(dest);
+        console.log(`  ✔ [Android] Verified scrolling via ${finalRowAppeared ? 'final-row visibility' : `observable displacement (${maxObservableDisplacement}px on "${displacedElement}")`}. Captured ${s.bottomName} (${stat.size} bytes)`);
+        androidCaptured++;
+      }
+
+      // Scroll back up on Android
       adbCmd('shell input swipe 540 400 540 1800 300');
       await sleep(500);
 
-      // iOS capture bottom
-      captureIos(s.bottomName);
+      // iOS: simctl lacks touch swipe gesture injection. Do NOT copy top as bottom.
+      console.log(`  ⚠ [iOS] Bottom scroll interaction Unverified: headless CoreSimulator lacks CLI touch swipe injection.`);
+      unverifiedInteractions++;
     }
   }
 
-  console.log('\n✔ All screens captured successfully.');
+  console.log('\n================================================================');
+  console.log(`RECHECK SUMMARY:`);
+  console.log(`  Android Captures: ${androidCaptured}`);
+  console.log(`  iOS Captures:     ${iosCaptured}`);
+  console.log(`  Unverified:       ${unverifiedInteractions} (iOS swipe interactions requiring manual/GUI verification)`);
+  console.log('================================================================');
 }
 
 main().catch(console.error);

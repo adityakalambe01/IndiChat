@@ -1,4 +1,4 @@
-import {
+import type {
   AuthResponse,
   LoginRequest,
   RegisterRequest,
@@ -21,8 +21,10 @@ import { Platform } from 'react-native';
 import { File as ExpoFile, UploadType } from 'expo-file-system';
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  public status: number;
+  constructor(status: number, message: string) {
     super(message);
+    this.status = status;
   }
 }
 

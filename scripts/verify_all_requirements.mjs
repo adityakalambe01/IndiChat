@@ -338,11 +338,8 @@ async function captureNativeVerifiedScreens() {
   execSync(`xcrun simctl io ${IOS_UDID} screenshot "${tempPath}"`, { stdio: 'ignore' });
   fs.copyFileSync(tempPath, path.join(IOS_OUT, 'settings_top.png'));
 
-  // iOS Settings Bottom
-  execSync(`xcrun simctl openurl ${IOS_UDID} "indichat://settings?theme=dark&scroll=bottom"`, { stdio: 'ignore' });
-  await sleep(1500);
-  execSync(`xcrun simctl io ${IOS_UDID} screenshot "${tempPath}"`, { stdio: 'ignore' });
-  fs.copyFileSync(tempPath, path.join(IOS_OUT, 'settings_bottom.png'));
+  // iOS Settings Bottom extent
+  console.log('  ⚠ [iOS] Settings bottom extent scrolling Unverified: headless CoreSimulator lacks CLI touch swipe injection.');
 
   // iOS Auth Screen
   execSync(`xcrun simctl openurl ${IOS_UDID} "indichat://?mode=auth"`, { stdio: 'ignore' });
