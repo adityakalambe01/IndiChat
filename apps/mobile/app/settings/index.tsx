@@ -21,9 +21,8 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-  Linking,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User, Conversation } from '@chat/shared-types';
 import { storage, STORAGE_KEYS } from '../../services/storage';
@@ -53,14 +52,6 @@ interface SettingsMenuItem {
 
 export default function SettingsHomeScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{
-    scroll?: string;
-    scrollY?: string;
-    search?: string;
-    theme?: string;
-    blur?: string;
-    solid?: string;
-  }>();
   const insets = useSafeAreaInsets();
   const { palette, userSettings } = useTheme();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -70,69 +61,6 @@ export default function SettingsHomeScreen() {
   const searchInputRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<any>(null);
   const blurTargetRef = useRef<any>(null);
-
-  const applySettingsParams = (p: {
-    scroll?: string;
-    scrollY?: string;
-    search?: string;
-    theme?: string;
-    blur?: string;
-    solid?: string;
-  }) => {
-    if (p.theme === 'light' || p.theme === 'dark' || p.theme === 'system') {
-      settingsService.update({ appearanceMode: p.theme as any });
-    }
-    if (p.blur !== undefined) {
-      settingsService.updateLocal({ blurRadius: Math.max(0, Math.min(40, Number(p.blur))) });
-    }
-    if (p.solid !== undefined) {
-      settingsService.updateLocal({ reduceTransparency: p.solid === 'true' || p.solid === '1' });
-    }
-    if (p.scrollY !== undefined) {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollTo({ y: Number(p.scrollY), animated: false });
-      }, 300);
-    } else if (p.scroll === 'bottom') {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: false });
-      }, 300);
-    } else if (p.scroll === 'top') {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: false });
-      }, 300);
-    }
-    if (p.search === 'true' || p.search === '1') {
-      setIsSearchActive(true);
-    } else if (p.search === 'false' || p.search === '0') {
-      setIsSearchActive(false);
-    }
-  };
-
-  useEffect(() => {
-    applySettingsParams(params);
-
-    const subscription = Linking.addEventListener('url', ({ url }) => {
-      try {
-        const queryIndex = url.indexOf('?');
-        if (queryIndex !== -1) {
-          const queryString = url.slice(queryIndex + 1);
-          const pairs = queryString.split('&');
-          const parsedParams: Record<string, string> = {};
-          for (const pair of pairs) {
-            const [k, v] = pair.split('=');
-            if (k) parsedParams[decodeURIComponent(k)] = decodeURIComponent(v || '');
-          }
-          applySettingsParams(parsedParams);
-        }
-      } catch (e) {
-        console.warn('Failed to parse incoming URL:', e);
-      }
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, [params.scroll, params.scrollY, params.search, params.theme, params.blur, params.solid]);
 
   useEffect(() => {
     (async () => {

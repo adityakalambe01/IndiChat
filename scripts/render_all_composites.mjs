@@ -193,6 +193,11 @@ async function main() {
   await renderHtmlToPng(blurHtmlPath, path.join(ANDROID_OUT, 'android_blur_comparison.png'), 1400);
   await renderHtmlToPng(path.join(COMPARISON_OUT, 'ios_402pt_parity_comparison.html'), path.join(COMPARISON_OUT, 'ios_402pt_parity_composite.png'), 1000);
   await renderHtmlToPng(path.join(COMPARISON_OUT, 'android_411dp_parity_comparison.html'), path.join(COMPARISON_OUT, 'android_411dp_parity_composite.png'), 1000);
+  const chatsHtmlPath = path.resolve('release/chats_comparison/chats_comparison.html');
+  if (fs.existsSync(chatsHtmlPath)) {
+    await renderHtmlToPng(chatsHtmlPath, path.resolve('release/chats_comparison/chats_side_by_side_comparison.png'), 1400);
+    console.log('[Composite] Saved chats_side_by_side_comparison.png');
+  }
 
   console.log('\nAll composite comparison PNGs rendered successfully.');
 }
