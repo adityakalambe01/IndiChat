@@ -67,6 +67,11 @@ if (fs.existsSync(brewBin) && !process.env.PATH.includes(brewBin)) {
   process.env.PATH = `${brewBin}:${process.env.PATH}`;
 }
 
+// Redirect Expo home and telemetry to prevent EPERM issues in sandboxed builds
+process.env.__UNSAFE_EXPO_HOME_DIRECTORY = '/tmp/.expo';
+process.env.EXPO_NO_TELEMETRY = '1';
+fs.mkdirSync('/tmp/.expo', { recursive: true });
+
 // Ensure NODE_PATH for monorepo resolution
 const mobileNodeModules = path.join(mobileDir, 'node_modules');
 const rootNodeModules = path.join(rootDir, 'node_modules');

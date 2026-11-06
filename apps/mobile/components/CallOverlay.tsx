@@ -25,6 +25,7 @@ import {
   Platform,
   Animated,
   StatusBar,
+  NativeModules,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { callService, ActiveCallSession } from '../services/callService';
@@ -71,14 +72,21 @@ export const CallOverlay: React.FC = () => {
       setSession(active);
     });
 
-    // Dynamically load RTCView from react-native-webrtc
-    import('react-native-webrtc')
-      .then((m) => {
-        if (m.RTCView) {
-          setRtcViewComponent(() => m.RTCView);
-        }
-      })
-      .catch(() => {});
+    // Dynamically load RTCView from react-native-webrtc only when native module has real bindings
+    const hasNativeWebRTC = Boolean(
+      NativeModules &&
+      NativeModules.WebRTCModule &&
+      typeof (NativeModules.WebRTCModule as any).startCall === 'function'
+    );
+    if (hasNativeWebRTC) {
+      import('react-native-webrtc')
+        .then((m) => {
+          if (m.RTCView) {
+            setRtcViewComponent(() => m.RTCView);
+          }
+        })
+        .catch(() => {});
+    }
 
     return () => unsub();
   }, []);

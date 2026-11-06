@@ -30,7 +30,7 @@ export interface ThemeContextValue {
   isReducedMotion: boolean; // Animations silenced
   userSettings: MobileAppSettings;
   stagePreview: (staged: StagedAppearance | null) => void;
-  saveStagedAppearance: () => void;
+  saveStagedAppearance: () => Promise<void>;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -86,7 +86,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const { effectiveBlurRadius, isDark, isSolid, isReducedMotion, blurIntensity, palette } = resolved;
 
-  const saveStagedAppearance = () => {
+  const saveStagedAppearance = async () => {
     if (!stagedPreview) return;
     settingsService.updateLocal({
       ...(stagedPreview.appearanceMode !== undefined && { appearanceMode: stagedPreview.appearanceMode }),
@@ -95,6 +95,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       ...(stagedPreview.reducedMotion !== undefined && { reducedMotion: stagedPreview.reducedMotion }),
     });
     setStagedPreview(null);
+    await settingsService.flush();
   };
 
   const value: ThemeContextValue = {
@@ -128,7 +129,7 @@ export function useTheme(): ThemeContextValue {
       isReducedMotion: false,
       userSettings: settingsService.getSettings(),
       stagePreview: () => {},
-      saveStagedAppearance: () => {},
+      saveStagedAppearance: async () => {},
     };
   }
   return ctx;

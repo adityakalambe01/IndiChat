@@ -49,7 +49,7 @@ export default function ChatsSettingsScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: palette.bg }]}>
-      <ScreenHeader title="Chats" />
+      <ScreenHeader title="Chats & Wallpaper" />
 
       <ScrollView
         style={styles.scrollView}

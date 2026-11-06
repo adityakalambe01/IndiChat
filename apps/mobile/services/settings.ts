@@ -135,8 +135,18 @@ export class SettingsService {
     const saved = await this.storageImpl.getJson<MobileAppSettings>(STORAGE_KEYS.SETTINGS);
     if (saved) {
       this.settings = { ...DEFAULT_SETTINGS, ...saved };
-      this.notify();
     }
+    try {
+      const user = await this.storageImpl.getJson<{ id: string }>(STORAGE_KEYS.CURRENT_USER);
+      if (user?.id) {
+        this.currentUserId = user.id;
+        const userSaved = await this.storageImpl.getJson<MobileAppSettings>(`${STORAGE_KEYS.SETTINGS}_${user.id}`);
+        if (userSaved) {
+          this.settings = { ...this.settings, ...userSaved };
+        }
+      }
+    } catch (_) {}
+    this.notify();
   }
 
   public async loadForUser(userId: string): Promise<void> {
@@ -144,9 +154,10 @@ export class SettingsService {
     const key = `${STORAGE_KEYS.SETTINGS}_${userId}`;
     const saved = await this.storageImpl.getJson<MobileAppSettings>(key);
     if (saved) {
-      this.settings = { ...DEFAULT_SETTINGS, ...saved };
+      this.settings = { ...DEFAULT_SETTINGS, ...this.settings, ...saved };
     } else {
-      this.settings = { ...DEFAULT_SETTINGS };
+      // Retain existing settings and associate with user key
+      await this.persist();
     }
     this.notify();
   }
@@ -157,11 +168,23 @@ export class SettingsService {
     this.notify();
   }
 
-  private async persist(): Promise<void> {
+  public async persist(): Promise<void> {
     await this.storageImpl.setJson(STORAGE_KEYS.SETTINGS, this.settings);
+    if (!this.currentUserId) {
+      try {
+        const user = await this.storageImpl.getJson<{ id: string }>(STORAGE_KEYS.CURRENT_USER);
+        if (user?.id) {
+          this.currentUserId = user.id;
+        }
+      } catch (_) {}
+    }
     if (this.currentUserId) {
       await this.storageImpl.setJson(`${STORAGE_KEYS.SETTINGS}_${this.currentUserId}`, this.settings);
     }
+  }
+
+  public async flush(): Promise<void> {
+    await this.persist();
   }
 
   public getSettings(): MobileAppSettings {

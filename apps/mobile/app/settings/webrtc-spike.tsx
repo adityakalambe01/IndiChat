@@ -18,6 +18,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  NativeModules,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -110,18 +111,22 @@ export default function WebRTCSpikeScreen() {
 
   // Dynamically load RTCView component if available
   useEffect(() => {
-    import('react-native-webrtc')
-      .then((m) => {
-        if (m.RTCView) {
-          setRtcViewComponent(() => m.RTCView);
-          appendLog('RTCView component imported successfully.');
-        } else {
-          appendLog('RTCView is undefined in react-native-webrtc export.');
-        }
-      })
-      .catch((e) => {
-        appendLog(`Failed to import react-native-webrtc: ${e.message}`);
-      });
+    if (NativeModules && NativeModules.WebRTCModule && typeof (NativeModules.WebRTCModule as any).startCall === 'function') {
+      import('react-native-webrtc')
+        .then((m) => {
+          if (m.RTCView) {
+            setRtcViewComponent(() => m.RTCView);
+            appendLog('RTCView component imported successfully.');
+          } else {
+            appendLog('RTCView is undefined in react-native-webrtc export.');
+          }
+        })
+        .catch((e) => {
+          appendLog(`Failed to import react-native-webrtc: ${e.message}`);
+        });
+    } else {
+      appendLog('WebRTC native module is not linked in this binary; dynamic RTCView load skipped.');
+    }
   }, []);
 
   // 1. Probe native module

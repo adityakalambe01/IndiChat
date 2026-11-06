@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-11-06T14:26:48.515Z",
+  "gitCommit": "d5fd620d15c642aca1a8f6159e823264d6f324d1",
+  "gitDiffHash": "0b9286770af22a5144cf961a4478e7cd959305531aa089eefc081c6ea1e6af0f",
+  "untrackedFiles": [
+    "scripts/recapture_affected_screens.mjs"
+  ],
+  "artifacts": {
+    "androidApk": {
+      "path": "release/android/IndiChat.apk",
+      "size": 148169807,
+      "sha256": "644837367ed334b567df71fe6f7607d2c4282aeeb9b505d1c0c0902fa44cefb3",
+      "mtime": "2026-11-06T14:23:11.440Z"
+    },
+    "iosSimulatorZip": {
+      "path": "release/ios/IndiChat-Simulator.zip",
+      "size": 26882204,
+      "sha256": "9c69ba92c338c5e19c11b3fdc7186b38c44d5fc4ad6772146d2bdd8d2aded469",
+      "mtime": "2026-11-06T14:24:01.684Z"
+    }
+  }
+}
