@@ -182,3 +182,23 @@ test('Theme Lifecycle: Discard staged changes reverts to previously saved theme 
   assert.equal(finalResolved.isDark, true, 'Must remain dark');
   assert.equal(finalResolved.blurIntensity, 50, 'Blur intensity must revert to 20/40 = 50%');
 });
+
+test('Reduced Motion navigation updates subscribers immediately and persists across reload', async () => {
+  const { navigationAnimation } = await import('../apps/mobile/theme/navigation.ts');
+  const disk = new MockStorageBoundary();
+  const service = new SettingsService(disk, mockApiBoundary);
+  await service.init();
+  let currentAnimation;
+  const unsubscribe = service.subscribe(settings => {
+    currentAnimation = navigationAnimation(resolveEffectiveTheme(settings, null, 'dark', false, false).isReducedMotion);
+  });
+  service.updateLocal({ reducedMotion: 'on' });
+  assert.equal(currentAnimation, 'none');
+  await service.flush();
+  const restored = new SettingsService(disk, mockApiBoundary);
+  await restored.init();
+  assert.equal(navigationAnimation(resolveEffectiveTheme(restored.getSettings(), null, 'dark', false, false).isReducedMotion), 'none');
+  service.updateLocal({ reducedMotion: 'off' });
+  assert.equal(currentAnimation, 'slide_from_right');
+  unsubscribe();
+});

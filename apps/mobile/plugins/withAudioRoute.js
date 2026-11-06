@@ -1,4 +1,4 @@
-const { withMainApplication, withDangerousMod } = require('@expo/config-plugins');
+const { withMainApplication, withDangerousMod, withPodfile } = require('@expo/config-plugins');
 const fs = require('fs');
 const path = require('path');
 
@@ -53,6 +53,15 @@ function withAudioRoute(config) {
     return cfg;
   });
 
+  config = withPodfile(config, (cfg) => {
+    if (!cfg.modResults.contents.includes("pod 'IndiChatAudioRoute'")) {
+      cfg.modResults.contents = cfg.modResults.contents.replace(
+        /target '([^']+)' do/,
+        "$&\n  pod 'IndiChatAudioRoute', :path => '../native/audio-route'"
+      );
+    }
+    return cfg;
+  });
   return config;
 }
 
