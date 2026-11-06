@@ -25,6 +25,7 @@ import { wsClient } from '../services/websocket';
 import { storage, STORAGE_KEYS } from '../services/storage';
 import { formatCallTimeAge } from '../utils/timeAgo';
 import { callHistoryService, CallHistoryItem } from '../services/callHistory';
+import { callService } from '../services/callService';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/useTheme';
@@ -240,28 +241,9 @@ export default function ChatsScreen() {
   ]);
   const [aiThinking, setAiThinking] = useState(false);
 
-  // Incoming Call state
-  const [incomingCall, setIncomingCall] = useState<{
-    senderUserId: string;
-    callerName: string;
-    isVideo: boolean;
-  } | null>(null);
-
-  // Helper to record a call in callHistory & storage
-  const recordCall = useCallback((contactName: string, isVideo: boolean, subtitle?: string, type: 'incoming' | 'outgoing' | 'missed' = 'outgoing', conversationId?: string) => {
-    callHistoryService.addCall({
-      conversationId,
-      contactName,
-      isVideo,
-      type,
-      subtitle,
-      duration: subtitle || (type === 'missed' ? 'Missed' : 'Ongoing'),
-    });
-  }, []);
-
-  // Helper to initiate a call with a contact
+  // Helper to initiate a real call with a contact
   const navigateToCall = useCallback(
-    (contactName: string, isVideo: boolean, subtitle?: string) => {
+    async (contactName: string, isVideo: boolean, _subtitle?: string) => {
       const matchingConv = conversations.find((c) => {
         const other = c.members?.find((m) => m.userId !== currentUser?.id);
         const otherName = other?.user?.displayName || other?.user?.username || c.title;
@@ -271,26 +253,35 @@ export default function ChatsScreen() {
         );
       });
 
-      recordCall(contactName, isVideo, subtitle, 'outgoing', matchingConv?.id);
-
       if (matchingConv) {
         const other = matchingConv.members?.find((m) => m.userId !== currentUser?.id);
         const targetUserId = other?.userId || other?.user?.id || '';
-        router.push(
-          `/chat/${matchingConv.id}?name=${encodeURIComponent(contactName)}&targetUserId=${targetUserId}&autoCall=${isVideo ? 'video' : 'voice'}`
-        );
+        if (targetUserId) {
+          callService.startCall({
+            targetUserId,
+            targetName: contactName,
+            isVideo,
+            conversationId: matchingConv.id,
+          });
+          return;
+        }
       } else if (conversations.length > 0) {
         const firstConv = conversations[0];
         const other = firstConv.members?.find((m) => m.userId !== currentUser?.id);
         const targetUserId = other?.userId || other?.user?.id || '';
-        router.push(
-          `/chat/${firstConv.id}?name=${encodeURIComponent(contactName)}&targetUserId=${targetUserId}&autoCall=${isVideo ? 'video' : 'voice'}`
-        );
-      } else {
-        Alert.alert('No Contacts Available', 'Start a conversation with a user first before calling.');
+        if (targetUserId) {
+          callService.startCall({
+            targetUserId,
+            targetName: contactName,
+            isVideo,
+            conversationId: firstConv.id,
+          });
+          return;
+        }
       }
+      Alert.alert('No Contacts Available', 'Start a conversation with a user first before calling.');
     },
-    [conversations, currentUser?.id, recordCall, router]
+    [conversations, currentUser?.id]
   );
 
   // Load conversations and call history from backend / storage
@@ -399,26 +390,9 @@ export default function ChatsScreen() {
       );
     });
 
-    const unsubCall = wsClient.onCallSignal((signal) => {
-      if (signal.signalType === 'offer' && signal.senderUserId) {
-        const caller = conversations
-          .flatMap((c) => c.members || [])
-          .find((m) => m.userId === signal.senderUserId)?.user;
-
-        setIncomingCall({
-          senderUserId: signal.senderUserId,
-          callerName: (signal.data as any)?.callerName || caller?.displayName || caller?.username || 'Incoming Caller',
-          isVideo: Boolean((signal.data as any)?.isVideo),
-        });
-      } else if (signal.signalType === 'hangup') {
-        setIncomingCall(null);
-      }
-    });
-
     return () => {
       unsubMsg();
       unsubReceipt();
-      unsubCall();
     };
   }, [currentUser, conversations, loadData]);
 
@@ -1672,12 +1646,16 @@ export default function ChatsScreen() {
                           <TouchableOpacity
                             onPress={() => {
                               setShowNewCallModal(false);
-                              recordCall(name, false);
                               const member = conv.members?.find((m) => m.userId !== currentUser?.id);
                               const targetUserId = member?.userId || member?.user?.id || '';
-                              router.push(
-                                `/chat/${conv.id}?name=${encodeURIComponent(name)}&targetUserId=${targetUserId}&autoCall=voice`
-                              );
+                              if (targetUserId) {
+                                callService.startCall({
+                                  targetUserId,
+                                  targetName: name,
+                                  isVideo: false,
+                                  conversationId: conv.id,
+                                });
+                              }
                             }}
                           >
                             <Ionicons name="call" size={22} color="#25D366" />
@@ -1685,12 +1663,16 @@ export default function ChatsScreen() {
                           <TouchableOpacity
                             onPress={() => {
                               setShowNewCallModal(false);
-                              recordCall(name, true);
                               const member = conv.members?.find((m) => m.userId !== currentUser?.id);
                               const targetUserId = member?.userId || member?.user?.id || '';
-                              router.push(
-                                `/chat/${conv.id}?name=${encodeURIComponent(name)}&targetUserId=${targetUserId}&autoCall=video`
-                              );
+                              if (targetUserId) {
+                                callService.startCall({
+                                  targetUserId,
+                                  targetName: name,
+                                  isVideo: true,
+                                  conversationId: conv.id,
+                                });
+                              }
                             }}
                           >
                             <Ionicons name="videocam" size={22} color="#25D366" />
@@ -1943,82 +1925,6 @@ export default function ChatsScreen() {
         </View>
       </Modal>
 
-      {/* Incoming Call Overlay */}
-      {incomingCall && (
-        <Modal visible transparent animationType="slide">
-          <View style={styles.incomingCallOverlay}>
-            <View style={styles.incomingCallCard}>
-              <View style={styles.incomingCallAvatar}>
-                <Ionicons
-                  name={incomingCall.isVideo ? 'videocam' : 'call'}
-                  size={36}
-                  color="#25D366"
-                />
-              </View>
-              <Text style={styles.incomingCallName}>{incomingCall.callerName}</Text>
-              <Text style={styles.incomingCallType}>
-                IndiChat {incomingCall.isVideo ? 'Video' : 'Voice'} Call...
-              </Text>
-
-              <View style={styles.callButtonsRow}>
-                <TouchableOpacity
-                  style={[styles.callCircleBtn, styles.declineBtn]}
-                  onPress={() => {
-                    wsClient.sendCallSignal({
-                      targetUserId: incomingCall.senderUserId,
-                      signalType: 'hangup',
-                      data: {},
-                    });
-                    setIncomingCall(null);
-                  }}
-                >
-                  <Ionicons name="call" size={26} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
-                  <Text style={styles.callLabel}>Decline</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.callCircleBtn, styles.acceptBtn]}
-                  onPress={() => {
-                    wsClient.sendCallSignal({
-                      targetUserId: incomingCall.senderUserId,
-                      signalType: 'answer',
-                      data: {},
-                    });
-                    const senderId = incomingCall.senderUserId;
-                    const callerName = incomingCall.callerName;
-                    const isVideo = incomingCall.isVideo;
-                    setIncomingCall(null);
-                    recordCall(callerName, isVideo, 'Incoming Call');
-
-                    const conv = conversations.find((c) =>
-                      c.members?.some((m) => m.userId === senderId || m.user?.id === senderId)
-                    );
-
-                    if (conv) {
-                      router.push(
-                        `/chat/${conv.id}?name=${encodeURIComponent(callerName)}&targetUserId=${senderId}&acceptedCall=${isVideo ? 'video' : 'voice'}`
-                      );
-                    } else {
-                      api.createConversation({ type: 'DIRECT', participantIds: [senderId] }).then((newConv) => {
-                        router.push(
-                          `/chat/${newConv.id}?name=${encodeURIComponent(callerName)}&targetUserId=${senderId}&acceptedCall=${isVideo ? 'video' : 'voice'}`
-                        );
-                      }).catch(() => {
-                        router.push(
-                          `/chat/direct-${senderId}?name=${encodeURIComponent(callerName)}&targetUserId=${senderId}&acceptedCall=${isVideo ? 'video' : 'voice'}`
-                        );
-                      });
-                    }
-                  }}
-                >
-                  <Ionicons name="call" size={26} color="#fff" />
-                  <Text style={styles.callLabel}>Accept</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
-      )}
     </View>
     </BlurTargetProvider>
   );
