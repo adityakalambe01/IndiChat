@@ -97,7 +97,7 @@ export default function AccountSettingsScreen() {
               </Text>
             </View>
             <Text style={[styles.statusVal, { color: palette.textSecondary }]}>
-              {userSettings.passkeyEnabled ? 'Active' : 'Off'}
+              In Dev
             </Text>
             <Ionicons name="chevron-forward" size={18} color={palette.textSecondary} />
           </TouchableOpacity>
