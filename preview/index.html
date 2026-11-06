@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>IndiChat · Mobile Design Gallery</title>
+  <title>IndiChat · Multi-Platform Design Preview Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -41,7 +41,7 @@
     }
 
     main {
-      max-width: 1100px;
+      max-width: 1240px;
       width: 100%;
       margin: 0 auto;
       padding: 60px 24px;
@@ -94,8 +94,38 @@
       font-size: 16px;
       color: var(--text-muted);
       line-height: 1.6;
-      max-width: 680px;
-      margin-bottom: 48px;
+      max-width: 720px;
+      margin-bottom: 40px;
+    }
+
+    .gallery-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 48px 0 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .gallery-section-header h2 {
+      font-size: 20px;
+      font-weight: 750;
+      letter-spacing: -0.4px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .gallery-section-header span.tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
     }
 
     .previews-grid {
@@ -151,7 +181,32 @@
                   #0c1419;
     }
 
-    /* Mini Mock Device in Art */
+    /* Desktop Preview Card Arts */
+    .card-art.art-web {
+      background: radial-gradient(ellipse at 20% 30%, rgba(0, 168, 132, 0.25) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 70%, rgba(59, 130, 246, 0.2) 0%, transparent 60%),
+                  #0a1015;
+    }
+
+    .card-art.art-macos {
+      background: radial-gradient(ellipse at 80% 20%, rgba(236, 72, 153, 0.22) 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 80%, rgba(16, 185, 129, 0.25) 0%, transparent 60%),
+                  #0c1218;
+    }
+
+    .card-art.art-windows {
+      background: radial-gradient(ellipse at 30% 70%, rgba(6, 182, 212, 0.25) 0%, transparent 60%),
+                  radial-gradient(ellipse at 70% 30%, rgba(59, 130, 246, 0.22) 0%, transparent 60%),
+                  #0a1017;
+    }
+
+    .card-art.art-linux {
+      background: radial-gradient(ellipse at 70% 70%, rgba(245, 158, 11, 0.22) 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 20%, rgba(16, 185, 129, 0.25) 0%, transparent 60%),
+                  #0b1216;
+    }
+
+    /* Mini Mock Device in Smartphone Art */
     .mini-mockup {
       width: 180px;
       height: 200px;
@@ -214,7 +269,6 @@
       background: rgba(255, 255, 255, 0.12);
     }
 
-    /* Floating Mini Dock */
     .mini-glass-dock {
       position: absolute;
       bottom: 14px;
@@ -230,6 +284,138 @@
       justify-content: space-around;
       color: var(--brand-green);
       font-size: 10px;
+    }
+
+    /* Mini Mockup for Desktop Windows */
+    .mini-desktop-window {
+      width: 290px;
+      height: 185px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      align-self: end;
+      background: #0d151c;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .mini-desktop-titlebar {
+      height: 24px;
+      background: #111b22;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .mini-dots {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .mini-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .mini-dot.red { background: #ff5f56; }
+    .mini-dot.yellow { background: #ffbd2e; }
+    .mini-dot.green { background: #27c93f; }
+
+    .mini-caption-btns {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .mini-desktop-content {
+      flex: 1;
+      display: flex;
+    }
+
+    .mini-rail {
+      width: 20px;
+      background: #090e13;
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 6px;
+      gap: 5px;
+    }
+    .mini-rail-icon {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .mini-rail-icon.active {
+      background: var(--brand-teal);
+    }
+
+    .mini-sidebar {
+      width: 85px;
+      background: #101820;
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 6px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .mini-sidebar-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .mini-sidebar-avatar {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      background: var(--brand-teal);
+      flex-shrink: 0;
+    }
+    .mini-sidebar-line {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 2px;
+      width: 48px;
+    }
+
+    .mini-chat-area {
+      flex: 1;
+      background: #070b0e;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .mini-bubble {
+      padding: 4px 6px;
+      border-radius: 6px;
+      font-size: 8px;
+      max-width: 80%;
+    }
+    .mini-bubble.in {
+      align-self: flex-start;
+      background: #16222b;
+      color: #fff;
+    }
+    .mini-bubble.out {
+      align-self: flex-end;
+      background: #005c4b;
+      color: #fff;
     }
 
     /* Card Details */
@@ -266,7 +452,13 @@
       border: 1px solid rgba(0, 168, 132, 0.3);
     }
 
-    .card-body h2 {
+    .badge-pill.awaiting {
+      background: rgba(6, 182, 212, 0.14);
+      color: #06b6d4;
+      border: 1px solid rgba(6, 182, 212, 0.35);
+    }
+
+    .card-body h2, .card-body h3 {
       font-size: 22px;
       font-weight: 750;
       letter-spacing: -0.5px;
@@ -293,7 +485,7 @@
     }
 
     footer {
-      max-width: 1100px;
+      max-width: 1240px;
       width: 100%;
       margin: 40px auto 0;
       padding: 24px;
@@ -328,8 +520,178 @@
 
     <h1>A space to explore.</h1>
     <p class="lead">
-      Interactive browser previews for IndiChat mobile features and visual directions. Explore screens, test simulated interactions, and review design changes before code is implemented.
+      Interactive browser design previews for IndiChat across Smartphone, Web, macOS, Linux, and Windows. Explore screen layouts, test simulated interactions, and review design changes before code is implemented.
     </p>
+
+    <!-- SECTION 1: Web & Desktop Previews (Awaiting Design Review) -->
+    <div class="gallery-section-header">
+      <h2>Web &amp; Desktop App Previews</h2>
+      <span class="tag">4 Environments · Awaiting Review</span>
+    </div>
+
+    <div class="previews-grid">
+
+      <!-- Web Client Preview Card -->
+      <a class="preview-card" href="preview-web.html" aria-label="Open IndiChat Web app preview">
+        <div class="card-art art-web">
+          <div class="mini-desktop-window">
+            <div class="mini-desktop-titlebar">
+              <span style="color:#00a884;font-size:8px">🔒 web.indichat.com</span>
+              <span style="font-size:7.5px">Web v3.0</span>
+            </div>
+            <div class="mini-desktop-content">
+              <div class="mini-rail">
+                <div class="mini-rail-icon active"></div>
+                <div class="mini-rail-icon"></div>
+                <div class="mini-rail-icon"></div>
+              </div>
+              <div class="mini-sidebar">
+                <div class="mini-sidebar-row"><div class="mini-sidebar-avatar"></div><div class="mini-sidebar-line"></div></div>
+                <div class="mini-sidebar-row"><div class="mini-sidebar-avatar" style="background:#ec4899"></div><div class="mini-sidebar-line" style="width:38px"></div></div>
+                <div class="mini-sidebar-row"><div class="mini-sidebar-avatar" style="background:#3b82f6"></div><div class="mini-sidebar-line" style="width:44px"></div></div>
+              </div>
+              <div class="mini-chat-area">
+                <div class="mini-bubble in">Reviewing Web workspace layout</div>
+                <div class="mini-bubble out">Responsive 4-zone layout verified ✓✓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <span class="badge-pill awaiting">● Proposal · Awaiting Approval</span>
+          <h3>IndiChat for Web</h3>
+          <p>
+            Browser-oriented responsive workspace featuring an icon navigation rail, searchable conversation sidebar, active chat with message delivery ticks, collapsible contact details panel, and dark/light daylight theme.
+          </p>
+          <span class="card-action-link">Explore web preview ↗</span>
+        </div>
+      </a>
+
+      <!-- macOS Desktop Preview Card -->
+      <a class="preview-card" href="preview-desktop-macos.html" aria-label="Open IndiChat for macOS desktop preview">
+        <div class="card-art art-macos">
+          <div class="mini-desktop-window">
+            <div class="mini-desktop-titlebar">
+              <div class="mini-dots">
+                <span class="mini-dot red"></span>
+                <span class="mini-dot yellow"></span>
+                <span class="mini-dot green"></span>
+              </div>
+              <span>IndiChat — macOS</span>
+              <span></span>
+            </div>
+            <div class="mini-desktop-content">
+              <div class="mini-rail">
+                <div class="mini-rail-icon active"></div>
+                <div class="mini-rail-icon"></div>
+                <div class="mini-rail-icon"></div>
+              </div>
+              <div class="mini-sidebar">
+                <div class="mini-sidebar-row"><div class="mini-sidebar-avatar"></div><div class="mini-sidebar-line"></div></div>
+                <div class="mini-sidebar-row"><div class="mini-sidebar-avatar" style="background:#ec4899"></div><div class="mini-sidebar-line" style="width:38px"></div></div>
+                <div class="mini-sidebar-row"><div class="mini-sidebar-avatar" style="background:#3b82f6"></div><div class="mini-sidebar-line" style="width:44px"></div></div>
+              </div>
+              <div class="mini-chat-area">
+                <div class="mini-bubble in">Sonoma / Sequoia title bar</div>
+                <div class="mini-bubble out">Traffic lights &amp; unified bar ✓✓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <span class="badge-pill awaiting">● Proposal · Awaiting Approval</span>
+          <h3>IndiChat for macOS</h3>
+          <p>
+            Native macOS desktop simulation with authentic traffic light window controls, unified header toolbar, keyboard shortcuts (Enter to send, Escape to dismiss), simulated audio/video calls, and settings dialog.
+          </p>
+          <span class="card-action-link">Explore macOS preview ↗</span>
+        </div>
+      </a>
+
+      <!-- Windows Desktop Preview Card -->
+      <a class="preview-card" href="preview-desktop-windows.html" aria-label="Open IndiChat for Windows desktop preview">
+        <div class="card-art art-windows">
+          <div class="mini-desktop-window">
+            <div class="mini-desktop-titlebar">
+              <span style="font-weight:700">i IndiChat</span>
+              <div class="mini-caption-btns">
+                <span>─</span>
+                <span>□</span>
+                <span>✕</span>
+              </div>
+            </div>
+            <div class="mini-desktop-content">
+              <div class="mini-rail">
+                <div class="mini-rail-icon active"></div>
+                <div class="mini-rail-icon"></div>
+                <div class="mini-rail-icon"></div>
+              </div>
+              <div class="mini-sidebar">
+                <div class="mini-sidebar-row"><div class="mini-sidebar-avatar"></div><div class="mini-sidebar-line"></div></div>
+                <div class="mini-sidebar-row"><div class="mini-sidebar-avatar" style="background:#ec4899"></div><div class="mini-sidebar-line" style="width:38px"></div></div>
+                <div class="mini-sidebar-row"><div class="mini-sidebar-avatar" style="background:#3b82f6"></div><div class="mini-sidebar-line" style="width:44px"></div></div>
+              </div>
+              <div class="mini-chat-area">
+                <div class="mini-bubble in">Windows 11 Fluent frame</div>
+                <div class="mini-bubble out">Caption buttons &amp; Mica tone ✓✓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <span class="badge-pill awaiting">● Proposal · Awaiting Approval</span>
+          <h3>IndiChat for Windows</h3>
+          <p>
+            Windows 11 Fluent desktop simulation featuring top-right caption controls, sharp acrylic borders, search filtering, document attachment cards, Rupee demo actions, and local session revocation.
+          </p>
+          <span class="card-action-link">Explore Windows preview ↗</span>
+        </div>
+      </a>
+
+      <!-- Linux Desktop Preview Card -->
+      <a class="preview-card" href="preview-desktop-linux.html" aria-label="Open IndiChat for Linux desktop preview">
+        <div class="card-art art-linux">
+          <div class="mini-desktop-window">
+            <div class="mini-desktop-titlebar">
+              <span style="font-size:7.5px;color:var(--brand-emerald)">i AppImage</span>
+              <span>IndiChat</span>
+              <span style="font-size:8px">✕</span>
+            </div>
+            <div class="mini-desktop-content">
+              <div class="mini-rail">
+                <div class="mini-rail-icon active"></div>
+                <div class="mini-rail-icon"></div>
+                <div class="mini-rail-icon"></div>
+              </div>
+              <div class="mini-sidebar">
+                <div class="mini-sidebar-row"><div class="mini-sidebar-avatar"></div><div class="mini-sidebar-line"></div></div>
+                <div class="mini-sidebar-row"><div class="mini-sidebar-avatar" style="background:#ec4899"></div><div class="mini-sidebar-line" style="width:38px"></div></div>
+                <div class="mini-sidebar-row"><div class="mini-sidebar-avatar" style="background:#3b82f6"></div><div class="mini-sidebar-line" style="width:44px"></div></div>
+              </div>
+              <div class="mini-chat-area">
+                <div class="mini-bubble in">GNOME 45+ Adwaita Header</div>
+                <div class="mini-bubble out">libadwaita pill styling ✓✓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <span class="badge-pill awaiting">● Proposal · Awaiting Approval</span>
+          <h3>IndiChat for Linux</h3>
+          <p>
+            Linux desktop simulation featuring a GNOME 45+ Adwaita HeaderBar, libadwaita rounded corners, centered window title, tray integration notice, and full local message interaction suite.
+          </p>
+          <span class="card-action-link">Explore Linux preview ↗</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- SECTION 2: Smartphone Previews (Preserved Untouched) -->
+    <div class="gallery-section-header">
+      <h2>Smartphone Previews</h2>
+      <span class="tag">Mobile Client · Verified</span>
+    </div>
 
     <div class="previews-grid">
       
@@ -411,7 +773,7 @@
     </div>
 
     <footer>
-      <span>IndiChat Design System · Sample content & simulated interactions</span>
+      <span>IndiChat Design System · Sample content &amp; simulated interactions</span>
       <span>No application code or backend contracts modified</span>
     </footer>
   </main>

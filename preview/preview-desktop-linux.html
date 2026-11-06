@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IndiChat Linux GNOME Native Client · Design Preview Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="preview-common.css">
+</head>
+<body>
+
+  <!-- Studio Top Navigation Bar -->
+  <header class="studio-top-bar" role="banner">
+    <div class="studio-left">
+      <a class="back-link" href="index.html" aria-label="Return to design previews gallery">
+        ← Back to Previews Gallery
+      </a>
+      <div class="studio-title-badge">
+        <span>IndiChat Linux</span>
+        <span class="platform-pill">GNOME / Wayland / X11</span>
+      </div>
+    </div>
+    <div class="studio-controls">
+      <button class="restore-window-pill" id="restoreWindowPill">◱ Restore Mockup Window</button>
+      <button class="studio-btn" id="btnResetDemoData" title="Reset all preview data to default fixtures">↺ Reset Demo Data</button>
+      <span class="sim-notice" aria-label="Simulation notice">
+        ● Simulated Preview · Local Demo Data
+      </span>
+      <a class="studio-btn" href="preview-web.html">Web</a>
+      <a class="studio-btn" href="preview-desktop-macos.html">macOS</a>
+      <a class="studio-btn" href="preview-desktop-windows.html">Windows</a>
+      <a class="studio-btn active" href="preview-desktop-linux.html">Linux</a>
+      <button class="studio-btn theme-toggle-btn" aria-label="Toggle dark/light theme">
+        ☀
+      </button>
+    </div>
+  </header>
+
+  <!-- Viewport Workspace Wrapper -->
+  <main class="preview-viewport-wrap" role="main">
+    <div class="window-mockup" id="appWindow">
+
+      <!-- GNOME Adwaita Window Chrome Header -->
+      <div class="window-chrome chrome-linux" aria-label="Linux GNOME HeaderBar">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="gnome-pill-btn">
+            <span style="font-weight:800;color:var(--brand-emerald)">i</span>
+            <span>IndiChat</span>
+          </div>
+          <span class="platform-pill" style="font-size:10px">AppImage / Flatpak / deb</span>
+        </div>
+
+        <div class="gnome-title">
+          <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--brand-emerald)"></span>
+          IndiChat — GNOME Desktop
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px" aria-label="Window control buttons">
+          <button class="icon-btn" id="btnGnomeAppMenu" style="width:28px;height:28px" title="IndiChat Menu" aria-label="IndiChat menu">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <button class="gnome-close-btn" title="Close window (Simulated - Tray)" aria-label="Close window">
+            <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8m0-8L1 9" stroke="currentColor" stroke-width="1.3"/></svg>
+          </button>
+        </div>
+
+        <!-- GNOME App Dropdown Menu -->
+        <div class="gnome-app-dropdown" id="gnomeAppDropdownMenu">
+          <button class="studio-btn" id="gnomeMenuSettings" style="width:100%;justify-content:flex-start;font-size:12.5px;padding:8px 12px">Preferences (Settings)</button>
+          <button class="studio-btn" id="gnomeMenuShortcuts" style="width:100%;justify-content:flex-start;font-size:12.5px;padding:8px 12px">Keyboard Shortcuts</button>
+          <button class="studio-btn" id="gnomeMenuHelp" style="width:100%;justify-content:flex-start;font-size:12.5px;padding:8px 12px">Help &amp; About</button>
+          <div style="height:1px;background:var(--border-subtle);margin:4px 0"></div>
+          <button class="studio-btn danger" id="gnomeMenuQuit" style="width:100%;justify-content:flex-start;font-size:12.5px;padding:8px 12px">Quit IndiChat</button>
+        </div>
+      </div>
+
+      <!-- Application Workspace (4-Zone Layout) -->
+      <div class="app-workspace">
+
+        <!-- Zone 1: Navigation Rail (68px) -->
+        <nav class="app-nav-rail" aria-label="Primary navigation">
+          <div class="rail-logo" title="IndiChat">i</div>
+          <div class="rail-items">
+            <button class="rail-btn active" data-rail-tab="chats" aria-label="Chats tab" title="Chats">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              <span class="rail-badge" id="railChatsBadge">3</span>
+            </button>
+            <button class="rail-btn" data-rail-tab="status" aria-label="Status updates" title="Status">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+            </button>
+            <button class="rail-btn" data-rail-tab="calls" aria-label="Calls log" title="Calls">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </button>
+            <button class="rail-btn" data-rail-tab="communities" aria-label="Communities &amp; Circles" title="Communities">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </button>
+            <button class="rail-btn" data-rail-tab="starred" aria-label="Starred messages" title="Starred">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </button>
+          </div>
+          <div class="rail-bottom">
+            <button class="rail-btn theme-toggle-btn" aria-label="Toggle theme" title="Toggle Light/Dark Theme">
+              ☀
+            </button>
+            <button class="rail-btn" id="railSettingsBtn" aria-label="Open settings" title="Settings">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+            <div class="rail-user-avatar" id="railUserAvatarBtn" title="Riya Kapoor (You) - Click for Settings" role="button" tabindex="0">
+              RK
+              <div class="rail-user-online-dot"></div>
+            </div>
+          </div>
+        </nav>
+
+        <!-- Zone 2: Multi-View Sidebar (340px) -->
+        <aside class="app-sidebar" aria-label="Conversations and views list">
+
+          <!-- View A: Chats List -->
+          <div class="sidebar-view active" id="sidebarView-chats">
+            <div class="sidebar-header">
+              <h1>Chats</h1>
+              <div class="sidebar-actions">
+                <button class="icon-btn" id="btnNewChatHeader" aria-label="New chat" title="New Chat">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <button class="icon-btn" id="btnSidebarMenu" aria-label="Menu" title="Menu">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </button>
+                <div class="sidebar-dropdown-menu" id="sidebarDropdownMenu" style="display:none" role="menu">
+                  <button class="menu-item-row" id="menuActionNewGroup" role="menuitem">👥 New Group</button>
+                  <button class="menu-item-row" id="menuActionStarred" role="menuitem">★ Starred Messages</button>
+                  <button class="menu-item-row" id="menuActionMarkAllRead" role="menuitem">✓ Mark All as Read</button>
+                  <button class="menu-item-row" id="menuActionSettings" role="menuitem">⚙ Settings</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="sidebar-search-box">
+              <div class="search-input-wrap">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="sidebarSearchInput" placeholder="Search or start new chat" aria-label="Search chats">
+              </div>
+            </div>
+
+            <!-- Filter Chips -->
+            <div class="filter-chips-bar" role="tablist" aria-label="Chat filters">
+              <button class="filter-chip active" data-filter="all" role="tab" aria-selected="true">All</button>
+              <button class="filter-chip" data-filter="unread" role="tab" aria-selected="false">Unread</button>
+              <button class="filter-chip" data-filter="groups" role="tab" aria-selected="false">Groups</button>
+            </div>
+
+            <!-- Conversations Scroll List -->
+            <div class="conversations-scroll" id="conversationList" role="region" aria-label="Chat conversations">
+              <!-- Rendered by preview-common.js -->
+            </div>
+          </div>
+
+          <!-- View B: Status / Stories View -->
+          <div class="sidebar-view" id="sidebarView-status">
+            <div class="sidebar-header">
+              <h2>Status Updates</h2>
+            </div>
+            <div class="conversations-scroll" id="statusListContainer" role="region" aria-label="Status stories">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- View C: Calls View -->
+          <div class="sidebar-view" id="sidebarView-calls">
+            <div class="sidebar-header">
+              <h2>Calls History</h2>
+              <div class="sidebar-actions">
+                <button class="icon-btn" id="btnStartNewCallHeader" aria-label="New call" title="New Call" onclick="window.IndiChatPreviewEngine.startCallSimulation(false)">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="conversations-scroll" id="callsListContainer" role="region" aria-label="Call logs">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- View D: Starred Messages View -->
+          <div class="sidebar-view" id="sidebarView-starred">
+            <div class="sidebar-header">
+              <h2>Starred Messages</h2>
+            </div>
+            <div class="conversations-scroll" id="starredListContainer" role="region" aria-label="Starred messages">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- View E: Communities & Circles View -->
+          <div class="sidebar-view" id="sidebarView-communities">
+            <div class="sidebar-header">
+              <h2>Communities</h2>
+              <div class="sidebar-actions">
+                <button class="icon-btn" id="btnNewCommunityHeader" aria-label="New community circle" title="New Community Circle" onclick="window.IndiChatPreviewEngine.openCommunityCircleModal()">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="conversations-scroll" id="communitiesListContainer" role="region" aria-label="Communities list">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+        </aside>
+
+        <!-- Zone 3: Active Conversation View (Flex 1) -->
+        <section class="app-chat-window" id="appChatWindow" aria-label="Active conversation view">
+          <!-- Chat Header -->
+          <header class="chat-header">
+            <div class="chat-header-contact" id="chatHeaderContact" role="button" tabindex="0" aria-label="View contact info">
+              <div class="chat-header-avatar" id="chatHeaderAvatar">AS</div>
+              <div class="chat-header-info">
+                <div class="chat-header-name" id="chatHeaderName">Aarav Sharma</div>
+                <div class="chat-header-status" id="chatHeaderStatus">Online</div>
+              </div>
+            </div>
+            <div class="chat-header-actions">
+              <button class="icon-btn" id="btnAudioCall" aria-label="Audio call (Simulated)" title="Audio Call">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </button>
+              <button class="icon-btn" id="btnVideoCall" aria-label="Video call (Simulated)" title="Video Call">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              </button>
+              <button class="icon-btn" id="btnToggleInChatSearch" aria-label="Search inside chat" title="Search in chat">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </button>
+              <button class="icon-btn" id="btnToggleDetails" aria-label="Toggle contact details" title="Contact Details">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              </button>
+            </div>
+          </header>
+
+          <!-- In-Chat Search Bar (Collapsible) -->
+          <div class="inchat-search-bar in-chat-search-bar" id="inChatSearchBar" style="display:none">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="inchat-search-input" id="inChatSearchInput" placeholder="Search in this chat..." aria-label="Search messages in active chat">
+            <span class="inchat-matches-count in-chat-matches-count" id="inChatMatchesCount"></span>
+            <button class="icon-btn" id="btnInChatPrev" aria-label="Previous match" title="Previous match">▲</button>
+            <button class="icon-btn" id="btnInChatNext" aria-label="Next match" title="Next match">▼</button>
+            <button class="icon-btn" id="btnCloseInChatSearch" aria-label="Close search">✕</button>
+          </div>
+
+          <!-- Messages Stream -->
+          <div class="messages-stream" id="messagesStream" role="log" aria-live="polite" aria-label="Message stream">
+            <!-- Rendered by preview-common.js -->
+          </div>
+
+          <!-- Quoted Reply Active Bar -->
+          <div class="quoted-reply-active-bar" id="quotedReplyActiveBar" style="display:none">
+            <div class="quoted-reply-text">
+              <strong id="quotedReplyAuthor">Replying to Aarav</strong>
+              <span id="quotedReplyText">Quoted message excerpt...</span>
+            </div>
+            <button class="icon-btn" id="btnCancelQuotedReply" aria-label="Cancel reply">✕</button>
+          </div>
+
+          <!-- Attachment Menu Popup -->
+          <div class="attachment-popup-menu" id="attachmentMenu" style="display:none" role="menu">
+            <button class="attachment-menu-item" id="attachOptionPhotos" role="menuitem">📷 Photos &amp; Videos</button>
+            <button class="attachment-menu-item" id="attachOptionDoc" role="menuitem">📄 Document / PDF</button>
+            <button class="attachment-menu-item" id="attachOptionCamera" role="menuitem">📸 Instant Camera</button>
+            <button class="attachment-menu-item" id="attachOptionPoll" role="menuitem">📊 Create Poll</button>
+          </div>
+
+          <!-- Emoji, GIF & Sticker Picker Panel -->
+          <div class="emoji-gif-sticker-panel emoji-picker-panel" id="emojiGifStickerPanel" style="display:none">
+            <div class="picker-tabs-header">
+              <button class="picker-tab-btn active" data-picker-tab="emoji">Emoji</button>
+              <button class="picker-tab-btn" data-picker-tab="gif">GIF</button>
+              <button class="picker-tab-btn" data-picker-tab="sticker">Stickers</button>
+            </div>
+            <div class="picker-content-scroll" id="pickerContentScroll">
+              <!-- Rendered by preview-common.js -->
+            </div>
+          </div>
+
+          <!-- Chat Composer Bar -->
+          <form class="chat-composer-bar" id="chatComposerForm">
+            <button type="button" class="icon-btn" id="btnEmojiPickerToggle" aria-label="Insert Emoji, GIF or Sticker" title="Emoji, GIF &amp; Stickers">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </button>
+            <button type="button" class="icon-btn" id="btnAttachment" aria-label="Add attachment" title="Attach file">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <input type="text" class="composer-input-field" id="composerInputField" placeholder="Type a message (Press Enter to send)..." autocomplete="off" aria-label="Compose message">
+            <button type="button" class="icon-btn" id="btnRupeePayment" aria-label="Fast ₹ Payment demo" title="Send Rupee Payment">₹</button>
+            <button type="submit" class="composer-send-btn" aria-label="Send message" title="Send">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </form>
+        </section>
+
+        <!-- Zone 4: Collapsible Details Panel (320px) -->
+        <aside class="app-details-panel" id="detailsPanel" aria-label="Contact information panel">
+          <!-- Rendered by preview-common.js -->
+        </aside>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="preview-fixtures.js"></script>
+  <script src="preview-common.js"></script>
+  <script src="preview-test-suite.js"></script>
+</body>
+</html>
