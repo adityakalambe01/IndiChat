@@ -27,6 +27,7 @@ import { useTheme } from '../../theme/useTheme';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
 import { useUnsavedChangesGuard } from '../../utils/useUnsavedChangesGuard';
+import { FONTS } from '../../theme/tokens';
 
 export default function ProfileSettingsScreen() {
   const router = useRouter();
@@ -225,6 +226,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarText: {
+    fontFamily: FONTS.bold,
     color: '#ffffff',
     fontSize: 28,
     fontWeight: '800',
@@ -237,20 +239,22 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   changePhotoText: {
+    fontFamily: FONTS.semiBold,
     color: '#10b981',
     fontSize: 12,
     fontWeight: '600',
   },
   card: { padding: 14, marginBottom: 16 },
   inputGroup: { paddingVertical: 10, borderBottomWidth: 1 },
-  inputLabel: { fontSize: 12, fontWeight: '600', marginBottom: 6 },
+  inputLabel: { fontFamily: FONTS.semiBold, fontSize: 12, fontWeight: '600', marginBottom: 6 },
   textInput: {
+    fontFamily: FONTS.regular,
     height: 42,
     borderRadius: 10,
     paddingHorizontal: 12,
     fontSize: 14,
   },
-  inputHint: { fontSize: 11, marginTop: 4 },
+  inputHint: { fontFamily: FONTS.regular, fontSize: 11, marginTop: 4 },
   actionRow: { flexDirection: 'row', gap: 12 },
   cancelBtn: {
     flex: 1,
@@ -261,7 +265,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
-  cancelBtnText: { fontSize: 14, fontWeight: '600' },
+  cancelBtnText: { fontFamily: FONTS.semiBold, fontSize: 14, fontWeight: '600' },
   saveBtn: {
     flex: 1,
     height: 46,
@@ -271,5 +275,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#10b981',
   },
   saveBtnDisabled: { opacity: 0.45 },
-  saveBtnText: { color: '#070b0e', fontSize: 14, fontWeight: '700' },
+  saveBtnText: { fontFamily: FONTS.bold, color: '#070b0e', fontSize: 14, fontWeight: '700' },
 });

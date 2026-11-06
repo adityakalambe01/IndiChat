@@ -99,18 +99,27 @@ const DEFAULT_SETTINGS: MobileAppSettings = {
 
 type SettingsListener = (settings: MobileAppSettings) => void;
 
-class SettingsService {
+export class SettingsService {
   private settings: MobileAppSettings = { ...DEFAULT_SETTINGS };
   private listeners = new Set<SettingsListener>();
   private isSyncing = false;
   private currentUserId: string | null = null;
+  private storageImpl: {
+    getItem(key: string): Promise<string | null>;
+    setItem(key: string, value: string): Promise<void>;
+    getJson<T>(key: string): Promise<T | null>;
+    setJson(key: string, value: unknown): Promise<void>;
+  };
+  private apiImpl: any;
 
-  constructor() {
+  constructor(customStorage?: any, customApi?: any) {
+    this.storageImpl = customStorage || storage;
+    this.apiImpl = customApi || api;
     this.init();
   }
 
-  private async init() {
-    const saved = await storage.getJson<MobileAppSettings>(STORAGE_KEYS.SETTINGS);
+  public async init() {
+    const saved = await this.storageImpl.getJson<MobileAppSettings>(STORAGE_KEYS.SETTINGS);
     if (saved) {
       this.settings = { ...DEFAULT_SETTINGS, ...saved };
       this.notify();
@@ -120,7 +129,7 @@ class SettingsService {
   public async loadForUser(userId: string): Promise<void> {
     this.currentUserId = userId;
     const key = `${STORAGE_KEYS.SETTINGS}_${userId}`;
-    const saved = await storage.getJson<MobileAppSettings>(key);
+    const saved = await this.storageImpl.getJson<MobileAppSettings>(key);
     if (saved) {
       this.settings = { ...DEFAULT_SETTINGS, ...saved };
     } else {
@@ -136,8 +145,10 @@ class SettingsService {
   }
 
   private async persist(): Promise<void> {
-    const key = this.currentUserId ? `${STORAGE_KEYS.SETTINGS}_${this.currentUserId}` : STORAGE_KEYS.SETTINGS;
-    await storage.setJson(key, this.settings);
+    await this.storageImpl.setJson(STORAGE_KEYS.SETTINGS, this.settings);
+    if (this.currentUserId) {
+      await this.storageImpl.setJson(`${STORAGE_KEYS.SETTINGS}_${this.currentUserId}`, this.settings);
+    }
   }
 
   public getSettings(): MobileAppSettings {
@@ -146,13 +157,13 @@ class SettingsService {
 
   public async syncWithBackend(): Promise<void> {
     if (this.isSyncing) return;
-    const token = await storage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    const token = await this.storageImpl.getItem(STORAGE_KEYS.ACCESS_TOKEN);
     if (!token) return;
 
     this.isSyncing = true;
     try {
       // 1. Sync User Settings from backend
-      const backendSettings = await api.getUserSettings();
+      const backendSettings = await this.apiImpl.getUserSettings();
       if (backendSettings) {
         this.updateLocal({
           passkeyEnabled: Boolean(backendSettings.passkeyEnabled),
@@ -174,7 +185,7 @@ class SettingsService {
       }
 
       // 2. Sync Linked Devices from backend
-      const backendDevices = await api.getLinkedDevices();
+      const backendDevices = await this.apiImpl.getLinkedDevices();
       if (Array.isArray(backendDevices)) {
         const mappedDevices: LinkedDevice[] = backendDevices.map((d: any) => ({
           id: d.id,
@@ -234,9 +245,9 @@ class SettingsService {
     }
 
     if (hasBackendKey) {
-      storage.getItem(STORAGE_KEYS.ACCESS_TOKEN).then((token) => {
+      this.storageImpl.getItem(STORAGE_KEYS.ACCESS_TOKEN).then((token) => {
         if (token) {
-          api.updateUserSettings(backendPayload).catch((err) => {
+          this.apiImpl.updateUserSettings(backendPayload).catch((err: any) => {
             console.warn('Failed to persist settings to backend:', err);
           });
         }
@@ -272,7 +283,7 @@ class SettingsService {
     });
 
     try {
-      const saved = await api.linkDevice({
+      const saved = await this.apiImpl.linkDevice({
         deviceName: device.name,
         platform: device.platform,
         browser: device.browser,
@@ -281,7 +292,7 @@ class SettingsService {
       });
       if (saved && saved.id) {
         this.updateLocal({
-          linkedDevices: this.settings.linkedDevices.map((d) => (d.id === newDevice.id ? { ...d, id: saved.id } : d)),
+          linkedDevices: this.settings.linkedDevices.map((d: any) => (d.id === newDevice.id ? { ...d, id: saved.id } : d)),
         });
       }
     } catch (e) {
@@ -297,7 +308,7 @@ class SettingsService {
     });
 
     try {
-      await api.removeLinkedDevice(deviceId);
+      await this.apiImpl.removeLinkedDevice(deviceId);
     } catch (e) {
       console.warn('Failed to remove device on backend:', e);
     }
@@ -309,7 +320,7 @@ class SettingsService {
     });
 
     try {
-      await api.removeOtherLinkedDevices();
+      await this.apiImpl.removeOtherLinkedDevices();
     } catch (e) {
       console.warn('Failed to remove other devices on backend:', e);
     }

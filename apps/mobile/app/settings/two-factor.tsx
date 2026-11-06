@@ -15,7 +15,6 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Switch,
   Alert,
   ActivityIndicator,
 } from 'react-native';
@@ -26,7 +25,9 @@ import { settingsService } from '../../services/settings';
 import { useTheme } from '../../theme/useTheme';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
+import { InAppSwitch } from '../../components/InAppSwitch';
 import { useUnsavedChangesGuard } from '../../utils/useUnsavedChangesGuard';
+import { FONTS } from '../../theme/tokens';
 
 export default function TwoFactorSettingsScreen() {
   const router = useRouter();
@@ -105,12 +106,9 @@ export default function TwoFactorSettingsScreen() {
                 Require 6-digit PIN on registration
               </Text>
             </View>
-            <Switch
+            <InAppSwitch
               value={enabled}
               onValueChange={setEnabled}
-              trackColor={{ false: 'rgba(255,255,255,0.2)', true: '#10b981' }}
-              thumbColor="#ffffff"
-              accessibilityRole="switch"
               accessibilityLabel="Toggle Two-Step Verification"
             />
           </View>
@@ -185,16 +183,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
-  heroTitle: { fontSize: 16, fontWeight: '700', textAlign: 'center' },
-  heroDesc: { fontSize: 12, lineHeight: 18, textAlign: 'center', marginTop: 6 },
+  heroTitle: { fontFamily: FONTS.bold, fontSize: 16, fontWeight: '700', textAlign: 'center' },
+  heroDesc: { fontFamily: FONTS.regular, fontSize: 12, lineHeight: 18, textAlign: 'center', marginTop: 6 },
   card: { padding: 14, marginBottom: 16 },
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   metaCol: { flex: 1, paddingRight: 10 },
-  switchTitle: { fontSize: 14, fontWeight: '600' },
-  switchDesc: { fontSize: 11.5, marginTop: 2 },
+  switchTitle: { fontFamily: FONTS.semiBold, fontSize: 14, fontWeight: '600' },
+  switchDesc: { fontFamily: FONTS.regular, fontSize: 11.5, marginTop: 2 },
   pinGroup: { marginTop: 14, paddingTop: 14, borderTopWidth: 1 },
-  pinLabel: { fontSize: 12, fontWeight: '600', marginBottom: 6 },
+  pinLabel: { fontFamily: FONTS.semiBold, fontSize: 12, fontWeight: '600', marginBottom: 6 },
   pinInput: {
+    fontFamily: FONTS.bold,
     height: 44,
     borderRadius: 10,
     paddingHorizontal: 12,
@@ -202,7 +201,7 @@ const styles = StyleSheet.create({
     letterSpacing: 6,
     textAlign: 'center',
   },
-  pinHint: { fontSize: 11, marginTop: 6 },
+  pinHint: { fontFamily: FONTS.regular, fontSize: 11, marginTop: 6 },
   actionRow: { flexDirection: 'row', gap: 12 },
   cancelBtn: {
     flex: 1,
@@ -213,7 +212,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
-  cancelBtnText: { fontSize: 14, fontWeight: '600' },
+  cancelBtnText: { fontFamily: FONTS.semiBold, fontSize: 14, fontWeight: '600' },
   saveBtn: {
     flex: 1,
     height: 46,
@@ -223,5 +222,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#10b981',
   },
   saveBtnDisabled: { opacity: 0.45 },
-  saveBtnText: { color: '#070b0e', fontSize: 14, fontWeight: '700' },
+  saveBtnText: { fontFamily: FONTS.bold, color: '#070b0e', fontSize: 14, fontWeight: '700' },
 });

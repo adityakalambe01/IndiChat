@@ -22,6 +22,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
+import { FONTS } from '../../theme/tokens';
 
 interface FAQItem {
   q: string;
@@ -200,20 +201,24 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   appName: {
+    fontFamily: FONTS.bold,
     fontSize: 22,
     fontWeight: '800',
     marginBottom: 4,
   },
   appVersion: {
+    fontFamily: FONTS.regular,
     fontSize: 13,
     marginBottom: 8,
   },
   appTagline: {
+    fontFamily: FONTS.regular,
     fontSize: 13,
     textAlign: 'center',
     lineHeight: 18,
   },
   sectionTitle: {
+    fontFamily: FONTS.bold,
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 0.8,
@@ -231,11 +236,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   faqQuestion: {
+    fontFamily: FONTS.semiBold,
     flex: 1,
     fontSize: 14,
     fontWeight: '600',
   },
   faqAnswer: {
+    fontFamily: FONTS.regular,
     fontSize: 13,
     lineHeight: 20,
     paddingBottom: 10,
@@ -263,6 +270,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   itemLabel: {
+    fontFamily: FONTS.semiBold,
     flex: 1,
     fontSize: 15,
     fontWeight: '600',

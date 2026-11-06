@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
+import { FONTS } from '../../theme/tokens';
 
 export default function StorageSettingsScreen() {
   const { palette, metrics } = useTheme();
@@ -104,6 +105,7 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   scrollContent: { padding: 16 },
   sectionHeader: {
+    fontFamily: FONTS.bold,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.1,
@@ -120,8 +122,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: 1,
   },
-  label: { fontSize: 13.5 },
-  value: { fontSize: 13, fontWeight: '600' },
+  label: { fontFamily: FONTS.regular, fontSize: 13.5 },
+  value: { fontFamily: FONTS.semiBold, fontSize: 13, fontWeight: '600' },
   clearBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -133,5 +135,5 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(244, 63, 94, 0.08)',
     marginBottom: 16,
   },
-  clearBtnText: { color: '#f43f5e', fontSize: 13.5, fontWeight: '700' },
+  clearBtnText: { fontFamily: FONTS.bold, color: '#f43f5e', fontSize: 13.5, fontWeight: '700' },
 });

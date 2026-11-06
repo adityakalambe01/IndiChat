@@ -13,7 +13,6 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  Switch,
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -22,6 +21,8 @@ import { settingsService } from '../../services/settings';
 import { useTheme } from '../../theme/useTheme';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
+import { InAppSwitch } from '../../components/InAppSwitch';
+import { FONTS } from '../../theme/tokens';
 
 export default function PasskeysSettingsScreen() {
   const router = useRouter();
@@ -73,12 +74,9 @@ export default function PasskeysSettingsScreen() {
                 Use biometric / device lock for verification
               </Text>
             </View>
-            <Switch
+            <InAppSwitch
               value={passkeyActive}
               onValueChange={handleToggle}
-              trackColor={{ false: 'rgba(255,255,255,0.2)', true: '#06b6d4' }}
-              thumbColor="#ffffff"
-              accessibilityRole="switch"
               accessibilityLabel="Toggle Passkey"
             />
           </View>
@@ -119,15 +117,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
-  heroTitle: { fontSize: 16, fontWeight: '700', textAlign: 'center' },
-  heroDesc: { fontSize: 12, lineHeight: 18, textAlign: 'center', marginTop: 6 },
+  heroTitle: { fontFamily: FONTS.bold, fontSize: 16, fontWeight: '700', textAlign: 'center' },
+  heroDesc: { fontFamily: FONTS.regular, fontSize: 12, lineHeight: 18, textAlign: 'center', marginTop: 6 },
   card: { padding: 14, marginBottom: 16 },
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   metaCol: { flex: 1, paddingRight: 10 },
-  switchTitle: { fontSize: 14, fontWeight: '600' },
-  switchDesc: { fontSize: 11.5, marginTop: 2 },
+  switchTitle: { fontFamily: FONTS.semiBold, fontSize: 14, fontWeight: '600' },
+  switchDesc: { fontFamily: FONTS.regular, fontSize: 11.5, marginTop: 2 },
   infoRow: { flexDirection: 'row', gap: 8, marginTop: 14, paddingTop: 14, borderTopWidth: 1 },
-  infoText: { fontSize: 11.5, flex: 1, lineHeight: 16 },
+  infoText: { fontFamily: FONTS.regular, fontSize: 11.5, flex: 1, lineHeight: 16 },
   learnBtn: {
     height: 46,
     borderRadius: 12,
@@ -136,5 +134,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
-  learnBtnText: { fontSize: 14, fontWeight: '600' },
+  learnBtnText: { fontFamily: FONTS.semiBold, fontSize: 14, fontWeight: '600' },
 });

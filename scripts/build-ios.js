@@ -123,6 +123,17 @@ if (fs.existsSync(icon1024)) {
   fs.copyFileSync(icon1024, path.join(releaseIosDir, 'icon.png'));
 }
 
+// Synchronize Inter font bundle into native iOS directory
+const fontSrcDir = path.join(mobileDir, 'assets', 'fonts');
+const fontIosDir = path.join(iosDir, 'IndiChat');
+if (fs.existsSync(fontSrcDir)) {
+  for (const font of fs.readdirSync(fontSrcDir)) {
+    if (font.endsWith('.ttf')) {
+      fs.copyFileSync(path.join(fontSrcDir, font), path.join(fontIosDir, font));
+    }
+  }
+}
+
 // 6. Clean if requested
 const buildOutputDir = path.join(iosDir, 'build');
 if (cleanFirst && fs.existsSync(buildOutputDir)) {
@@ -164,6 +175,15 @@ if (buildSim) {
   // Find generated .app bundle
   const appSource = path.join(iosDir, 'build', 'Build', 'Products', 'Release-iphonesimulator', 'IndiChat.app');
   if (fs.existsSync(appSource)) {
+    // Copy Inter fonts into bundle
+    if (fs.existsSync(fontSrcDir)) {
+      for (const font of fs.readdirSync(fontSrcDir)) {
+        if (font.endsWith('.ttf')) {
+          fs.copyFileSync(path.join(fontSrcDir, font), path.join(appSource, font));
+        }
+      }
+    }
+
     const appDest = path.join(releaseIosDir, 'IndiChat.app');
     if (fs.existsSync(appDest)) {
       fs.rmSync(appDest, { recursive: true, force: true });

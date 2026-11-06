@@ -32,6 +32,7 @@ import {
   ContactDiscoveryResult,
 } from '../services/contacts';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { getDeterministicAvatarColor } from '../theme/tokens';
 
 // Design tokens matching preview-find-contacts.html exactly
 const COLORS = {
@@ -54,23 +55,6 @@ const COLORS = {
   warningAmber: '#fbbc04',
   blueAccent: '#53bdeb',
 };
-
-// Deterministic colorful avatar backgrounds matching preview
-const AVATAR_BG_COLORS = ['#10b981', '#ec4899', '#3b82f6', '#8b5cf6', '#f59e0b'];
-function getAvatarBgColor(seed: string): string {
-  const lower = seed.toLowerCase();
-  if (lower.includes('aarav')) return '#10b981';
-  if (lower.includes('priya')) return '#ec4899';
-  if (lower.includes('rohan')) return '#3b82f6';
-  if (lower.includes('ananya')) return '#8b5cf6';
-  if (lower.includes('vikram')) return '#f59e0b';
-
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return AVATAR_BG_COLORS[Math.abs(hash) % AVATAR_BG_COLORS.length];
-}
 
 // Sample dataset matching preview-find-contacts.html for visual preview & testing
 const PREVIEW_DATA: ContactDiscoveryResult = {
@@ -438,7 +422,7 @@ export default function FindContactsScreen() {
   const renderMatchedContact = (item: MatchedContactItem) => {
     const isStarting = startingChatId === item.userId;
     const initial = (item.displayName || item.contactName || item.username || '?')[0].toUpperCase();
-    const avatarBg = getAvatarBgColor(item.contactName || item.displayName || item.userId);
+    const avatarBg = getDeterministicAvatarColor(item.contactName || item.displayName || item.userId);
     const bioText = (item as any).bio || 'Available on IndiChat ✨';
 
     return (

@@ -138,7 +138,7 @@ async function main() {
 
   // Test Search Focus action
   console.log('[Android] Testing header search action focus...');
-  execSync('adb shell input tap 767 136'); // Header search icon
+  execSync('adb shell input tap 868 136'); // Header search icon (middle of 3 header buttons)
   await sleep(800);
   const androidSearchFile = path.join(ANDROID_OUT, 'chats_search_focused.png');
   execSync(`adb exec-out screencap -p > "${androidSearchFile}"`);

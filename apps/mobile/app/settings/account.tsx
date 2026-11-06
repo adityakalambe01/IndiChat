@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
+import { FONTS } from '../../theme/tokens';
 
 export default function AccountSettingsScreen() {
   const router = useRouter();
@@ -149,6 +150,7 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   scrollContent: { padding: 16 },
   sectionHeader: {
+    fontFamily: FONTS.bold,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.1,
@@ -167,9 +169,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   rowContent: { flex: 1, minWidth: 0 },
-  rowTitle: { fontSize: 14, fontWeight: '600' },
-  rowDesc: { fontSize: 11.5, marginTop: 2 },
-  statusVal: { fontSize: 12, fontWeight: '600' },
+  rowTitle: { fontFamily: FONTS.semiBold, fontSize: 14, fontWeight: '600' },
+  rowDesc: { fontFamily: FONTS.regular, fontSize: 11.5, marginTop: 2 },
+  statusVal: { fontFamily: FONTS.medium, fontSize: 12, fontWeight: '600' },
   verifiedBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -177,6 +179,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(16, 185, 129, 0.15)',
   },
   verifiedText: {
+    fontFamily: FONTS.bold,
     fontSize: 10.5,
     fontWeight: '700',
     color: '#10b981',

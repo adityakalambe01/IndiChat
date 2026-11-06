@@ -26,6 +26,7 @@ import { useTheme } from '../../theme/useTheme';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
 import { useUnsavedChangesGuard } from '../../utils/useUnsavedChangesGuard';
+import { FONTS } from '../../theme/tokens';
 
 export default function ServerSettingsScreen() {
   const router = useRouter();
@@ -258,14 +259,17 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   cardTitle: {
+    fontFamily: FONTS.bold,
     fontSize: 16,
     fontWeight: '700',
   },
   cardDesc: {
+    fontFamily: FONTS.regular,
     fontSize: 13,
     lineHeight: 18,
   },
   input: {
+    fontFamily: FONTS.regular,
     height: 48,
     borderRadius: 12,
     borderWidth: 1,
@@ -287,6 +291,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   testBtnText: {
+    fontFamily: FONTS.semiBold,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -298,6 +303,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveBtnText: {
+    fontFamily: FONTS.bold,
     fontSize: 14,
     fontWeight: '700',
     color: '#070b0e',
@@ -312,6 +318,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   resultText: {
+    fontFamily: FONTS.medium,
     flex: 1,
     fontSize: 13,
     fontWeight: '500',
@@ -322,6 +329,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   resetBtnText: {
+    fontFamily: FONTS.medium,
     fontSize: 14,
     fontWeight: '500',
   },

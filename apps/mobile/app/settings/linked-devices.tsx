@@ -22,6 +22,7 @@ import { settingsService, LinkedDevice } from '../../services/settings';
 import { useTheme } from '../../theme/useTheme';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
+import { FONTS } from '../../theme/tokens';
 
 export default function LinkedDevicesSettingsScreen() {
   const router = useRouter();
@@ -170,8 +171,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
-  heroTitle: { fontSize: 16, fontWeight: '700', textAlign: 'center' },
-  heroDesc: { fontSize: 12, lineHeight: 18, textAlign: 'center', marginTop: 6 },
+  heroTitle: { fontFamily: FONTS.bold, fontSize: 16, fontWeight: '700', textAlign: 'center' },
+  heroDesc: { fontFamily: FONTS.regular, fontSize: 12, lineHeight: 18, textAlign: 'center', marginTop: 6 },
   linkDeviceBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -182,8 +183,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#10b981',
     marginBottom: 16,
   },
-  linkDeviceText: { color: '#070b0e', fontSize: 14, fontWeight: '700' },
+  linkDeviceText: { fontFamily: FONTS.bold, color: '#070b0e', fontSize: 14, fontWeight: '700' },
   sectionHeader: {
+    fontFamily: FONTS.bold,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.1,
@@ -193,7 +195,7 @@ const styles = StyleSheet.create({
   },
   card: { padding: 6, marginBottom: 16 },
   emptyCard: { padding: 24, alignItems: 'center', gap: 8, marginBottom: 16 },
-  emptyText: { fontSize: 13 },
+  emptyText: { fontFamily: FONTS.regular, fontSize: 13 },
   deviceRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -210,6 +212,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   metaCol: { flex: 1 },
-  deviceName: { fontSize: 14, fontWeight: '600' },
-  deviceSub: { fontSize: 11.5, marginTop: 2 },
+  deviceName: { fontFamily: FONTS.semiBold, fontSize: 14, fontWeight: '600' },
+  deviceSub: { fontFamily: FONTS.regular, fontSize: 11.5, marginTop: 2 },
 });
