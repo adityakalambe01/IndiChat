@@ -9,6 +9,8 @@ export async function resolve(specifier, context, nextResolve) {
     specifier === 'react-native' ||
     specifier === 'expo-constants' ||
     specifier === 'expo-file-system' ||
+    specifier === 'expo-file-system/legacy' ||
+    specifier === 'react-native-webrtc' ||
     specifier === '@chat/shared-types'
   ) {
     return {
