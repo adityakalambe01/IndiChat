@@ -80,8 +80,8 @@ export default function AppearanceSettingsScreen() {
     });
   };
 
-  const handleSave = () => {
-    saveStagedAppearance();
+  const handleSave = async () => {
+    await saveStagedAppearance();
     setIsDirty(false);
     router.back();
   };

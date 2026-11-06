@@ -47,6 +47,18 @@ function RootNavigation() {
 
     const unsubDeviceRemoved = wsClient.onDeviceRemoved(handleRevoked);
     const unsubExpired = onSessionExpired(handleRevoked);
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        const match = url.match(/indichat:\/\/([^?]+)(\?.*)?/);
+        if (match) {
+          const route = '/' + match[1];
+          const query = match[2] || '';
+          router.navigate(`${route}${query}` as any);
+        }
+      }
+    }).catch((e) => {
+      console.warn('Initial URL handling failed:', e);
+    });
 
     const unsubLinking = Linking.addEventListener('url', (event) => {
       try {

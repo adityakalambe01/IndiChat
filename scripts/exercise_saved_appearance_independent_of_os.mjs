@@ -146,7 +146,10 @@ async function main() {
 
   // Step 1: Open Appearance settings
   console.log('1. Navigating to indichat://settings/appearance...');
-  adb('shell "am start -W -a android.intent.action.VIEW -d \'indichat://settings/appearance\'"');
+  adb('shell am start -W -a android.intent.action.VIEW -d "indichat://settings/appearance"');
+  await sleep(1000);
+  adb('shell input swipe 540 400 540 2000 300');
+  await sleep(500);
 
   // Step 2: Locate and verify Light control dynamically
   console.log('2. Locating Light theme control in UI dump...');
@@ -224,7 +227,10 @@ async function main() {
   }
 
   // Navigate to Appearance to verify selected="true" on Light radio button
-  adb('shell "am start -W -a android.intent.action.VIEW -d \'indichat://settings/appearance\'"');
+  adb('shell am start -W -a android.intent.action.VIEW -d "indichat://settings/appearance"');
+  await sleep(1000);
+  adb('shell input swipe 540 400 540 2000 300');
+  await sleep(500);
   let daylightAppearanceDump = null;
   let lightRadio = null;
   const startLightRadioCheck = Date.now();
@@ -311,7 +317,10 @@ async function main() {
   }
 
   // Navigate to Appearance to verify selected="true" on Dark radio button
-  adb('shell "am start -W -a android.intent.action.VIEW -d \'indichat://settings/appearance\'"');
+  adb('shell am start -W -a android.intent.action.VIEW -d "indichat://settings/appearance"');
+  await sleep(1000);
+  adb('shell input swipe 540 400 540 2000 300');
+  await sleep(500);
   let darkAppearanceDump = null;
   let darkRadio = null;
   const startDarkRadioCheck = Date.now();

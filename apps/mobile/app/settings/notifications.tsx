@@ -34,71 +34,72 @@ export default function NotificationsSettingsScreen() {
         ]}
       >
         <Text style={[styles.sectionHeader, { color: palette.textSecondary }]}>
-          MESSAGES & ALERTS
+          MESSAGES & GROUPS
         </Text>
         <LiquidGlassSurface style={styles.card}>
           <View style={[styles.row, { borderBottomColor: palette.divider }]}>
             <View style={styles.metaCol}>
               <Text style={[styles.title, { color: palette.textPrimary }]}>
-                Conversation Alerts
+                Conversation Tones
               </Text>
               <Text style={[styles.desc, { color: palette.textSecondary }]}>
-                Show incoming message notifications
-              </Text>
-            </View>
-            <InAppSwitch
-              value={messageAlerts}
-              onValueChange={setMessageAlerts}
-              accessibilityLabel="Conversation Alerts"
-            />
-          </View>
-
-          <View style={[styles.row, { borderBottomColor: palette.divider }]}>
-            <View style={styles.metaCol}>
-              <Text style={[styles.title, { color: palette.textPrimary }]}>
-                Sound Effects
-              </Text>
-              <Text style={[styles.desc, { color: palette.textSecondary }]}>
-                Play ringtone & message chime
+                Play sound for incoming messages
               </Text>
             </View>
             <InAppSwitch
               value={soundEnabled}
               onValueChange={setSoundEnabled}
-              accessibilityLabel="Sound Effects"
+              accessibilityLabel="Conversation Tones"
             />
           </View>
 
           <View style={[styles.row, { borderBottomColor: palette.divider }]}>
             <View style={styles.metaCol}>
               <Text style={[styles.title, { color: palette.textPrimary }]}>
-                Vibration
+                High Priority Alerts
               </Text>
               <Text style={[styles.desc, { color: palette.textSecondary }]}>
-                Vibrate device on incoming alerts
+                Show notification previews at top of screen
               </Text>
             </View>
             <InAppSwitch
-              value={vibrateEnabled}
-              onValueChange={setVibrateEnabled}
-              accessibilityLabel="Vibration"
+              value={previewEnabled}
+              onValueChange={setPreviewEnabled}
+              accessibilityLabel="High Priority Alerts"
             />
           </View>
 
           <View style={styles.row}>
             <View style={styles.metaCol}>
               <Text style={[styles.title, { color: palette.textPrimary }]}>
-                Message Previews
+                Reaction Notifications
               </Text>
               <Text style={[styles.desc, { color: palette.textSecondary }]}>
-                Show sender name and message text in banner
+                Notify when someone reacts to your messages
               </Text>
             </View>
             <InAppSwitch
-              value={previewEnabled}
-              onValueChange={setPreviewEnabled}
-              accessibilityLabel="Message Previews"
+              value={messageAlerts}
+              onValueChange={setMessageAlerts}
+              accessibilityLabel="Reaction Notifications"
             />
+          </View>
+        </LiquidGlassSurface>
+
+        <Text style={[styles.sectionHeader, { color: palette.textSecondary }]}>
+          VIBRATION PATTERN
+        </Text>
+        <LiquidGlassSurface style={styles.card}>
+          <View style={styles.row}>
+            <View style={styles.metaCol}>
+              <Text style={[styles.title, { color: palette.textPrimary }]}>
+                Vibrate
+              </Text>
+              <Text style={[styles.desc, { color: palette.textSecondary }]}>
+                Default (Short pulse)
+              </Text>
+            </View>
+            <Text style={{ color: palette.textSecondary, fontSize: 18, fontWeight: '700' }}>›</Text>
           </View>
         </LiquidGlassSurface>
       </ScrollView>
