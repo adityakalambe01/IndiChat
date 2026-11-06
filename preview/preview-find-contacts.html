@@ -1,0 +1,2011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IndiChat — Find Contacts Feature Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0b1014;
+      --app-bg: #111b21;
+      --surface-1: #202c33;
+      --surface-2: #222e35;
+      --surface-3: #2a3942;
+      --primary-green: #25D366;
+      --primary-teal: #00a884;
+      --primary-teal-dark: #0a332c;
+      --text-primary: #e9edef;
+      --text-secondary: #8696a0;
+      --text-muted: #667781;
+      --border-subtle: rgba(134, 150, 160, 0.15);
+      --danger-red: #ea4335;
+      --warning-amber: #fbbc04;
+      --blue-accent: #53bdeb;
+      --device-width: 390px;
+      --device-height: 844px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 40px;
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(37, 211, 102, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(0, 168, 132, 0.08) 0%, transparent 40%);
+    }
+
+    /* Top Studio Header */
+    .studio-header {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding: 16px 24px;
+      background: rgba(32, 44, 51, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      gap: 16px;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #25D366, #00a884);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      color: #0b1014;
+      box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+    }
+
+    .brand-text h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-text p {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chip-btn {
+      background: var(--surface-2);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chip-btn:hover {
+      background: var(--surface-3);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .chip-btn.active {
+      background: var(--primary-teal-dark);
+      color: var(--primary-green);
+      border-color: var(--primary-teal);
+    }
+
+    /* Main Container */
+    .preview-workspace {
+      width: 100%;
+      max-width: 1200px;
+      display: grid;
+      grid-template-columns: 1fr var(--device-width) 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    @media (max-width: 1020px) {
+      .preview-workspace {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+      .side-panel {
+        width: 100%;
+        max-width: 500px;
+      }
+    }
+
+    /* Side Panels */
+    .side-panel {
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .panel-title svg {
+      color: var(--primary-green);
+    }
+
+    /* Flow Step List */
+    .flow-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .flow-step-btn {
+      background: var(--app-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .flow-step-btn:hover {
+      border-color: var(--primary-teal);
+      transform: translateX(2px);
+    }
+
+    .flow-step-btn.active {
+      background: rgba(0, 168, 132, 0.12);
+      border-color: var(--primary-green);
+      box-shadow: 0 0 12px rgba(37, 211, 102, 0.15);
+    }
+
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 12px;
+      background: var(--surface-2);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .flow-step-btn.active .step-num {
+      background: var(--primary-green);
+      color: #0b1014;
+    }
+
+    .step-info h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .step-info p {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* Inspection JSON Box */
+    .data-box {
+      background: #090e11;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #aebac1;
+      max-height: 250px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .info-card {
+      background: rgba(0, 168, 132, 0.08);
+      border: 1px solid rgba(0, 168, 132, 0.3);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: #d1d7db;
+      line-height: 1.5;
+    }
+
+    .info-card strong {
+      color: var(--primary-green);
+    }
+
+    /* Mobile Device Frame */
+    .device-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .phone-chassis {
+      width: var(--device-width);
+      height: var(--device-height);
+      background: #000000;
+      border-radius: 48px;
+      padding: 10px;
+      box-shadow: 
+        0 0 0 4px #2b333a,
+        0 25px 60px -15px rgba(0, 0, 0, 0.8),
+        0 0 40px rgba(0, 168, 132, 0.15);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: var(--app-bg);
+      border-radius: 40px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      height: 44px;
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #ffffff;
+      z-index: 50;
+      background: var(--app-bg);
+      flex-shrink: 0;
+    }
+
+    .dynamic-island {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 110px;
+      height: 26px;
+      background: #000000;
+      border-radius: 20px;
+      z-index: 60;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+    }
+
+    .camera-lens {
+      width: 10px;
+      height: 10px;
+      border-radius: 5px;
+      background: #14171a;
+      box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.3);
+    }
+
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Screen Views */
+    .view-container {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .app-view {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .app-view.active-view {
+      display: flex;
+    }
+
+    /* App Bar / Header */
+    .app-header {
+      height: 56px;
+      width: 100%;
+      background: var(--app-bg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      flex-shrink: 0;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 18px;
+      transition: background 0.15s;
+    }
+
+    .nav-btn:hover {
+      background: var(--surface-1);
+    }
+
+    .header-title-box h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .header-title-box p {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Search Bar */
+    .search-bar-wrap {
+      padding: 10px 16px;
+      background: var(--app-bg);
+    }
+
+    .search-box {
+      background: var(--surface-1);
+      border-radius: 20px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 10px;
+    }
+
+    .search-box input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #ffffff;
+      font-size: 14px;
+      width: 100%;
+    }
+
+    .search-box input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    /* Content Body */
+    .screen-content {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen-content::-webkit-scrollbar {
+      width: 4px;
+    }
+    .screen-content::-webkit-scrollbar-thumb {
+      background: var(--surface-2);
+      border-radius: 4px;
+    }
+
+    /* Chats View Components */
+    .chats-promo-banner {
+      margin: 12px 16px 6px;
+      background: linear-gradient(135deg, rgba(37, 211, 102, 0.15), rgba(0, 168, 132, 0.05));
+      border: 1px solid rgba(37, 211, 102, 0.35);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .chats-promo-banner:hover {
+      background: linear-gradient(135deg, rgba(37, 211, 102, 0.22), rgba(0, 168, 132, 0.1));
+      transform: translateY(-1px);
+    }
+
+    .promo-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 22px;
+      background: rgba(37, 211, 102, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-green);
+      flex-shrink: 0;
+    }
+
+    .promo-text h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 2px;
+    }
+
+    .promo-text p {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      line-height: 1.35;
+    }
+
+    .promo-btn {
+      background: var(--primary-green);
+      color: #0b1014;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 14px;
+      border: none;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    /* Chat List Rows */
+    .chat-row {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      gap: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .chat-row:hover {
+      background: var(--surface-1);
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 17px;
+      color: #ffffff;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .online-indicator {
+      position: absolute;
+      bottom: 1px;
+      right: 1px;
+      width: 12px;
+      height: 12px;
+      border-radius: 6px;
+      background: var(--primary-green);
+      border: 2px solid var(--app-bg);
+    }
+
+    .chat-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .chat-top-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3px;
+    }
+
+    .chat-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-time {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .chat-preview {
+      font-size: 13px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Floating Action Button */
+    .fab-button {
+      position: absolute;
+      bottom: 24px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 28px;
+      background: var(--primary-green);
+      color: #0b1014;
+      border: none;
+      box-shadow: 0 4px 18px rgba(37, 211, 102, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      z-index: 30;
+    }
+
+    .fab-button:hover {
+      transform: scale(1.06);
+      box-shadow: 0 6px 22px rgba(37, 211, 102, 0.5);
+    }
+
+    /* Permission Sheet / Modal */
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .bottom-sheet {
+      background: var(--surface-2);
+      border-top-left-radius: 28px;
+      border-top-right-radius: 28px;
+      padding: 14px 18px 24px;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .sheet-handle {
+      width: 36px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--text-muted);
+      margin: 0 auto 8px;
+    }
+
+    .permission-badge-wrap {
+      width: 42px;
+      height: 42px;
+      border-radius: 21px;
+      background: rgba(37, 211, 102, 0.15);
+      border: 1px solid rgba(37, 211, 102, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-green);
+      margin: 0 auto 8px;
+    }
+
+    .sheet-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    .sheet-desc {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      text-align: center;
+      line-height: 1.35;
+      margin-bottom: 10px;
+    }
+
+    .privacy-features {
+      background: var(--app-bg);
+      border-radius: 12px;
+      padding: 8px 10px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .privacy-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 11px;
+      color: #d1d7db;
+      line-height: 1.25;
+    }
+
+    .privacy-item svg {
+      color: var(--primary-green);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .sheet-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .primary-btn {
+      background: var(--primary-green);
+      color: #0b1014;
+      font-size: 13.5px;
+      font-weight: 700;
+      height: 40px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+
+    .primary-btn:hover {
+      background: #20bd5a;
+    }
+
+    .secondary-btn {
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 600;
+      height: 36px;
+      border-radius: 18px;
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .secondary-btn:hover {
+      background: var(--surface-1);
+      color: var(--text-primary);
+    }
+
+    /* Loading Scanner Screen */
+    .loading-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    .radar-pulse-box {
+      width: 100px;
+      height: 100px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .pulse-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: rgba(37, 211, 102, 0.25);
+      animation: pulseAnim 2s infinite ease-out;
+    }
+
+    .pulse-ring:nth-child(2) {
+      animation-delay: 0.6s;
+    }
+
+    .pulse-core {
+      width: 60px;
+      height: 60px;
+      border-radius: 30px;
+      background: linear-gradient(135deg, #25D366, #00a884);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0b1014;
+      z-index: 2;
+      box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+    }
+
+    .loading-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .loading-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      max-width: 240px;
+      line-height: 1.4;
+      margin-bottom: 20px;
+    }
+
+    .progress-bar-wrap {
+      width: 200px;
+      height: 5px;
+      background: var(--surface-2);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 30%;
+      background: var(--primary-green);
+      border-radius: 3px;
+      animation: progressSweep 1.8s infinite ease-in-out;
+    }
+
+    .loading-step-tag {
+      font-size: 11.5px;
+      color: var(--primary-green);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Contacts List & Categories */
+    .section-header {
+      padding: 12px 16px 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary-teal);
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      background: var(--app-bg);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      gap: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      transition: background 0.15s;
+    }
+
+    .contact-item:hover {
+      background: var(--surface-1);
+    }
+
+    .contact-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .contact-name-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .contact-name-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .badge-indichat {
+      background: rgba(37, 211, 102, 0.18);
+      color: var(--primary-green);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid rgba(37, 211, 102, 0.3);
+    }
+
+    .contact-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .contact-bio {
+      font-size: 12px;
+      color: #aebac1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .chat-action-btn {
+      background: var(--primary-teal-dark);
+      border: 1px solid var(--primary-teal);
+      color: var(--primary-green);
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+
+    .chat-action-btn:hover {
+      background: var(--primary-green);
+      color: #0b1014;
+    }
+
+    .invite-action-btn {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--blue-accent);
+      padding: 5px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+
+    .invite-action-btn:hover {
+      background: rgba(83, 189, 235, 0.1);
+      border-color: var(--blue-accent);
+    }
+
+    /* Empty State View */
+    .empty-state-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .empty-icon-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 36px;
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .empty-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .empty-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+      max-width: 270px;
+      margin-bottom: 24px;
+    }
+
+    /* Permission Denied View */
+    .denied-state-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 20px;
+      text-align: center;
+      overflow-y: auto;
+    }
+
+    .denied-icon-circle {
+      width: 68px;
+      height: 68px;
+      border-radius: 34px;
+      background: rgba(234, 67, 53, 0.12);
+      border: 1px solid rgba(234, 67, 53, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--danger-red);
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+
+    .instructions-card {
+      width: 100%;
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: left;
+      margin: 18px 0;
+    }
+
+    .os-toggle-tabs {
+      display: flex;
+      background: var(--app-bg);
+      border-radius: 8px;
+      padding: 3px;
+      margin-bottom: 12px;
+    }
+
+    .os-tab {
+      flex: 1;
+      padding: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-align: center;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .os-tab.active {
+      background: var(--surface-2);
+      color: #ffffff;
+    }
+
+    .steps-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 12px;
+      color: #d1d7db;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .step-badge {
+      width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      background: var(--surface-3);
+      color: var(--text-primary);
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* Error Banner / Toast */
+    .toast-banner {
+      position: absolute;
+      top: 54px;
+      left: 16px;
+      right: 16px;
+      background: #7f1d1d;
+      border: 1px solid #b91c1c;
+      color: #fecaca;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 80;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.2s;
+    }
+
+    .toast-retry {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: #ffffff;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Home Bar / Gesture Bar */
+    .home-indicator {
+      width: 130px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      margin: 8px auto 4px;
+      flex-shrink: 0;
+    }
+
+    /* Animations */
+    @keyframes pulseAnim {
+      0% { transform: scale(0.85); opacity: 0.8; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    @keyframes progressSweep {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(200%); }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" style="align-self:flex-start;color:#a9d9c3;font:13px sans-serif;margin-bottom:16px;text-decoration:none">← All previews</a>
+
+  <!-- Top Studio Header -->
+  <header class="studio-header">
+    <div class="brand-title">
+      <div class="brand-badge">IC</div>
+      <div class="brand-text">
+        <h1>IndiChat Mobile — Find Contacts Preview</h1>
+        <p>Interactive Prototype &amp; Permission Lifecycle Simulator</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="chip-btn" id="btnOsToggle" onclick="toggleDeviceOS()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="3"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+        <span id="osLabel">Platform: iOS</span>
+      </button>
+
+      <button class="chip-btn" onclick="resetToInitial()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+        Reset Flow
+      </button>
+    </div>
+  </header>
+
+  <!-- Workspace: Controller Left, Device Center, Inspector Right -->
+  <div class="preview-workspace">
+
+    <!-- Left Controller: Flow Stages -->
+    <div class="side-panel">
+      <div class="panel-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        Interactive State Controls
+      </div>
+
+      <div class="flow-steps">
+        <button class="flow-step-btn active" id="stepBtn-chats" onclick="setState('chats')">
+          <div class="step-num">1</div>
+          <div class="step-info">
+            <h4>Chats Screen (Home)</h4>
+            <p>User opens IndiChat with "Find Contacts" promotional banner &amp; FAB.</p>
+          </div>
+        </button>
+
+        <button class="flow-step-btn" id="stepBtn-permission" onclick="setState('permission')">
+          <div class="step-num">2</div>
+          <div class="step-info">
+            <h4>Permission Explanation</h4>
+            <p>Bottom sheet explaining why contacts access is required &amp; encryption policy.</p>
+          </div>
+        </button>
+
+        <button class="flow-step-btn" id="stepBtn-loading" onclick="setState('loading')">
+          <div class="step-num">3</div>
+          <div class="step-info">
+            <h4>Scanning &amp; Matching</h4>
+            <p>Pulsing radar animation while checking address book hashes against IndiChat.</p>
+          </div>
+        </button>
+
+        <button class="flow-step-btn" id="stepBtn-matches" onclick="setState('matches')">
+          <div class="step-num">4</div>
+          <div class="step-info">
+            <h4>Successful Matches</h4>
+            <p>5 friends found on IndiChat + invite non-registered contacts section.</p>
+          </div>
+        </button>
+
+        <button class="flow-step-btn" id="stepBtn-empty" onclick="setState('empty')">
+          <div class="step-num">5</div>
+          <div class="step-info">
+            <h4>Zero Matches (Empty)</h4>
+            <p>Helpful empty state when no contacts have registered accounts yet.</p>
+          </div>
+        </button>
+
+        <button class="flow-step-btn" id="stepBtn-denied" onclick="setState('denied')">
+          <div class="step-num">6</div>
+          <div class="step-info">
+            <h4>Permission Denied</h4>
+            <p>Clear guidance on enabling contacts in system settings (iOS / Android).</p>
+          </div>
+        </button>
+
+        <button class="flow-step-btn" id="stepBtn-error" onclick="setState('error')">
+          <div class="step-num">7</div>
+          <div class="step-info">
+            <h4>Network / Sync Error</h4>
+            <p>Retry banner when directory lookup or hashing times out.</p>
+          </div>
+        </button>
+      </div>
+
+      <div class="info-card">
+        <strong>Zero Risk Preview:</strong> This interactive simulator runs strictly on mock data in the browser. No real address book permissions or backend changes have been made.
+      </div>
+    </div>
+
+    <!-- Center: Realistic Mobile Device Frame -->
+    <div class="device-wrapper">
+      <div class="phone-chassis" id="phoneChassis">
+        <div class="phone-screen">
+
+          <!-- Dynamic Island (iOS) / Punch Hole (Android) -->
+          <div class="dynamic-island" id="islandBar">
+            <span style="font-size: 10px; color: #fff; font-weight: 700;">IndiChat</span>
+            <div class="camera-lens"></div>
+          </div>
+
+          <!-- Status Bar -->
+          <div class="status-bar">
+            <span id="clockDisplay">9:41</span>
+            <div class="status-icons">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 21l3.47-.91C9.31 20.66 10.62 21 12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9z"></path></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.66-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"></path></svg>
+              <svg width="18" height="12" viewBox="0 0 24 14" fill="currentColor"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2"></rect><rect x="3" y="3" width="12" height="8" rx="1"></rect><path d="M22 5v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+            </div>
+          </div>
+
+          <!-- Active View Container -->
+          <div class="view-container" id="viewContainer">
+
+            <!-- VIEW 1: CHATS HOME SCREEN -->
+            <div id="view-chats" class="app-view active-view">
+              <div class="app-header">
+                <div class="header-left">
+                  <h2 style="font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.4px;">IndiChat</h2>
+                </div>
+                <div class="header-right">
+                  <button class="nav-btn" title="Search">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aebac1" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  </button>
+                  <button class="nav-btn" title="More">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" color="#aebac1"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="screen-content">
+                <!-- Promo banner triggering Find Contacts -->
+                <div class="chats-promo-banner" onclick="setState('permission')">
+                  <div class="promo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7.5" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                  </div>
+                  <div class="promo-text">
+                    <h3>Find Friends on IndiChat</h3>
+                    <p>Sync contacts to discover which friends are already chatting.</p>
+                  </div>
+                  <button class="promo-btn">Find</button>
+                </div>
+
+                <!-- Existing Chat Previews -->
+                <div class="chat-row" onclick="alert('Opening IndiChat Team conversation')">
+                  <div class="avatar" style="background: linear-gradient(135deg, #25D366, #00a884);">
+                    IC
+                    <div class="online-indicator"></div>
+                  </div>
+                  <div class="chat-details">
+                    <div class="chat-top-line">
+                      <span class="chat-name">IndiChat Updates</span>
+                      <span class="chat-time" style="color: var(--primary-green);">10:45 AM</span>
+                    </div>
+                    <div class="chat-preview">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#53bdeb" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      Welcome to IndiChat! Connect your phone contacts to begin.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="chat-row" onclick="alert('Opening Tech Community conversation')">
+                  <div class="avatar" style="background: #3b82f6;">
+                    TC
+                  </div>
+                  <div class="chat-details">
+                    <div class="chat-top-line">
+                      <span class="chat-name">Bangalore Developers</span>
+                      <span class="chat-time">Yesterday</span>
+                    </div>
+                    <div class="chat-preview">Aditya: React Native 0.86 build complete!</div>
+                  </div>
+                </div>
+
+                <div class="chat-row" onclick="alert('Opening Design System conversation')">
+                  <div class="avatar" style="background: #8b5cf6;">
+                    DS
+                  </div>
+                  <div class="chat-details">
+                    <div class="chat-top-line">
+                      <span class="chat-name">IndiChat UI Guild</span>
+                      <span class="chat-time">Tuesday</span>
+                    </div>
+                    <div class="chat-preview">Priya: Shared new dark mode design specs.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Floating Action Button for New Chat / Find Contacts -->
+              <button class="fab-button" onclick="setState('permission')" title="Find Contacts">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7.5" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+              </button>
+            </div>
+
+            <!-- VIEW 2: LOADING SCANNER -->
+            <div id="view-loading" class="app-view">
+              <div class="app-header">
+                <div class="header-left">
+                  <button class="nav-btn" onclick="setState('chats')">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aebac1" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  </button>
+                  <div class="header-title-box">
+                    <h2>Finding Contacts</h2>
+                    <p id="loadingCounterText">Scanning address book...</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="loading-container">
+                <div class="radar-pulse-box">
+                  <div class="pulse-ring"></div>
+                  <div class="pulse-ring"></div>
+                  <div class="pulse-core">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  </div>
+                </div>
+
+                <h3 class="loading-title">Matching with IndiChat</h3>
+                <p class="loading-subtitle">Checking phone numbers securely with one-way SHA-256 hashes...</p>
+
+                <div class="progress-bar-wrap">
+                  <div class="progress-bar-fill"></div>
+                </div>
+
+                <div class="loading-step-tag" id="loadingStageBadge">[1/3] Hashing 8 contacts...</div>
+              </div>
+            </div>
+
+            <!-- VIEW 3: MATCHED CONTACTS LIST -->
+            <div id="view-matches" class="app-view">
+              <div class="app-header">
+                <div class="header-left">
+                  <button class="nav-btn" onclick="setState('chats')">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aebac1" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  </button>
+                  <div class="header-title-box">
+                    <h2>Select Contact</h2>
+                    <p id="matchedCountSub">5 contacts on IndiChat</p>
+                  </div>
+                </div>
+                <div class="header-right">
+                  <button class="nav-btn" onclick="document.getElementById('contactSearchInput').focus()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aebac1" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Search Bar -->
+              <div class="search-bar-wrap">
+                <div class="search-box">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8696a0" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  <input type="text" id="contactSearchInput" placeholder="Search contacts..." oninput="handleContactSearch(this.value)">
+                </div>
+              </div>
+
+              <div class="screen-content" id="contactsScrollArea">
+                <!-- Rendered dynamically via JS -->
+                <div id="matchedContactsList"></div>
+                <div id="inviteContactsList"></div>
+              </div>
+            </div>
+
+            <!-- VIEW 4: EMPTY STATE (0 MATCHES) -->
+            <div id="view-empty" class="app-view">
+              <div class="app-header">
+                <div class="header-left">
+                  <button class="nav-btn" onclick="setState('chats')">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aebac1" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  </button>
+                  <div class="header-title-box">
+                    <h2>Find Contacts</h2>
+                    <p>0 contacts found</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="empty-state-wrap">
+                <div class="empty-icon-circle">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </div>
+                <h3 class="empty-title">No Contacts on IndiChat Yet</h3>
+                <p class="empty-desc">None of your contacts have registered with IndiChat. Invite them so you can begin messaging securely.</p>
+                <button class="primary-btn" style="width: 220px;" onclick="simulateShareInvite()">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                  Invite Friends
+                </button>
+              </div>
+            </div>
+
+            <!-- VIEW 5: PERMISSION DENIED -->
+            <div id="view-denied" class="app-view">
+              <div class="app-header">
+                <div class="header-left">
+                  <button class="nav-btn" onclick="setState('chats')">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aebac1" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  </button>
+                  <div class="header-title-box">
+                    <h2>Contacts Access Denied</h2>
+                    <p>Permission Required</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="denied-state-wrap">
+                <div class="denied-icon-circle">
+                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                </div>
+
+                <h3 style="font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 6px;">Permission Needed</h3>
+                <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.45; max-width: 280px;">
+                  IndiChat needs access to your contacts to automatically detect friends who are already using the app.
+                </p>
+
+                <div class="instructions-card">
+                  <div class="os-toggle-tabs">
+                    <button class="os-tab active" id="tabAndroidGuide" onclick="switchGuide('android')">Android Steps</button>
+                    <button class="os-tab" id="tabIosGuide" onclick="switchGuide('ios')">iOS Steps</button>
+                  </div>
+
+                  <div id="guideContent" class="steps-list">
+                    <!-- Updated via JS -->
+                  </div>
+                </div>
+
+                <button class="primary-btn" style="width: 100%; margin-bottom: 10px;" onclick="simulateOpenSettings()">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                  Open System Settings
+                </button>
+                <button class="secondary-btn" style="width: 100%;" onclick="setState('permission')">
+                  Try Again
+                </button>
+              </div>
+            </div>
+
+            <!-- MODAL OVERLAY: PERMISSION EXPLANATION SHEET -->
+            <div class="modal-overlay" id="permissionModal" style="display: none;">
+              <div class="bottom-sheet">
+                <div class="sheet-handle"></div>
+
+                <div class="permission-badge-wrap">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </div>
+
+                <h3 class="sheet-title">Find Contacts on IndiChat</h3>
+                <p class="sheet-desc">IndiChat helps you find friends easily by comparing your phone contacts with existing IndiChat accounts.</p>
+
+                <div class="privacy-features">
+                  <div class="privacy-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    <span><strong>Private &amp; Encrypted:</strong> Phone numbers are hashed using SHA-256 before matching.</span>
+                  </div>
+                  <div class="privacy-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                    <span><strong>Never Sold or Stored:</strong> Your address book is only used for account discovery.</span>
+                  </div>
+                  <div class="privacy-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                    <span><strong>Revocable anytime:</strong> Disconnect sync in Settings &gt; Privacy whenever you want.</span>
+                  </div>
+                </div>
+
+                <div class="sheet-buttons">
+                  <button class="primary-btn" onclick="grantPermission()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Allow Contacts Access
+                  </button>
+                  <button class="secondary-btn" onclick="denyPermission()">
+                    Don't Allow
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Error Banner (When Error State Active) -->
+            <div class="toast-banner" id="errorToast" style="display: none;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span>Unable to sync contacts directory.</span>
+              </div>
+              <button class="toast-retry" onclick="grantPermission()">Retry</button>
+            </div>
+
+          </div>
+
+          <!-- Bottom Home Bar -->
+          <div class="home-indicator"></div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Inspector: Mock Data & Technical Specs -->
+    <div class="side-panel">
+      <div class="panel-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        Data Contracts &amp; Inspector
+      </div>
+
+      <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
+        Demonstration of client-side address book matching against the IndiChat user directory:
+      </div>
+
+      <div style="display: flex; gap: 6px;">
+        <button class="chip-btn active" id="btnInspectMatched" onclick="showInspector('matches')">Matched (5)</button>
+        <button class="chip-btn" id="btnInspectAddressBook" onclick="showInspector('addressBook')">Device Book (8)</button>
+        <button class="chip-btn" id="btnInspectIndiChat" onclick="showInspector('registered')">IndiChat DB (6)</button>
+      </div>
+
+      <div class="data-box" id="inspectorBox"></div>
+
+      <div class="info-card">
+        <strong>Mobile Implementation Plan:</strong>
+        <br>• Uses <code>expo-contacts</code> for permission request &amp; local contact retrieval.
+        <br>• Normalizes numbers to E.164 format (e.g. <code>+91...</code>).
+        <br>• Sends hashed numbers to <code>POST /api/v1/contacts/match</code>.
+        <br>• Renders matched profiles with 1-tap direct chat initiator.
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- Mock Datasets ---
+    const MOCK_PHONE_CONTACTS = [
+      { id: "c-1", name: "Aarav Sharma", phone: "+91 98765 43210" },
+      { id: "c-2", name: "Priya Patel", phone: "+91 98234 56789" },
+      { id: "c-3", name: "Rohan Verma", phone: "+91 97123 45678" },
+      { id: "c-4", name: "Ananya Gupta", phone: "+91 99887 76655" },
+      { id: "c-5", name: "Vikram Rao", phone: "+91 98450 12345" },
+      { id: "c-6", name: "Sneha Kulkarni", phone: "+91 91234 56780" },
+      { id: "c-7", name: "Karan Mehta", phone: "+91 92345 67891" },
+      { id: "c-8", name: "Devendra Singh", phone: "+91 93456 78902" },
+    ];
+
+    const MOCK_REGISTERED_INDICHAT_USERS = [
+      {
+        id: "usr-101",
+        phone: "+91 98765 43210",
+        username: "aarav_s",
+        displayName: "Aarav Sharma",
+        bio: "Available on IndiChat ✨",
+        avatarBg: "#10b981",
+        isOnline: true
+      },
+      {
+        id: "usr-102",
+        phone: "+91 98234 56789",
+        username: "priya_p",
+        displayName: "Priya Patel",
+        bio: "Working on something new 🚀",
+        avatarBg: "#ec4899",
+        isOnline: true
+      },
+      {
+        id: "usr-103",
+        phone: "+91 97123 45678",
+        username: "rohan_v",
+        displayName: "Rohan Verma",
+        bio: "Hey there! I am using IndiChat.",
+        avatarBg: "#3b82f6",
+        isOnline: false
+      },
+      {
+        id: "usr-104",
+        phone: "+91 99887 76655",
+        username: "ananya_g",
+        displayName: "Ananya Gupta",
+        bio: "Coffee, code, repeat ☕",
+        avatarBg: "#8b5cf6",
+        isOnline: true
+      },
+      {
+        id: "usr-105",
+        phone: "+91 98450 12345",
+        username: "vikram_rao",
+        displayName: "Vikram Rao",
+        bio: "Urgent calls only 📞",
+        avatarBg: "#f59e0b",
+        isOnline: false
+      },
+      {
+        id: "usr-999",
+        phone: "+91 99999 00000",
+        username: "stranger_x",
+        displayName: "Not In Address Book",
+        bio: "Testing privacy",
+        avatarBg: "#6b7280",
+        isOnline: false
+      }
+    ];
+
+    // Compute matches
+    function computeMatches() {
+      const registeredMap = new Map();
+      MOCK_REGISTERED_INDICHAT_USERS.forEach(u => registeredMap.set(u.phone, u));
+
+      const matched = [];
+      const nonMatched = [];
+
+      MOCK_PHONE_CONTACTS.forEach(contact => {
+        if (registeredMap.has(contact.phone)) {
+          matched.push({
+            contactName: contact.name,
+            phone: contact.phone,
+            user: registeredMap.get(contact.phone)
+          });
+        } else {
+          nonMatched.push(contact);
+        }
+      });
+
+      return { matched, nonMatched };
+    }
+
+    let activeState = 'chats';
+    let currentOs = 'ios';
+    let activeGuide = 'android';
+
+    // State machine
+    function setState(newState) {
+      activeState = newState;
+
+      // Update sidebar step buttons
+      document.querySelectorAll('.flow-step-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById('stepBtn-' + newState);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      // Hide all views inside phone screen
+      ['chats', 'loading', 'matches', 'empty', 'denied'].forEach(id => {
+        const el = document.getElementById('view-' + id);
+        if (el) {
+          el.style.display = '';
+          el.classList.remove('active-view');
+        }
+      });
+
+      // Manage FAB visibility
+      const fab = document.querySelector('.fab-button');
+      if (fab) fab.style.display = (newState === 'chats') ? 'flex' : 'none';
+
+      // Modals and Toasts
+      document.getElementById('permissionModal').style.display = 'none';
+      document.getElementById('errorToast').style.display = 'none';
+
+      switch (newState) {
+        case 'chats':
+          document.getElementById('view-chats').classList.add('active-view');
+          break;
+        case 'permission':
+          document.getElementById('view-chats').classList.add('active-view');
+          document.getElementById('permissionModal').style.display = 'flex';
+          break;
+        case 'loading':
+          document.getElementById('view-loading').classList.add('active-view');
+          simulateLoadingProgress();
+          break;
+        case 'matches':
+          document.getElementById('view-matches').classList.add('active-view');
+          renderContactsList();
+          break;
+        case 'empty':
+          document.getElementById('view-empty').classList.add('active-view');
+          break;
+        case 'denied':
+          document.getElementById('view-denied').classList.add('active-view');
+          switchGuide(currentOs === 'ios' ? 'ios' : 'android');
+          break;
+        case 'error':
+          document.getElementById('view-matches').classList.add('active-view');
+          renderContactsList();
+          document.getElementById('errorToast').style.display = 'flex';
+          break;
+      }
+    }
+
+    // Permission Handlers
+    function grantPermission() {
+      setState('loading');
+      setTimeout(() => {
+        setState('matches');
+      }, 1400);
+    }
+
+    function denyPermission() {
+      setState('denied');
+    }
+
+    function resetToInitial() {
+      setState('chats');
+    }
+
+    // Scanner animation progress
+    function simulateLoadingProgress() {
+      const badge = document.getElementById('loadingStageBadge');
+      const counter = document.getElementById('loadingCounterText');
+      if (!badge || !counter) return;
+
+      badge.innerText = '[1/3] Reading 8 device contacts...';
+      counter.innerText = 'Scanning address book...';
+
+      setTimeout(() => {
+        if (activeState !== 'loading') return;
+        badge.innerText = '[2/3] Hashing with SHA-256...';
+        counter.innerText = 'Encrypting identifiers...';
+      }, 600);
+
+      setTimeout(() => {
+        if (activeState !== 'loading') return;
+        badge.innerText = '[3/3] Querying IndiChat directory...';
+        counter.innerText = '5 friends found!';
+      }, 1100);
+    }
+
+    // Render Contacts List
+    function renderContactsList(filterQuery = '') {
+      const { matched, nonMatched } = computeMatches();
+      const matchedContainer = document.getElementById('matchedContactsList');
+      const inviteContainer = document.getElementById('inviteContactsList');
+
+      const q = filterQuery.toLowerCase().trim();
+
+      const filteredMatched = matched.filter(m => 
+        m.contactName.toLowerCase().includes(q) ||
+        m.user.username.toLowerCase().includes(q) ||
+        m.phone.includes(q)
+      );
+
+      const filteredInvite = nonMatched.filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        c.phone.includes(q)
+      );
+
+      // Section 1: Contacts on IndiChat
+      let matchedHtml = `
+        <div class="section-header">Contacts on IndiChat (${filteredMatched.length})</div>
+      `;
+
+      if (filteredMatched.length === 0) {
+        matchedHtml += `
+          <div style="padding: 16px; text-align: center; color: var(--text-secondary); font-size: 13px;">
+            No registered users found matching "${filterQuery}"
+          </div>
+        `;
+      } else {
+        filteredMatched.forEach(item => {
+          matchedHtml += `
+            <div class="contact-item" onclick="startDirectChat('${item.user.displayName}', '${item.user.username}')">
+              <div class="avatar" style="background: ${item.user.avatarBg};">
+                ${item.user.displayName.charAt(0)}
+                ${item.user.isOnline ? '<div class="online-indicator"></div>' : ''}
+              </div>
+              <div class="contact-info">
+                <div class="contact-name-row">
+                  <span class="contact-name-text">${item.contactName}</span>
+                  <span class="badge-indichat">IndiChat</span>
+                </div>
+                <div class="contact-meta">
+                  <span>@${item.user.username}</span> • <span>${item.phone}</span>
+                </div>
+                <div class="contact-bio">${item.user.bio}</div>
+              </div>
+              <button class="chat-action-btn" onclick="event.stopPropagation(); startDirectChat('${item.user.displayName}', '${item.user.username}')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                Chat
+              </button>
+            </div>
+          `;
+        });
+      }
+
+      matchedContainer.innerHTML = matchedHtml;
+
+      // Section 2: Invite to IndiChat
+      let inviteHtml = `
+        <div class="section-header" style="margin-top: 12px;">Invite to IndiChat (${filteredInvite.length})</div>
+      `;
+
+      if (filteredInvite.length > 0) {
+        filteredInvite.forEach(c => {
+          inviteHtml += `
+            <div class="contact-item">
+              <div class="avatar" style="background: var(--surface-2); color: var(--text-secondary);">
+                ${c.name.charAt(0)}
+              </div>
+              <div class="contact-info">
+                <div class="contact-name-row">
+                  <span class="contact-name-text">${c.name}</span>
+                </div>
+                <div class="contact-meta">${c.phone}</div>
+              </div>
+              <button class="invite-action-btn" onclick="simulateInviteContact('${c.name}', '${c.phone}')">
+                Invite
+              </button>
+            </div>
+          `;
+        });
+      }
+
+      inviteContainer.innerHTML = inviteHtml;
+      document.getElementById('matchedCountSub').innerText = `${matched.length} contacts on IndiChat`;
+    }
+
+    function handleContactSearch(query) {
+      renderContactsList(query);
+    }
+
+    function startDirectChat(displayName, username) {
+      alert(`💬 Starting direct chat with ${displayName} (@${username})\nIn the mobile app, this navigates to /chat/[conversationId] with immediate message input focus.`);
+    }
+
+    function simulateInviteContact(name, phone) {
+      alert(`📩 Opening SMS Invite for ${name} (${phone}):\n"Hey! Join me on IndiChat, a fast and private messaging app: https://indichat.app/dl"`);
+    }
+
+    function simulateShareInvite() {
+      alert(`🔗 Native Share Sheet Triggered:\n"Join IndiChat to chat with me: https://indichat.app/invite/user123"`);
+    }
+
+    function simulateOpenSettings() {
+      alert(`⚙️ Opening System Settings:\nNavigating to ${currentOs === 'ios' ? 'iOS Settings > IndiChat' : 'Android App Info > Permissions > IndiChat'}`);
+    }
+
+    // OS Guide Switcher
+    function switchGuide(os) {
+      activeGuide = os;
+      const tabAndroid = document.getElementById('tabAndroidGuide');
+      const tabIos = document.getElementById('tabIosGuide');
+      const content = document.getElementById('guideContent');
+
+      if (os === 'android') {
+        tabAndroid.classList.add('active');
+        tabIos.classList.remove('active');
+        content.innerHTML = `
+          <div class="step-item">
+            <div class="step-badge">1</div>
+            <div>Open <strong>Settings</strong> &gt; <strong>Apps</strong> &gt; <strong>IndiChat</strong></div>
+          </div>
+          <div class="step-item">
+            <div class="step-badge">2</div>
+            <div>Tap <strong>Permissions</strong></div>
+          </div>
+          <div class="step-item">
+            <div class="step-badge">3</div>
+            <div>Tap <strong>Contacts</strong> and select <strong>Allow</strong></div>
+          </div>
+        `;
+      } else {
+        tabIos.classList.add('active');
+        tabAndroid.classList.remove('active');
+        content.innerHTML = `
+          <div class="step-item">
+            <div class="step-badge">1</div>
+            <div>Open iOS <strong>Settings</strong></div>
+          </div>
+          <div class="step-item">
+            <div class="step-badge">2</div>
+            <div>Scroll down and select <strong>IndiChat</strong></div>
+          </div>
+          <div class="step-item">
+            <div class="step-badge">3</div>
+            <div>Toggle <strong>Contacts</strong> switch to <strong>ON</strong></div>
+          </div>
+        `;
+      }
+    }
+
+    // Toggle Chassis Style (iOS vs Android)
+    function toggleDeviceOS() {
+      const chassis = document.getElementById('phoneChassis');
+      const island = document.getElementById('islandBar');
+      const osLabel = document.getElementById('osLabel');
+
+      if (currentOs === 'ios') {
+        currentOs = 'android';
+        osLabel.innerText = 'Platform: Android';
+        island.style.width = '24px';
+        island.style.height = '24px';
+        island.style.borderRadius = '12px';
+        island.innerHTML = '<div class="camera-lens"></div>';
+        chassis.style.borderRadius = '40px';
+      } else {
+        currentOs = 'ios';
+        osLabel.innerText = 'Platform: iOS';
+        island.style.width = '110px';
+        island.style.height = '26px';
+        island.style.borderRadius = '20px';
+        island.innerHTML = '<span style="font-size: 10px; color: #fff; font-weight: 700;">IndiChat</span><div class="camera-lens"></div>';
+        chassis.style.borderRadius = '48px';
+      }
+      if (activeState === 'denied') {
+        switchGuide(currentOs);
+      }
+    }
+
+    // Inspector tab switching
+    function showInspector(tab) {
+      document.querySelectorAll('#btnInspectMatched, #btnInspectAddressBook, #btnInspectIndiChat').forEach(b => b.classList.remove('active'));
+      const box = document.getElementById('inspectorBox');
+
+      if (tab === 'matches') {
+        document.getElementById('btnInspectMatched').classList.add('active');
+        const { matched } = computeMatches();
+        box.innerText = JSON.stringify(matched, null, 2);
+      } else if (tab === 'addressBook') {
+        document.getElementById('btnInspectAddressBook').classList.add('active');
+        box.innerText = JSON.stringify(MOCK_PHONE_CONTACTS, null, 2);
+      } else {
+        document.getElementById('btnInspectIndiChat').classList.add('active');
+        box.innerText = JSON.stringify(MOCK_REGISTERED_INDICHAT_USERS, null, 2);
+      }
+    }
+
+    // Update real clock
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      let minutes = now.getMinutes();
+      const ampm = hours >= 12 ? '' : '';
+      hours = hours % 12 || 12;
+      const str = `${hours}:${minutes < 10 ? '0' : ''}${minutes}`;
+      const clockEl = document.getElementById('clockDisplay');
+      if (clockEl) clockEl.innerText = str;
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Initial setup
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialView = urlParams.get('state') || 'chats';
+    const initialQuery = urlParams.get('q');
+    setState(initialView);
+    if (initialQuery) {
+      const searchInput = document.getElementById('contactSearchInput');
+      if (searchInput) {
+        searchInput.value = initialQuery;
+        handleContactSearch(initialQuery);
+      }
+    }
+    showInspector('matches');
+  </script>
+</body>
+</html>

@@ -1,5 +1,6 @@
-import {
+import type {
   AuthResponse,
+  AuthTokens,
   LoginRequest,
   RegisterRequest,
   User,
@@ -8,7 +9,10 @@ import {
   MessageHistoryResponse,
   Message,
   SendMessagePayload,
-  FileUploadResponse
+  FileUploadResponse,
+  MatchContactsRequest,
+  MatchContactsResponse,
+  MatchedContactDto
 } from '@chat/shared-types';
 
 import { storage, STORAGE_KEYS } from './storage';
@@ -18,14 +22,16 @@ import { Platform } from 'react-native';
 import { File as ExpoFile, UploadType } from 'expo-file-system';
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  public status: number;
+  constructor(status: number, message: string) {
     super(message);
+    this.status = status;
   }
 }
 
 // Automatically deduce optimal default server URL based on runtime environment
 function getDefaultHost(): string {
-  // Expo debugger host usually has host:port (e.g. 192.168.0.70:8081)
+  // Expo debugger host usually has host:port (e.g. 192.168.1.3:8081)
   const debuggerHost = Constants.expoConfig?.hostUri || (Constants as any).manifest2?.extra?.expoGo?.debuggerHost;
   if (debuggerHost && typeof debuggerHost === 'string') {
     const ip = debuggerHost.split(':')[0];
@@ -34,8 +40,18 @@ function getDefaultHost(): string {
     }
   }
 
-  // Active host LAN IP for physical device and local network access
-  return 'http://192.168.0.70:8080';
+  // iOS Simulator directly shares macOS host network and connects to 127.0.0.1
+  if (Platform.OS === 'ios' && !Constants.isDevice) {
+    return 'http://127.0.0.1:8080';
+  }
+
+  // Android emulator routes to host through 10.0.2.2
+  if (Platform.OS === 'android' && !Constants.isDevice) {
+    return 'http://10.0.2.2:8080';
+  }
+
+  // Active host LAN IP for physical device access
+  return 'http://192.168.1.3:8080';
 }
 
 let activeBaseUrl: string | null = null;
@@ -63,6 +79,10 @@ export function onSessionExpired(callback: (reason: string) => void): () => void
   return () => {
     sessionExpiredCallbacks.delete(callback);
   };
+}
+
+export function notifySessionExpired(reason: string): void {
+  sessionExpiredCallbacks.forEach((fn) => fn(reason));
 }
 
 async function getAuthHeader(): Promise<Record<string, string>> {
@@ -174,6 +194,12 @@ export const api = {
     });
   },
 
+  refreshTokens: (refreshToken: string) =>
+    request<AuthTokens>('/auth/refresh', {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken }),
+    }),
+
   // Users
   getMe: () => request<User>('/users/me'),
   searchUsers: (query: string) => request<User[]>(`/users/search?q=${encodeURIComponent(query)}`),
@@ -284,7 +310,7 @@ export const api = {
     }),
 
   // Chat Backup & History
-  getChatBackup: () => request<any>('/conversations/backup'),
+  getChatBackup: (signal?: AbortSignal) => request<any>('/conversations/backup', { signal }),
 
   clearAllMessages: () =>
     request<{ message: string }>('/conversations/messages/clear', {
@@ -385,5 +411,12 @@ export const api = {
       if (finalErr instanceof ApiError) throw finalErr;
       throw new ApiError(500, finalErr.message || 'File upload failed');
     }
+  },
+
+  matchContacts: async (phoneNumbers: string[], defaultRegion = 'US'): Promise<MatchContactsResponse> => {
+    return request<MatchContactsResponse>('/contacts/match', {
+      method: 'POST',
+      body: JSON.stringify({ phoneNumbers, defaultRegion }),
+    });
   },
 };

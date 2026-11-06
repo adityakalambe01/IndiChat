@@ -5,34 +5,73 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#111b21"
     },
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "com.indichat.app",
+      "supportsTablet": true,
+      "userInterfaceStyle": "automatic",
+      "infoPlist": {
+        "UIUserInterfaceStyle": "Automatic",
+        "NSContactsUsageDescription": "IndiChat uses your contacts to find friends who are already on IndiChat. Your contacts are not stored on our servers.",
+        "NSCameraUsageDescription": "IndiChat requires access to the camera to take and send photos and videos.",
+        "NSPhotoLibraryUsageDescription": "IndiChat requires access to your photo library to select and send photos and media.",
+        "NSMicrophoneUsageDescription": "IndiChat requires access to your microphone to record voice messages and make audio/video calls.",
+        "NSFaceIDUsageDescription": "IndiChat uses Face ID for biometric security and authentication.",
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
+      }
     },
     "android": {
       "package": "com.indichat.app",
-      "usesCleartextTraffic": true,
+      "userInterfaceStyle": "automatic",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#111b21"
-      }
+      },
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "MODIFY_AUDIO_SETTINGS",
+        "BLUETOOTH",
+        "BLUETOOTH_CONNECT"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
     "plugins": [
+      "./plugins/withAudioRoute.js",
+      "@config-plugins/react-native-webrtc",
       "expo-router",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Inter-Regular.ttf",
+            "./assets/fonts/Inter-Medium.ttf",
+            "./assets/fonts/Inter-SemiBold.ttf",
+            "./assets/fonts/Inter-Bold.ttf"
+          ]
+        }
+      ],
       [
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
           "color": "#00a884"
+        }
+      ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "IndiChat uses your contacts to find friends who are already on IndiChat. Your contacts are not stored on our servers."
         }
       ]
     ],

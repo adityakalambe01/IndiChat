@@ -27,8 +27,24 @@ coverage/
 # Uploaded media (local dev)
 uploads/
 
-# Release binary artifacts (built APK and AAB bundles)
+# Release binary artifacts (built APK, AAB, AppImage, deb, snap, iOS app/zip bundles)
 release/**/*.apk
 release/**/*.aab
+release/**/*.AppImage
+release/**/*.deb
+release/**/*.snap
+release/**/*.tar.gz
+release/**/*.app
+release/**/*.zip
+release/**/*.xcarchive
+release/**/*.ipa
 *.apk
 *.aab
+*.AppImage
+*.deb
+*.snap
+*.ipa
+
+# Desktop build temporary directories
+dist-bin/
+dist-web/

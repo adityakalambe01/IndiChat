@@ -1,8 +1,11 @@
 package com.chat.contact.controller;
 
 import com.chat.contact.dto.ContactDto;
+import com.chat.contact.dto.MatchContactsRequest;
+import com.chat.contact.dto.MatchContactsResponse;
 import com.chat.contact.service.ContactService;
 import com.chat.security.CustomUserDetails;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,4 +40,14 @@ public class ContactController {
         ContactDto contact = contactService.addContact(userDetails.getId(), request.contactUserId(), request.nickname());
         return ResponseEntity.status(HttpStatus.CREATED).body(contact);
     }
+
+    @PostMapping("/match")
+    public ResponseEntity<MatchContactsResponse> matchContacts(
+        @Valid @RequestBody MatchContactsRequest request,
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        MatchContactsResponse response = contactService.matchContacts(userDetails.getId(), request);
+        return ResponseEntity.ok(response);
+    }
 }
+

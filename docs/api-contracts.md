@@ -118,6 +118,22 @@ Revoke active session and disconnect device socket.
   }
   ```
 
+#### Demo Accounts & Pre-Seeded Profiles
+For local development and testing, run `npm run db:seed` to populate the following accounts:
+
+| User | Username | Email | Phone Number | Password | 2FA Status | Role / Bio |
+|---|---|---|---|---|---|---|
+| **Alice Cooper** | `alice` | `alice@example.com` | `+12345678901` | `Password123!` | 🔒 **PIN: `112233`** | Community Admin / Building IndiChat 🚀 |
+| **Bob Dylan** | `bob` | `bob@example.com` | `+12345678902` | `Password123!` | None | Member / Hey there! I am using IndiChat. |
+| **Charlie Davis** | `charlie` | `charlie@example.com` | `+12345678903` | `Password123!` | None | Member / Coffee, code, repeat ☕💻 |
+| **David Miller** | `david` | `david@example.com` | `+12345678904` | `Password123!` | None | Member / Available for quick calls 📞 |
+| **Emma Watson** | `emma` | `emma@example.com` | `+12345678905` | `Password123!` | None | Member / Designing sleek user interfaces ✨ |
+| **Frank Castle** | `frank` | `frank@example.com` | `+12345678906` | `Password123!` | None | Member / Away on a business trip ✈️ |
+| **Grace Hopper** | `grace` | `grace@example.com` | `+12345678907` | `Password123!` | None | Member / First bug found here! 🐞 |
+
+- Mutual contacts are automatically synchronized across all 7 demo accounts (6 contacts each).
+- Pre-seeded group conversation: `"IndiChat Community"` (all 7 members enrolled with initial message history).
+
 ---
 
 ### 2. User & Discovery (`/api/v1/users`)
@@ -396,13 +412,23 @@ Sent by recipient when opening conversation.
     "targetUserId": "761611c0-03fe-4ae1-8d26-7f8158d34fb2",
     "signalType": "offer",
     "data": {
-      "sdp": "...",
-      "isVideo": false
+      "callSessionId": "e14000b4-4b99-4d53-84e2-1aca409452b7",
+      "sdp": {
+        "type": "offer",
+        "sdp": "v=0\r\no=..."
+      },
+      "isVideo": false,
+      "callerName": "Alice Cooper"
     }
   }
 }
 ```
 *Supported `signalType` values*: `offer`, `answer`, `ice-candidate`, `hangup`.
+*Correlation & Edge-Case Handling in `data`*:
+- `callSessionId` *(string)*: Unique session UUID preventing crosstalk and stale session leakage.
+- `candidate` *(RTCIceCandidateInit)*: Trickle ICE candidate payload (for `ice-candidate`).
+- `reason` *(string, optional for `hangup`)*: Termination reason: `user_ended`, `user_declined`, `user_busy`, `caller_cancelled`, `unanswered`.
+- Deterministic glare resolution: When simultaneous offers collide, lexicographical ASCII comparison of normalized sender user IDs breaks the tie (lower UUID yields to higher UUID).
 
 ---
 

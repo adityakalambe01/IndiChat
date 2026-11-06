@@ -1,0 +1,36 @@
+name: indichat
+base: core24
+version: '1.0.0'
+summary: Real-Time Messenger with Calls, Presence and Media Sharing
+description: |
+  IndiChat is a real-time messaging application designed with a modern WhatsApp-grade
+  experience. Features instant messaging, WebSockets, typing indicators, read receipts,
+  audio/video calls, and media sharing.
+
+grade: stable
+confinement: strict
+
+apps:
+  indichat:
+    command: indichat
+    extensions: [gnome]
+    plugs:
+      - network
+      - network-bind
+      - audio-playback
+      - audio-record
+      - camera
+      - home
+      - desktop
+      - desktop-legacy
+      - x11
+      - wayland
+      - opengl
+
+parts:
+  indichat:
+    plugin: dump
+    source: .
+    stage-packages:
+      - libnss3
+      - libasound2t64

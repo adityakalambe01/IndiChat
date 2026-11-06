@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo/original/icon-128x128.png" alt="IndiChat Logo" width="96" height="96" />
+</p>
+
 # IndiChat — Enterprise Real-Time Messaging Platform (Monorepo)
 
 [![Spring Boot 3.4](https://img.shields.io/badge/Spring%20Boot-3.4.0-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -51,8 +55,15 @@
 - **MinIO Object Storage**: S3-compliant distributed storage with automatic bucket provisioning, unique file UUID hashing, and streaming download endpoints.
 - **Redis Presence & Pub/Sub**: In-memory ephemeral presence tracking, user heartbeat monitoring, and distributed multi-instance routing.
 
+### 🖥️ Linux Desktop & App Store Distribution (Electron + React 19)
+- **Native Linux Application**: High-performance Electron desktop client with hardware-accelerated Wayland & X11 rendering and single-instance lock.
+- **Embedded Local Proxy Engine**: Bundled zero-dependency internal server (`src/server.cjs`) for instant loading and transparent WebSocket/API proxying without CORS restrictions.
+- **Desktop System Tray**: Tray icon with instant window toggle, notifications, and native audio/video device permissions.
+- **Multi-Format Store Packages**: Ready-to-publish packages generated for Canonical Snap Store, Flathub, and AppImageHub.
+
 ### 📦 Build Automation & Cross-Platform Releases
 - **Automated Android Build Engine (`scripts/build-android.js`)**: Single-command compilation of Debug APKs, Release APKs, and Google Play App Bundles (.aab).
+- **Automated Linux Build Engine (`scripts/build-linux.js`)**: Single-command compilation of universal AppImages, Debian/Ubuntu `.deb`, portable `.tar.gz`, and Snap packages into `release/linux/`.
 - **Automated Environment Resolution**: Automatically locates Android SDK and Java 17/21 paths, manages `local.properties`, verifies Gradle execution rights, and saves artifacts into `release/android/`.
 
 ---
@@ -62,8 +73,9 @@
 ```
 ├── apps/
 │   ├── web/                         # React 19 + TypeScript (Vite + Vanilla CSS)
-│   └── mobile/                      # React Native 0.86 + Expo 52 (Expo Router v4)
-│       └── android/                 # Prebuilt native Android project (Gradle, Manifest)
+│   ├── mobile/                      # React Native 0.86 + Expo 52 (Expo Router v4)
+│   │   └── android/                 # Prebuilt native Android project (Gradle, Manifest)
+│   └── desktop/                     # Electron Desktop Client (Linux AppImage, deb, snap)
 ├── backend/                         # Java 21 & Spring Boot 3.4 Application
 │   ├── src/main/java/com/chat/      # Controllers, Services, Repositories, Entities
 │   └── src/main/resources/
@@ -163,7 +175,8 @@ npm run mobile:start
 
 IndiChat includes a zero-configuration automated build script (`scripts/build-android.js`) that handles Android SDK path resolution, Gradle permissions, and artifact packaging.
 
-### Build Commands:
+### Android Build Commands
+
 ```bash
 # 1. Build both Debug and Release APKs:
 npm run build:android:apk
@@ -175,11 +188,44 @@ npm run build:android:bundle
 node scripts/build-android.js --clean
 ```
 
-### Release Outputs:
+### Android Release Outputs
+
 Compiled binaries are automatically copied into the `release/android/` directory:
 - `release/android/IndiChat-release-<timestamp>.apk` — Ready for sideloading on any Android device
 - `release/android/IndiChat-debug-<timestamp>.apk` — Debuggable build with developer tools enabled
 - `release/android/IndiChat-release-<timestamp>.aab` — Production bundle for Google Play Console
+
+---
+
+## 🖥️ Linux Desktop & Store Distribution Guide
+
+IndiChat includes automated packaging for all major Linux distributions and software stores via [`scripts/build-linux.js`](scripts/build-linux.js).
+
+### Linux Desktop Build Commands
+
+```bash
+# 1. Build all primary Linux packages (AppImage, deb, tar.gz):
+npm run build:linux
+
+# 2. Build AppImage standalone executable only:
+npm run build:linux:appimage
+
+# 3. Build Debian / Ubuntu .deb package only:
+npm run build:linux:deb
+
+# 4. Build Snap package for Canonical Snap Store:
+npm run build:linux:snap
+```
+
+### Linux Release Outputs & Store Manifests
+Compiled Linux binaries and store manifests are stored in `release/linux/`:
+- `release/linux/IndiChat-1.0.0.AppImage` — Standalone universal Linux binary (run without install)
+- `release/linux/indichat_1.0.0_amd64.deb` — Native Debian / Ubuntu package (`sudo dpkg -i ...`)
+- `release/linux/IndiChat-1.0.0.tar.gz` — Portable compressed application archive
+- `release/linux/indichat.desktop` — XDG desktop entry shortcut
+- `release/linux/org.indichat.IndiChat.metainfo.xml` — AppStream metadata for Flathub, GNOME Software, KDE Discover
+- `release/linux/org.indichat.IndiChat.yml` — Flatpak packaging manifest
+- `release/linux/snapcraft.yaml` — Canonical Snap Store build recipe
 
 ---
 
@@ -189,9 +235,15 @@ Compiled binaries are automatically copied into the `release/android/` directory
 |---|---|
 | `npm run web:dev` | Launch Web client with Vite hot module replacement |
 | `npm run web:build` | Build production bundle for Web application |
+| `npm run sync:logos` | Synchronize platform logos across Web, Mobile, Desktop, and Release |
 | `npm run mobile:start` | Start Expo Metro bundler for mobile development |
 | `npm run mobile:android`| Compile and launch Android native development build |
 | `npm run mobile:ios` | Compile and launch iOS simulator build |
+| `npm run desktop:linux` | Launch Linux Desktop client in development mode |
+| `npm run build:linux` | Build all Linux release packages (AppImage, deb, tar.gz) |
+| `npm run build:linux:appimage` | Build standalone universal Linux AppImage |
+| `npm run build:linux:deb` | Build Debian / Ubuntu `.deb` package |
+| `npm run build:linux:snap` | Build Canonical Snap package for Ubuntu App Center |
 | `npm run build:android` | Execute Android build automation script (all artifacts) |
 | `npm run build:android:apk` | Compile standalone `.apk` binaries for Android |
 | `npm run build:android:bundle` | Compile production `.aab` Google Play bundle |
@@ -222,6 +274,7 @@ WebSocket connection endpoint: `ws://<host>:8080/ws?token=<jwt_token>`
 Detailed architectural and technical guides are available in the [`docs/`](docs/) directory:
 
 - 📖 **[AI Agent Operating Manual](AGENTS.md)**: Rules, invariants, and guidelines for AI coding agents.
+- 📖 **[Linux Desktop & App Store Guide](docs/linux-desktop-and-store-guide.md)**: Flathub, Snap Store, and AppImage distribution.
 - 📖 **[API Contracts & WebSocket Protocol](docs/api-contracts.md)**: Full REST endpoints and WebSocket frames.
 - 📖 **[System Architecture](docs/architecture.md)**: Monorepo diagram, real-time pipeline, and media flow.
 - 📖 **[Database Schema & Migrations](docs/database-schema.md)**: Flyway migrations (V1–V4), table relationships, and indexes.

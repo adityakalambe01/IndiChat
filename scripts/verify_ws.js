@@ -7,7 +7,7 @@ async function main() {
   const aliceRes = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ usernameOrEmail: 'alice', password: 'Password123!' })
+    body: JSON.stringify({ usernameOrEmail: 'alice', password: 'Password123!', twoFactorPin: '112233' })
   }).then(r => r.json());
 
   const bobRes = await fetch(`${API_URL}/auth/login`, {

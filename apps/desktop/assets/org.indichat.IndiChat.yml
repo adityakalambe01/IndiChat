@@ -1,0 +1,35 @@
+app-id: org.indichat.IndiChat
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: indichat
+
+finish-args:
+  # Network & IPC
+  - --share=network
+  - --share=ipc
+  # Display (Wayland & X11 fallback)
+  - --socket=fallback-x11
+  - --socket=wayland
+  # Audio playback & recording for WebRTC calls
+  - --socket=pulseaudio
+  # Camera & input devices for video calling
+  - --device=all
+  # Desktop notifications
+  - --talk-name=org.freedesktop.Notifications
+  # Access to Downloads directory for saving received media
+  - --filesystem=xdg-download
+
+modules:
+  - name: indichat
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 indichat /app/bin/indichat
+      - install -Dm644 org.indichat.IndiChat.desktop /app/share/applications/org.indichat.IndiChat.desktop
+      - install -Dm644 org.indichat.IndiChat.metainfo.xml /app/share/metainfo/org.indichat.IndiChat.metainfo.xml
+      - install -Dm644 icons/512x512.png /app/share/icons/hicolor/512x512/apps/org.indichat.IndiChat.png
+      - install -Dm644 icons/256x256.png /app/share/icons/hicolor/256x256/apps/org.indichat.IndiChat.png
+      - install -Dm644 icons/128x128.png /app/share/icons/hicolor/128x128/apps/org.indichat.IndiChat.png
+    sources:
+      - type: dir
+        path: .

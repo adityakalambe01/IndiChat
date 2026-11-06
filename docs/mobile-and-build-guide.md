@@ -140,7 +140,39 @@ node scripts/build-android.js --clean
 
 ---
 
-## 6. Troubleshooting Mobile Issues
+## 6. Automated iOS Build Engine (`scripts/build-ios.js`)
+
+IndiChat includes automated iOS build automation for macOS environments:
+1. **Toolchain Verification**: Checks Xcode `xcodebuild`, macOS SDK, and CocoaPods.
+2. **Native iOS Project Prebuild**: Automatically executes `expo prebuild --platform ios` and `pod install` with New Architecture and React Native 0.88 prebuilt artifacts.
+3. **AppIcon Branding Synchronization**: Automatically syncs all official multi-resolution icon assets from `logo/ios/AppIcon.appiconset` to `apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset`.
+4. **Simulator & Device Compilations**:
+   - Compiles iOS Simulator `.app` bundles (zero code signing certificates required for local testing).
+   - Generates `.zip` distribution bundles in `release/ios/IndiChat-Simulator.zip`.
+   - Supports device archives (`.xcarchive`) for TestFlight / App Store submission.
+
+### Build Commands:
+```bash
+# Build iOS Simulator Release App
+npm run build:ios:sim
+# Or alias:
+npm run build:ios
+
+# Build iOS Device Archive (.xcarchive)
+npm run build:ios:archive
+
+# Clean previous build and recompile:
+node scripts/build-ios.js --clean
+```
+
+### Artifact Outputs (`release/ios/`):
+- `release/ios/IndiChat.app` — Standalone compiled iOS application bundle.
+- `release/ios/IndiChat-Simulator.zip` — Compressed bundle ready for drag-and-drop onto iOS Simulator.
+- `release/ios/icon.png` — High-resolution App Store icon (1024x1024).
+
+---
+
+## 7. Troubleshooting Mobile Issues
 
 | Symptom | Cause | Solution |
 |---|---|---|
@@ -149,3 +181,4 @@ node scripts/build-android.js --clean
 | Gradle build fails: `SDK location not found` | Android SDK missing | Set `ANDROID_HOME=$HOME/Android/Sdk` or configure `apps/mobile/android/local.properties`. |
 | Gradle build fails: `Java version mismatch` | Older JDK active | Ensure JDK 17 or 21 is installed and set `JAVA_HOME`. |
 | Image upload fails on Android | Binary serialization bug | Ensure `expo-file-system` is used for file uploads instead of standard `FormData`. |
+| iOS build requires CocoaPods | Missing `pod` binary | Install via Homebrew: `brew install cocoapods`. |

@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Name=IndiChat
+GenericName=Real-Time Messenger
+Comment=Fast, secure, real-time messaging, audio/video calls, and file sharing
+Exec=indichat %U
+Icon=indichat
+Terminal=false
+StartupNotify=true
+StartupWMClass=IndiChat
+Categories=Network;InstantMessaging;Chat;AudioVideo;
+MimeType=x-scheme-handler/indichat;
+Keywords=chat;im;messaging;talk;video;call;whatsapp;telegram;
+Actions=NewWindow;
+
+[Desktop Action NewWindow]
+Name=Open New Window
+Exec=indichat --new-window

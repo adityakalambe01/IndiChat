@@ -22,3 +22,13 @@ allprojects {
 
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"
+
+gradle.projectsEvaluated {
+  subprojects { subproject ->
+    if (subproject.name == "react-native-async-storage_async-storage") {
+      subproject.tasks.matching { it.name.startsWith("compile") && it.name.endsWith("Kotlin") }.configureEach {
+        exclude("**/next/**")
+      }
+    }
+  }
+}

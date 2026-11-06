@@ -1,0 +1,24 @@
+{
+  "name": "indichat-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "IndiChat Native Desktop Client for Linux",
+  "author": "Aditya Kalambe <aditya@indichat.com> (https://github.com/adityakalambe01)",
+  "homepage": "https://github.com/adityakalambe01/IndiChat",
+  "license": "MIT",
+  "main": "src/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --linux",
+    "dist:appimage": "electron-builder --linux AppImage",
+    "dist:deb": "electron-builder --linux deb",
+    "dist:snap": "electron-builder --linux snap",
+    "dist:tar": "electron-builder --linux tar.gz"
+  },
+  "devDependencies": {
+    "electron": "33.4.11",
+    "electron-builder": "^25.1.8"
+  }
+}

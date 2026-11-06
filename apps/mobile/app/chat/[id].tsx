@@ -28,6 +28,7 @@ import { api, getApiBaseUrl } from '../../services/api';
 import { wsClient } from '../../services/websocket';
 import { storage, STORAGE_KEYS } from '../../services/storage';
 import { callHistoryService, CallHistoryItem } from '../../services/callHistory';
+import { callService } from '../../services/callService';
 import { generateUUID } from '../../utils/uuid';
 import { EMOJI_CATEGORIES, EmojiItem } from '../../data/emojiData';
 import {
@@ -49,8 +50,12 @@ import { StickerView } from '../../components/StickerView';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../theme/useTheme';
+import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
+import { getDeterministicAvatarColor, FONTS } from '../../theme/tokens';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Emojis category tabs with icons
 const EMOJI_TAB_CATEGORIES = [
@@ -337,6 +342,7 @@ function mergeMessagesWithCalls(
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
+  const { palette, metrics, isDark } = useTheme();
   const router = useRouter();
   const {
     id: conversationId,
@@ -489,32 +495,8 @@ export default function ChatScreen() {
     title?: string;
   } | null>(null);
 
-  // Calling modal
-  const [activeCall, setActiveCall] = useState<{
-    targetName: string;
-    isVideo: boolean;
-    status: 'calling' | 'connected';
-    duration: number;
-    isMuted: boolean;
-  } | null>(null);
-
-  // Incoming call state in chat screen
-  const [incomingCall, setIncomingCall] = useState<{
-    senderUserId: string;
-    callerName: string;
-    isVideo: boolean;
-  } | null>(null);
-
-  const [isSpeakerOn, setIsSpeakerOn] = useState(false);
-  const [isFrontCamera, setIsFrontCamera] = useState(true);
-  const [isVideoMuted, setIsVideoMuted] = useState(false);
-
   const flatListRef = useRef<FlatList>(null);
   const hasAutoCalledRef = useRef(false);
-  const activeCallRef = useRef(activeCall);
-  activeCallRef.current = activeCall;
-  const incomingCallRef = useRef(incomingCall);
-  incomingCallRef.current = incomingCall;
 
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
@@ -637,7 +619,7 @@ export default function ChatScreen() {
   useEffect(() => {
     if (!currentUser || !conversationId) return;
     messages.forEach((msg) => {
-      if (msg.senderId !== currentUser.id) {
+      if (msg.senderId !== currentUser.id && UUID_REGEX.test(msg.id)) {
         const isRead = msg.receipts?.some((r) => r.userId === currentUser.id && r.readAt != null);
         if (!isRead) {
           wsClient.markRead(msg.id, conversationId);
@@ -655,11 +637,15 @@ export default function ChatScreen() {
       if (currentUser && msg.senderId !== currentUser.id) {
         if (msg.conversationId === conversationId) {
           // Since user is actively in this chat, mark new incoming message as seen immediately!
-          wsClient.markRead(msg.id, conversationId);
-          api.markRead(msg.id).catch(() => {});
+          if (UUID_REGEX.test(msg.id)) {
+            wsClient.markRead(msg.id, conversationId);
+            api.markRead(msg.id).catch(() => {});
+          }
         } else {
           // Message for another chat, acknowledge delivery
-          wsClient.markDelivered(msg.id, msg.conversationId);
+          if (UUID_REGEX.test(msg.id)) {
+            wsClient.markDelivered(msg.id, msg.conversationId);
+          }
         }
       }
 
@@ -704,78 +690,11 @@ export default function ChatScreen() {
       );
     });
 
-    const unsubCall = wsClient.onCallSignal((signal) => {
-      if (signal.signalType === 'offer' && signal.senderUserId) {
-        const caller = (signal.data as any)?.callerName || contactName || 'Incoming Caller';
-        setIncomingCall({
-          senderUserId: signal.senderUserId,
-          callerName: caller,
-          isVideo: Boolean((signal.data as any)?.isVideo),
-        });
-      } else if (signal.signalType === 'answer') {
-        setActiveCall((prev) => (prev ? { ...prev, status: 'connected' } : null));
-      } else if (signal.signalType === 'hangup') {
-        const call = activeCallRef.current;
-        const incoming = incomingCallRef.current;
-        if (incoming) {
-          callHistoryService.addCall({
-            conversationId: conversationId || undefined,
-            contactName: incoming.callerName || contactName,
-            targetUserId: incoming.senderUserId,
-            isVideo: incoming.isVideo,
-            type: 'missed',
-            duration: 'Missed',
-            subtitle: 'Missed',
-          });
-        } else if (call) {
-          const isConnected = call.status === 'connected' && call.duration > 0;
-          let durationText: string;
-          if (isConnected) {
-            if (call.duration < 60) {
-              durationText = `${call.duration} sec`;
-            } else {
-              const mins = Math.floor(call.duration / 60);
-              const secs = call.duration % 60;
-              durationText = secs > 0 ? `${mins} min ${secs} sec` : `${mins} min`;
-            }
-          } else {
-            durationText = 'No answer';
-          }
-
-          callHistoryService.addCall({
-            conversationId: conversationId || undefined,
-            contactName: contactName || call.targetName,
-            targetUserId: targetUserId || undefined,
-            isVideo: call.isVideo,
-            type: isConnected ? 'incoming' : 'missed',
-            duration: durationText,
-            subtitle: durationText,
-          });
-        }
-        setActiveCall(null);
-        setIncomingCall(null);
-      }
-    });
-
     return () => {
       unsubMsg();
       unsubReceipt();
-      unsubCall();
     };
   }, [conversationId, contactName]);
-
-  // Handle accepted call passed from chats screen navigation
-  useEffect(() => {
-    if (queryAcceptedCall) {
-      setActiveCall({
-        targetName: contactName,
-        isVideo: queryAcceptedCall === 'video',
-        status: 'connected',
-        duration: 0,
-        isMuted: false,
-      });
-    }
-  }, [queryAcceptedCall, contactName]);
 
   // Handle autoCall when entering from Calls tab or New Call contact modal
   useEffect(() => {
@@ -784,17 +703,6 @@ export default function ChatScreen() {
       handleStartCall(queryAutoCall === 'video');
     }
   }, [queryAutoCall, targetUserId]);
-
-  // Call duration counter
-  useEffect(() => {
-    let interval: any;
-    if (activeCall && activeCall.status === 'connected') {
-      interval = setInterval(() => {
-        setActiveCall((prev) => (prev ? { ...prev, duration: prev.duration + 1 } : null));
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [activeCall?.status]);
 
   const handleSendMessage = async (content: string, type: MessageType = 'TEXT') => {
     if (!content.trim()) return;
@@ -981,128 +889,12 @@ export default function ChatScreen() {
       return;
     }
 
-    setActiveCall({
+    callService.startCall({
+      targetUserId: effectiveTargetId,
       targetName: contactName,
       isVideo,
-      status: 'calling',
-      duration: 0,
-      isMuted: false,
-    });
-
-    wsClient.sendCallSignal({
-      targetUserId: effectiveTargetId,
-      signalType: 'offer',
-      data: {
-        isVideo,
-        callerName: currentUser?.displayName || currentUser?.username || 'IndiChat User',
-      },
-    });
-  };
-
-  const handleHangupCall = () => {
-    const effectiveTargetId =
-      targetUserId ||
-      (conversationId && !conversationId.startsWith('c-') ? conversationId : null);
-    if (effectiveTargetId) {
-      wsClient.sendCallSignal({
-        targetUserId: effectiveTargetId,
-        signalType: 'hangup',
-        data: {},
-      });
-    }
-
-    const currentCall = activeCallRef.current || activeCall;
-    if (currentCall) {
-      const isVoice = !currentCall.isVideo;
-      const isConnected = currentCall.status === 'connected' && currentCall.duration > 0;
-      let durationText: string;
-      if (isConnected) {
-        if (currentCall.duration < 60) {
-          durationText = `${currentCall.duration} sec`;
-        } else {
-          const mins = Math.floor(currentCall.duration / 60);
-          const secs = currentCall.duration % 60;
-          durationText = secs > 0 ? `${mins} min ${secs} sec` : `${mins} min`;
-        }
-      } else {
-        durationText = 'No answer';
-      }
-
-      const status = isConnected ? 'connected' : 'no_answer';
-
-      const callPayload = {
-        callType: isVoice ? 'voice' : 'video',
-        status,
-        duration: currentCall.duration,
-        durationText,
-        endedAt: new Date().toISOString(),
-      };
-
-      // 1. Post to chat thread as WhatsApp call bubble
-      handleSendMessage(JSON.stringify(callPayload), 'CALL');
-
-      // 2. Persist in call history logs
-      callHistoryService.addCall({
-        conversationId: conversationId || undefined,
-        contactName: contactName || currentCall.targetName,
-        targetUserId: effectiveTargetId || undefined,
-        isVideo: currentCall.isVideo,
-        type: 'outgoing',
-        duration: durationText,
-        subtitle: durationText,
-      });
-    }
-
-    setActiveCall(null);
-    setIncomingCall(null);
-  };
-
-  const handleAcceptIncomingCall = () => {
-    if (!incomingCall) return;
-    wsClient.sendCallSignal({
-      targetUserId: incomingCall.senderUserId,
-      signalType: 'answer',
-      data: {},
-    });
-    setTargetUserId(incomingCall.senderUserId);
-    setActiveCall({
-      targetName: incomingCall.callerName,
-      isVideo: incomingCall.isVideo,
-      status: 'connected',
-      duration: 0,
-      isMuted: false,
-    });
-    setIncomingCall(null);
-  };
-
-  const handleDeclineIncomingCall = () => {
-    if (!incomingCall) return;
-    wsClient.sendCallSignal({
-      targetUserId: incomingCall.senderUserId,
-      signalType: 'hangup',
-      data: {},
-    });
-
-    const callPayload = {
-      callType: incomingCall.isVideo ? 'video' : 'voice',
-      status: 'declined',
-      duration: 0,
-      durationText: 'Declined',
-      endedAt: new Date().toISOString(),
-    };
-    handleSendMessage(JSON.stringify(callPayload), 'CALL');
-
-    callHistoryService.addCall({
       conversationId: conversationId || undefined,
-      contactName: incomingCall.callerName,
-      targetUserId: incomingCall.senderUserId,
-      isVideo: incomingCall.isVideo,
-      type: 'missed',
-      duration: 'Declined',
-      subtitle: 'Declined',
     });
-
-    setIncomingCall(null);
   };
 
   const formatMessageTime = (isoString?: string) => {
@@ -1121,7 +913,7 @@ export default function ChatScreen() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const renderBubbleContent = (msg: Message) => {
+  const renderBubbleContent = (msg: Message, isOutgoing: boolean = false) => {
     const parsed = parseAttachment(msg.content);
 
     // 1. Sticker Message
@@ -1159,7 +951,11 @@ export default function ChatScreen() {
           >
             <GifMediaImage uri={imgUrl} style={isGif ? styles.gifBubble : styles.imageBubble} resizeMode="cover" />
           </TouchableOpacity>
-          {parsed?.caption ? <Text style={styles.messageText}>{parsed.caption}</Text> : null}
+          {parsed?.caption ? (
+            <Text style={[styles.messageText, { color: isOutgoing ? palette.bubbleOutText : palette.bubbleInText }]}>
+              {parsed.caption}
+            </Text>
+          ) : null}
         </View>
       );
     }
@@ -1182,7 +978,13 @@ export default function ChatScreen() {
           </View>
         )}
 
-        <Text style={[styles.messageText, singleOrFewEmoji && styles.bigEmojiText]}>
+        <Text
+          style={[
+            styles.messageText,
+            { color: isOutgoing ? palette.bubbleOutText : palette.bubbleInText },
+            singleOrFewEmoji && styles.bigEmojiText,
+          ]}
+        >
           {msg.content}
         </Text>
       </View>
@@ -1309,8 +1111,8 @@ export default function ChatScreen() {
       <View key={item.id || item.clientMessageId || `msg-${index}`}>
         {showDateSeparator && (
           <View style={styles.dateSeparatorWrap}>
-            <View style={styles.dateSeparatorPill}>
-              <Text style={styles.dateSeparatorText}>{currentDateLabel}</Text>
+            <View style={[styles.dateSeparatorPill, { backgroundColor: palette.pillDateBg }]}>
+              <Text style={[styles.dateSeparatorText, { color: palette.pillDateText }]}>{currentDateLabel}</Text>
             </View>
           </View>
         )}
@@ -1328,26 +1130,46 @@ export default function ChatScreen() {
               style={[
                 styles.bubble,
                 isOutgoing ? styles.outgoingBubble : styles.incomingBubble,
+                {
+                  backgroundColor: isOutgoing ? palette.bubbleOutBg : palette.bubbleInBg,
+                  borderColor: isOutgoing ? palette.bubbleOutBorder : palette.bubbleInBorder,
+                },
                 isFrameless && styles.framelessBubbleContainer,
               ]}
             >
-              {renderBubbleContent(item)}
+              {renderBubbleContent(item, isOutgoing)}
 
               {/* Timestamp and Delivery Receipts */}
               <View style={[styles.metaRow, isFrameless && styles.framelessMetaRow]}>
-                <Text style={[styles.timeText, isFrameless && styles.framelessTimeText]}>{timeStr}</Text>
+                <Text
+                  style={[
+                    styles.timeText,
+                    { color: isOutgoing && !isDark ? palette.textSecondary : isDark ? 'rgba(233, 237, 239, 0.65)' : palette.textSecondary },
+                    isFrameless && styles.framelessTimeText,
+                  ]}
+                >
+                  {timeStr}
+                </Text>
                 {isOutgoing && (
-                  <Ionicons
-                    name={
-                      isRead || isDelivered
-                        ? 'checkmark-done'
-                        : item.status === 'sending'
-                        ? 'time-outline'
-                        : 'checkmark'
-                    }
-                    size={14}
-                    color={isRead ? '#53bdeb' : isFrameless ? '#ffffff' : 'rgba(233, 237, 239, 0.6)'}
-                  />
+                  <View style={!isDark && isRead ? { backgroundColor: palette.tickBacking, borderRadius: 3, paddingHorizontal: 3, paddingVertical: 1 } : undefined}>
+                    <Ionicons
+                      name={
+                        isRead || isDelivered
+                          ? 'checkmark-done'
+                          : item.status === 'sending'
+                          ? 'time-outline'
+                          : 'checkmark'
+                      }
+                      size={14}
+                      color={
+                        isRead
+                          ? '#53bdeb'
+                          : isFrameless
+                          ? '#ffffff'
+                          : 'rgba(233, 237, 239, 0.6)'
+                      }
+                    />
+                  </View>
                 )}
               </View>
             </View>
@@ -1359,59 +1181,77 @@ export default function ChatScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: palette.bg }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      {/* WhatsApp Exact Top Header */}
-      <View
+      {/* Top Liquid Glass Header matching preview viewConversation() */}
+      <LiquidGlassSurface
+        variant="chrome"
         style={[
           styles.topHeader,
           {
             paddingTop: insets.top,
             height: 56 + insets.top,
+            borderBottomColor: palette.border,
+            borderBottomWidth: 1,
           },
         ]}
       >
-        {/* Back Button with dynamic unread indicator */}
-        <TouchableOpacity style={styles.backBadgePill} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={24} color="#e9edef" />
-          {queryUnread && Number(queryUnread) > 0 ? (
-            <Text style={styles.backBadgeText}>{queryUnread}</Text>
-          ) : null}
-        </TouchableOpacity>
+        <View style={styles.topHeaderLeft}>
+          <TouchableOpacity
+            style={styles.headerBackBtn}
+            onPress={() => router.back()}
+            accessibilityLabel="Back"
+          >
+            <Ionicons name="chevron-back" size={24} color={palette.textPrimary} />
+            {queryUnread && Number(queryUnread) > 0 ? (
+              <View style={styles.backBadgePill}>
+                <Text style={styles.backBadgeText}>{queryUnread}</Text>
+              </View>
+            ) : null}
+          </TouchableOpacity>
 
-        {/* Contact Avatar */}
-        <View style={styles.avatarBox}>
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarInitialText}>
+          {/* Contact Avatar: 34x34 squircle with 12px radius */}
+          <View style={[styles.contactHeaderAvatar, { backgroundColor: getDeterministicAvatarColor(contactName || (conversationId as string) || 'Chat') }]}>
+            <Text style={styles.contactHeaderAvatarText}>
               {(contactName || 'C').charAt(0).toUpperCase()}
             </Text>
+            <View style={[styles.onlineIndicatorDotSmall, { borderColor: palette.bg }]} />
+          </View>
+
+          {/* Contact Name & Online Status in Emerald */}
+          <View style={styles.contactHeaderMeta}>
+            <Text style={[styles.contactHeaderTitle, { color: palette.textPrimary }]} numberOfLines={1}>
+              {contactName}
+            </Text>
+            <Text style={styles.contactHeaderSubtitle}>Online now</Text>
           </View>
         </View>
 
-        {/* Contact Name */}
-        <Text style={styles.headerContactName} numberOfLines={1}>
-          {contactName}
-        </Text>
-
-        <View style={{ flex: 1 }} />
-
-        {/* Video & Voice Call Capsule Pill */}
-        <View style={styles.callCapsule}>
-          <TouchableOpacity style={styles.callIconBtn} onPress={() => handleStartCall(true)}>
-            <Ionicons name="videocam-outline" size={22} color="#e9edef" />
+        {/* Video & Voice Call Action Buttons */}
+        <View style={styles.topHeaderRight}>
+          <TouchableOpacity
+            style={styles.headerCallBtn}
+            onPress={() => handleStartCall(false)}
+            accessibilityLabel="Audio Call"
+          >
+            <Ionicons name="call-outline" size={20} color={palette.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.callIconBtn} onPress={() => handleStartCall(false)}>
-            <Ionicons name="call-outline" size={20} color="#e9edef" />
+          <TouchableOpacity
+            style={styles.headerCallBtn}
+            onPress={() => handleStartCall(true)}
+            accessibilityLabel="Video Call"
+          >
+            <Ionicons name="videocam-outline" size={22} color={palette.textSecondary} />
           </TouchableOpacity>
         </View>
-      </View>
+      </LiquidGlassSurface>
 
       {/* Messages List Area */}
       {loading ? (
         <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color="#25D366" />
+          <ActivityIndicator size="large" color="#10b981" />
         </View>
       ) : (
         <FlatList
@@ -1427,13 +1267,13 @@ export default function ChatScreen() {
           ]}
           ListEmptyComponent={
             <View style={styles.emptyMessagesContainer}>
-              <View style={styles.e2eeBanner}>
-                <Ionicons name="lock-closed" size={13} color="#facc15" style={{ marginBottom: 4 }} />
-                <Text style={styles.e2eeBannerText}>
+              <View style={[styles.e2eeBanner, { backgroundColor: palette.pillDateBg, borderColor: palette.border }]}>
+                <Ionicons name="lock-closed" size={13} color="#10b981" style={{ marginBottom: 4 }} />
+                <Text style={[styles.e2eeBannerText, { color: palette.pillDateText }]}>
                   Messages and calls are end-to-end encrypted. No one outside of this chat can read or listen to them.
                 </Text>
               </View>
-              <Text style={styles.emptyMessagesSubtitle}>
+              <Text style={[styles.emptyMessagesSubtitle, { color: palette.textSecondary }]}>
                 Say hello to start the conversation! 👋
               </Text>
             </View>
@@ -1443,30 +1283,39 @@ export default function ChatScreen() {
         />
       )}
 
-      {/* WhatsApp Exact Bottom Input Bar: [+] [ Message 📄 ] (₹) 📷 (🎙️) */}
+      {/* Floating Modern Liquid Glass Chat Composer matching preview */}
       <View
         style={[
-          styles.bottomBarRow,
+          styles.composerWrapper,
           {
             paddingBottom: isKeyboardOpen ? 6 : Math.max(insets.bottom, 10),
           },
         ]}
       >
-        {/* Left: Plus (+) Button */}
-        <TouchableOpacity
-          style={styles.plusBtn}
-          onPress={() => setShowAttachmentMenu(true)}
-          activeOpacity={0.8}
+        <LiquidGlassSurface
+          variant="chrome"
+          style={[
+            styles.floatingComposerCapsule,
+            {
+              borderColor: palette.border,
+            },
+          ]}
         >
-          <Ionicons name="add" size={28} color="#e9edef" />
-        </TouchableOpacity>
+          {/* Plus (+) Button for Attachments */}
+          <TouchableOpacity
+            style={styles.composerIconBtn}
+            onPress={() => setShowAttachmentMenu(true)}
+            activeOpacity={0.7}
+            accessibilityLabel="Attachments"
+          >
+            <Ionicons name="add" size={24} color={palette.textSecondary} />
+          </TouchableOpacity>
 
-        {/* Center: Rounded Input Capsule with Star / Sparkles Picker Button */}
-        <View style={styles.inputCapsule}>
+          {/* Text Input */}
           <TextInput
-            style={styles.messageInput}
-            placeholder="Message"
-            placeholderTextColor="#8696a0"
+            style={[styles.composerTextInput, { color: palette.textPrimary }]}
+            placeholder="Type a message..."
+            placeholderTextColor={palette.textSecondary}
             value={inputText}
             onChangeText={setInputText}
             multiline
@@ -1477,8 +1326,10 @@ export default function ChatScreen() {
               }, 150);
             }}
           />
+
+          {/* Sparkles / Stickers Shortcut */}
           <TouchableOpacity
-            style={styles.stickerPageBtn}
+            style={styles.composerIconBtn}
             onPress={() => {
               if (!showMediaPicker) {
                 Keyboard.dismiss();
@@ -1487,51 +1338,55 @@ export default function ChatScreen() {
                 setShowMediaPicker(false);
               }
             }}
+            accessibilityLabel="Stickers"
           >
             <Ionicons
               name={showMediaPicker ? 'keypad-outline' : 'sparkles-outline'}
-              size={21}
-              color={showMediaPicker ? '#25D366' : '#8696a0'}
+              size={20}
+              color={showMediaPicker ? '#10b981' : palette.textSecondary}
             />
           </TouchableOpacity>
-        </View>
 
-        {/* Right: Rupee (₹) Button */}
-        <TouchableOpacity
-          style={styles.rupeeCircleBtn}
-          onPress={() => Alert.alert('Payments', 'Send money via UPI')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.rupeeSymbolText}>₹</Text>
-        </TouchableOpacity>
+          {/* Quick ₹ Rupee Button */}
+          <TouchableOpacity
+            style={styles.composerIconBtn}
+            onPress={() => Alert.alert('UPI Payment', 'Quick ₹ Rupee payment demo on IndiChat')}
+            activeOpacity={0.7}
+            accessibilityLabel="Rupee"
+          >
+            <Text style={[styles.rupeeGlyph, { color: palette.textSecondary }]}>₹</Text>
+          </TouchableOpacity>
 
-        {/* Right: Camera Button */}
-        <TouchableOpacity
-          style={styles.cameraCircleBtn}
-          onPress={handleCaptureCamera}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="camera-outline" size={24} color="#e9edef" />
-        </TouchableOpacity>
+          {/* Camera Button */}
+          <TouchableOpacity
+            style={styles.composerIconBtn}
+            onPress={handleCaptureCamera}
+            activeOpacity={0.7}
+            accessibilityLabel="Camera"
+          >
+            <Ionicons name="camera-outline" size={22} color={palette.textSecondary} />
+          </TouchableOpacity>
 
-        {/* Far Right: WhatsApp Green Circular Send / Mic Button */}
-        <TouchableOpacity
-          style={styles.greenActionCircle}
-          onPress={() => {
-            if (inputText.trim()) {
-              handleSendMessage(inputText, 'TEXT');
-            } else {
-              handleSendMessage('🎵 Voice message', 'AUDIO');
-            }
-          }}
-          activeOpacity={0.8}
-        >
-          <Ionicons
-            name={inputText.trim() ? 'send' : 'mic'}
-            size={20}
-            color="#000000"
-          />
-        </TouchableOpacity>
+          {/* Emerald Green Circular Send Button */}
+          <TouchableOpacity
+            style={styles.composerSendBtn}
+            onPress={() => {
+              if (inputText.trim()) {
+                handleSendMessage(inputText, 'TEXT');
+              } else {
+                handleSendMessage('🎵 Voice message', 'AUDIO');
+              }
+            }}
+            activeOpacity={0.8}
+            accessibilityLabel="Send message"
+          >
+            <Ionicons
+              name={inputText.trim() ? 'send' : 'mic'}
+              size={18}
+              color="#070b0e"
+            />
+          </TouchableOpacity>
+        </LiquidGlassSurface>
       </View>
 
       {/* Attachment Options Action Modal */}
@@ -1934,178 +1789,6 @@ export default function ChatScreen() {
         </Modal>
       )}
 
-      {/* Fullscreen Calling Interface */}
-      {activeCall && (
-        <Modal visible animationType="slide">
-          <View style={styles.callingOverlay}>
-            {/* Top Bar with Security Badge & Contact Name */}
-            <View style={styles.callingTopHeader}>
-              <View style={styles.e2eePill}>
-                <Ionicons name="lock-closed" size={13} color="#25D366" />
-                <Text style={styles.e2eePillText}>End-to-end encrypted</Text>
-              </View>
-              <Text style={styles.callingTargetName}>{activeCall.targetName}</Text>
-              <Text style={styles.callingStatusText}>
-                {activeCall.status === 'calling'
-                  ? 'Calling...'
-                  : `${activeCall.isVideo ? 'Video' : 'Voice'} Call • ${formatDuration(activeCall.duration)}`}
-              </Text>
-            </View>
-
-            {/* Video Call Body vs Voice Call Body */}
-            {activeCall.isVideo ? (
-              <View style={styles.videoStreamContainer}>
-                {/* Remote Video Stream Simulation */}
-                <View style={styles.remoteVideoCanvas}>
-                  {!isVideoMuted ? (
-                    <View style={styles.remoteVideoActiveFeed}>
-                      <View style={styles.callingAvatarLarge}>
-                        <Text style={styles.callingAvatarInitials}>
-                          {activeCall.targetName.charAt(0).toUpperCase()}
-                        </Text>
-                      </View>
-                      <Text style={styles.remoteVideoActiveLabel}>
-                        {activeCall.status === 'connected' ? 'Live Video Connected' : 'Connecting Video...'}
-                      </Text>
-                    </View>
-                  ) : (
-                    <View style={styles.videoOffPlaceholder}>
-                      <Ionicons name="videocam-off" size={48} color="#8696a0" />
-                      <Text style={{ color: '#8696a0', marginTop: 8, fontSize: 14 }}>Video Paused</Text>
-                    </View>
-                  )}
-                </View>
-
-                {/* Self Picture-in-Picture Preview Window */}
-                <View style={styles.selfPipWindow}>
-                  <View style={styles.pipInner}>
-                    <Ionicons name="person" size={26} color="#53bdeb" />
-                    <Text style={styles.pipText}>You</Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.pipFlipBtn}
-                    onPress={() => setIsFrontCamera((prev) => !prev)}
-                  >
-                    <Ionicons name="camera-reverse" size={16} color="#fff" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ) : (
-              /* Voice Call Concentric Waveform Avatar */
-              <View style={styles.voiceCallCenter}>
-                <View style={styles.callPulseOuter}>
-                  <View style={styles.callPulseMiddle}>
-                    <View style={styles.callingAvatar}>
-                      <Text style={styles.callingAvatarText}>
-                        {activeCall.targetName.charAt(0).toUpperCase()}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            )}
-
-            {/* Floating Glassmorphism Controls Dock */}
-            <View style={styles.callingControlsDock}>
-              {/* Speaker Toggle */}
-              <TouchableOpacity
-                style={[styles.callCtrlBtn, isSpeakerOn && styles.callCtrlBtnActive]}
-                onPress={() => setIsSpeakerOn((prev) => !prev)}
-              >
-                <Ionicons
-                  name={isSpeakerOn ? 'volume-high' : 'volume-medium-outline'}
-                  size={24}
-                  color={isSpeakerOn ? '#000' : '#fff'}
-                />
-              </TouchableOpacity>
-
-              {/* Video Toggle / Upgrade to Video */}
-              <TouchableOpacity
-                style={[
-                  styles.callCtrlBtn,
-                  activeCall.isVideo && !isVideoMuted && styles.callCtrlBtnActive,
-                ]}
-                onPress={() => {
-                  if (activeCall.isVideo) {
-                    setIsVideoMuted((prev) => !prev);
-                  } else {
-                    setActiveCall((prev) => (prev ? { ...prev, isVideo: true } : null));
-                  }
-                }}
-              >
-                <Ionicons
-                  name={
-                    activeCall.isVideo
-                      ? isVideoMuted
-                        ? 'videocam-off'
-                        : 'videocam'
-                      : 'videocam-outline'
-                  }
-                  size={24}
-                  color={activeCall.isVideo && !isVideoMuted ? '#000' : '#fff'}
-                />
-              </TouchableOpacity>
-
-              {/* Mic Mute Toggle */}
-              <TouchableOpacity
-                style={[styles.callCtrlBtn, activeCall.isMuted && styles.callCtrlBtnMuted]}
-                onPress={() => setActiveCall((prev) => (prev ? { ...prev, isMuted: !prev.isMuted } : null))}
-              >
-                <Ionicons
-                  name={activeCall.isMuted ? 'mic-off' : 'mic'}
-                  size={24}
-                  color="#fff"
-                />
-              </TouchableOpacity>
-
-              {/* End Call Button */}
-              <TouchableOpacity style={styles.hangupCircleBtn} onPress={handleHangupCall}>
-                <Ionicons name="call" size={28} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      )}
-
-      {/* Incoming Call Modal in chat screen */}
-      {incomingCall && (
-        <Modal visible transparent animationType="slide">
-          <View style={styles.incomingModalOverlay}>
-            <View style={styles.incomingModalCard}>
-              <View style={styles.incomingModalAvatarCircle}>
-                <Ionicons
-                  name={incomingCall.isVideo ? 'videocam' : 'call'}
-                  size={32}
-                  color="#25D366"
-                />
-              </View>
-              <Text style={styles.incomingModalCallerName}>{incomingCall.callerName}</Text>
-              <Text style={styles.incomingModalCallType}>
-                WhatsApp {incomingCall.isVideo ? 'Video' : 'Voice'} Call...
-              </Text>
-
-              <View style={styles.incomingModalButtonsRow}>
-                <TouchableOpacity
-                  style={[styles.incomingCircleBtn, styles.incomingDeclineBtn]}
-                  onPress={handleDeclineIncomingCall}
-                >
-                  <Ionicons name="call" size={24} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
-                  <Text style={styles.incomingBtnLabel}>Decline</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.incomingCircleBtn, styles.incomingAcceptBtn]}
-                  onPress={handleAcceptIncomingCall}
-                >
-                  <Ionicons name="call" size={24} color="#fff" />
-                  <Text style={styles.incomingBtnLabel}>Accept</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
-      )}
-
       {/* Lightbox Media Modal for GIFs & Photos */}
       {lightboxMedia && (
         <Modal visible transparent animationType="fade" onRequestClose={() => setLightboxMedia(null)}>
@@ -2138,28 +1821,88 @@ const styles = StyleSheet.create({
     backgroundColor: '#0a0f13',
   },
   topHeader: {
-    height: 60,
-    backgroundColor: '#0a0f13',
+    height: 56,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1a2026',
-    paddingTop: Platform.OS === 'android' ? 8 : 0,
+    justifyContent: 'space-between',
+    zIndex: 10,
+  },
+  topHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    minWidth: 0,
+    gap: 8,
+  },
+  headerBackBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingRight: 4,
+  },
+  contactHeaderAvatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  contactHeaderAvatarText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  onlineIndicatorDotSmall: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
+    backgroundColor: '#10b981',
+    borderWidth: 1.5,
+  },
+  contactHeaderMeta: {
+    flex: 1,
+    minWidth: 0,
+  },
+  contactHeaderTitle: {
+    fontFamily: FONTS.bold,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  contactHeaderSubtitle: {
+    fontFamily: FONTS.medium,
+    fontSize: 10.5,
+    color: '#10b981',
+    fontWeight: '500',
+  },
+  topHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  headerCallBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backBadgePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1f2428',
-    borderRadius: 16,
-    paddingRight: 10,
-    paddingLeft: 4,
-    paddingVertical: 4,
-    marginRight: 10,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderRadius: 12,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 2,
   },
   backBadgeText: {
-    color: '#e9edef',
-    fontSize: 15,
+    color: '#10b981',
+    fontSize: 11,
     fontWeight: '700',
   },
   avatarBox: {
@@ -2167,16 +1910,16 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   avatarCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#1e3a5f',
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    backgroundColor: '#10b981',
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarInitialText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '700',
   },
   clockBadge: {
@@ -2192,13 +1935,12 @@ const styles = StyleSheet.create({
   },
   headerContactName: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '700',
   },
   callCapsule: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1f2428',
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -2233,6 +1975,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   dateSeparatorText: {
+    fontFamily: FONTS.medium,
     color: '#8696a0',
     fontSize: 12,
     fontWeight: '600',
@@ -2333,21 +2076,21 @@ const styles = StyleSheet.create({
   bubble: {
     maxWidth: '82%',
     paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    position: 'relative',
   },
   outgoingBubble: {
-    backgroundColor: '#005c4b',
-    borderTopRightRadius: 2,
+    borderTopRightRadius: 4,
   },
   incomingBubble: {
-    backgroundColor: '#1f2428',
-    borderTopLeftRadius: 2,
+    borderTopLeftRadius: 4,
   },
   messageText: {
-    color: '#ffffff',
-    fontSize: 15.5,
-    lineHeight: 20.5,
+    fontFamily: FONTS.regular,
+    fontSize: 13.5,
+    lineHeight: 19,
   },
   replyPreviewCard: {
     flexDirection: 'row',
@@ -2366,12 +2109,14 @@ const styles = StyleSheet.create({
     paddingLeft: 6,
   },
   replyAuthor: {
+    fontFamily: FONTS.bold,
     color: '#f43f5e',
     fontSize: 12.5,
     fontWeight: '700',
     marginBottom: 2,
   },
   replySnippet: {
+    fontFamily: FONTS.regular,
     color: '#94a3b8',
     fontSize: 13,
   },
@@ -2383,6 +2128,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   timeText: {
+    fontFamily: FONTS.regular,
     color: 'rgba(233, 237, 239, 0.65)',
     fontSize: 11,
   },
@@ -2465,63 +2211,44 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  bottomBarRow: {
+  composerWrapper: {
+    paddingHorizontal: 12,
+    paddingTop: 4,
+  },
+  floatingComposerCapsule: {
+    borderRadius: 28,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    backgroundColor: '#0a0f13',
-    gap: 8,
+    gap: 6,
+    borderWidth: 1,
   },
-  plusBtn: {
-    width: 36,
-    height: 36,
+  composerIconBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  inputCapsule: {
+  composerTextInput: {
+    fontFamily: FONTS.regular,
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1f2428',
-    borderRadius: 22,
-    paddingHorizontal: 12,
-    minHeight: 44,
-  },
-  messageInput: {
-    flex: 1,
-    color: '#ffffff',
-    fontSize: 16,
-    paddingVertical: 8,
+    fontSize: 13.5,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
     maxHeight: 100,
   },
-  stickerPageBtn: {
-    padding: 4,
-  },
-  rupeeCircleBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#1f2428',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rupeeSymbolText: {
-    color: '#e9edef',
+  rupeeGlyph: {
+    fontFamily: FONTS.bold,
     fontSize: 17,
     fontWeight: '700',
   },
-  cameraCircleBtn: {
-    width: 38,
-    height: 38,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  greenActionCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#25D366',
+  composerSendBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#10b981',
     alignItems: 'center',
     justifyContent: 'center',
   },

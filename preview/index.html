@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IndiChat · Mobile Design Gallery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #070b0e;
+      --surface-1: #11181e;
+      --surface-card: #141d24;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-card: rgba(255, 255, 255, 0.12);
+      --brand-green: #25D366;
+      --brand-teal: #00a884;
+      --text-main: #f0f4f2;
+      --text-muted: #8696a0;
+      --text-subtle: #5f707a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(0, 168, 132, 0.09) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(37, 211, 102, 0.07) 0%, transparent 50%);
+    }
+
+    main {
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 60px 24px;
+      flex: 1;
+    }
+
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, var(--brand-green), var(--brand-teal));
+      color: #070b0e;
+      font-weight: 800;
+      font-size: 20px;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-title span {
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 13px;
+      margin-left: 6px;
+    }
+
+    h1 {
+      font-size: 52px;
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      color: #ffffff;
+    }
+
+    p.lead {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 680px;
+      margin-bottom: 48px;
+    }
+
+    .previews-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 28px;
+    }
+
+    a.preview-card {
+      color: inherit;
+      text-decoration: none;
+      background: var(--surface-card);
+      border: 1px solid var(--border-card);
+      border-radius: 24px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s, box-shadow 0.25s;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    a.preview-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(37, 211, 102, 0.45);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(37, 211, 102, 0.2);
+    }
+
+    a.preview-card:focus-visible {
+      outline: 3px solid var(--brand-green);
+      outline-offset: 4px;
+    }
+
+    /* Art Visualizer Container */
+    .card-art {
+      height: 230px;
+      position: relative;
+      display: grid;
+      place-items: center;
+      background: #0b1115;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .card-art.liquid {
+      background: radial-gradient(ellipse at 30% 20%, rgba(0, 168, 132, 0.35) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 80%, rgba(0, 92, 75, 0.3) 0%, transparent 60%),
+                  #0a1116;
+    }
+
+    .card-art.contacts {
+      background: radial-gradient(ellipse at 75% 25%, rgba(37, 211, 102, 0.25) 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 80%, rgba(0, 168, 132, 0.2) 0%, transparent 60%),
+                  #0c1419;
+    }
+
+    /* Mini Mock Device in Art */
+    .mini-mockup {
+      width: 180px;
+      height: 200px;
+      border: 3px solid rgba(255, 255, 255, 0.15);
+      border-bottom: none;
+      border-radius: 28px 28px 0 0;
+      align-self: end;
+      background: rgba(17, 27, 33, 0.85);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+      padding: 16px 12px 0;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .mockup-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .mockup-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .mockup-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand-green), var(--brand-teal));
+      flex-shrink: 0;
+    }
+
+    .mockup-lines {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .mockup-line {
+      height: 5px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      width: 85%;
+    }
+
+    .mockup-line.short {
+      width: 55%;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Floating Mini Dock */
+    .mini-glass-dock {
+      position: absolute;
+      bottom: 14px;
+      left: 18px;
+      right: 18px;
+      height: 28px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      color: var(--brand-green);
+      font-size: 10px;
+    }
+
+    /* Card Details */
+    .card-body {
+      padding: 26px 28px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .badge-pill {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      padding: 5px 10px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      align-self: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .badge-pill.new {
+      background: rgba(37, 211, 102, 0.12);
+      color: var(--brand-green);
+      border: 1px solid rgba(37, 211, 102, 0.3);
+    }
+
+    .badge-pill.existing {
+      background: rgba(0, 168, 132, 0.12);
+      color: var(--brand-teal);
+      border: 1px solid rgba(0, 168, 132, 0.3);
+    }
+
+    .card-body h2 {
+      font-size: 22px;
+      font-weight: 750;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      color: #ffffff;
+    }
+
+    .card-body p {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 24px;
+      flex: 1;
+    }
+
+    .card-action-link {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--brand-green);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: auto;
+    }
+
+    footer {
+      max-width: 1100px;
+      width: 100%;
+      margin: 40px auto 0;
+      padding: 24px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 12.5px;
+      color: var(--text-subtle);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    @media (max-width: 680px) {
+      h1 {
+        font-size: 38px;
+      }
+      .previews-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <main>
+    <div class="brand-header">
+      <div class="brand-badge" aria-hidden="true">i</div>
+      <div class="brand-title">
+        IndiChat <span>/ Design Preview Studio</span>
+      </div>
+    </div>
+
+    <h1>A space to explore.</h1>
+    <p class="lead">
+      Interactive browser previews for IndiChat mobile features and visual directions. Explore screens, test simulated interactions, and review design changes before code is implemented.
+    </p>
+
+    <div class="previews-grid">
+      
+      <!-- Liquid Glass Preview Card -->
+      <a class="preview-card" href="preview-liquid-glass.html" aria-label="Open Liquid Glass mobile proposal preview">
+        <div class="card-art liquid">
+          <div class="mini-mockup">
+            <div class="mockup-header-bar">
+              <span>IndiChat</span>
+              <span>● ●</span>
+            </div>
+            <div class="mockup-row">
+              <div class="mockup-avatar"></div>
+              <div class="mockup-lines">
+                <div class="mockup-line"></div>
+                <div class="mockup-line short"></div>
+              </div>
+            </div>
+            <div class="mockup-row">
+              <div class="mockup-avatar" style="background:#ec4899"></div>
+              <div class="mockup-lines">
+                <div class="mockup-line" style="width:70%"></div>
+                <div class="mockup-line short"></div>
+              </div>
+            </div>
+            <div class="mini-glass-dock">
+              <span>●</span>
+              <span>◆</span>
+              <span>▲</span>
+              <span>◉</span>
+              <span>●</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <span class="badge-pill new">● Design Proposal · Review Ready</span>
+          <h2>Liquid Glass Mobile UI</h2>
+          <p>
+            A comprehensive mobile preview demonstrating the distinctive Liquid Glass experience across Authentication, Messaging, and all 16 dedicated Settings pages. Features compact search fields, stable scrolling, in-app Appearance &amp; Materials controls, blur tuning, and solid fallback.
+          </p>
+          <span class="card-action-link">Explore mobile liquid glass ↗</span>
+        </div>
+      </a>
+
+      <!-- Find Contacts Feature Preview Card -->
+      <a class="preview-card" href="preview-find-contacts.html" aria-label="Open Find Contacts feature preview">
+        <div class="card-art contacts">
+          <div class="mini-mockup">
+            <div class="mockup-header-bar">
+              <span>Find Contacts</span>
+              <span>🔍</span>
+            </div>
+            <div class="mockup-row">
+              <div class="mockup-avatar" style="background:#10b981"></div>
+              <div class="mockup-lines">
+                <div class="mockup-line"></div>
+                <div class="mockup-line short"></div>
+              </div>
+            </div>
+            <div class="mockup-row">
+              <div class="mockup-avatar" style="background:#3b82f6"></div>
+              <div class="mockup-lines">
+                <div class="mockup-line" style="width:60%"></div>
+                <div class="mockup-line short"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <span class="badge-pill existing">● Feature Preview · Verified</span>
+          <h2>Find Your People</h2>
+          <p>
+            The comprehensive contact discovery feature preview demonstrating permission onboarding, address book sync, search filtering, matched friends, and invite flows.
+          </p>
+          <span class="card-action-link">Explore contact discovery ↗</span>
+        </div>
+      </a>
+
+    </div>
+
+    <footer>
+      <span>IndiChat Design System · Sample content & simulated interactions</span>
+      <span>No application code or backend contracts modified</span>
+    </footer>
+  </main>
+
+</body>
+</html>

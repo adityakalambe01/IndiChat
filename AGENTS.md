@@ -13,9 +13,10 @@
 1. **Backend**: Java 21 & Spring Boot 3.4 modular service (REST APIs + native WebSocket server).
 2. **Web Frontend**: React 19 + TypeScript powered by Vite and Vanilla CSS design tokens.
 3. **Mobile Frontend**: React Native (0.86+) + Expo (52+) using Expo Router v4 with Android native prebuild and APK/AAB build automation.
-4. **Shared Types**: `@chat/shared-types` TypeScript package containing cross-platform contracts, DTOs, and WebSocket event payloads.
-5. **Infrastructure**: Docker Compose stack containing PostgreSQL 16 (port `5554`), Redis 7 (`6379`), and MinIO S3-compatible Object Storage (`9000`/`9001`).
-6. **Release Artifacts**: Automated build scripts that compile and store production release artifacts (`release/android/`, `release/ios/`, etc.).
+4. **Desktop Frontend**: Electron 33+ native Linux client with system tray, embedded proxy, and AppImage/deb/snap distribution.
+5. **Shared Types**: `@chat/shared-types` TypeScript package containing cross-platform contracts, DTOs, and WebSocket event payloads.
+6. **Infrastructure**: Docker Compose stack containing PostgreSQL 16 (port `5554`), Redis 7 (`6379`), and MinIO S3-compatible Object Storage (`9000`/`9001`).
+7. **Release Artifacts**: Automated build scripts that compile and store production release artifacts (`release/android/`, `release/linux/`, etc.).
 
 ---
 
@@ -258,9 +259,29 @@ npm run build:android:bundle
 node scripts/build-android.js --clean
 ```
 Output files appear in:
-`release/android/IndiChat-release-<timestamp>.apk`  
-`release/android/IndiChat-debug-<timestamp>.apk`  
-`release/android/IndiChat-release-<timestamp>.aab`
+`release/android/IndiChat.apk` (or `IndiChat-release-<timestamp>.apk`)  
+`release/android/app-release.apk`  
+`release/android/IndiChat.aab`
+
+### 6. Automated iOS App & Simulator Compilation
+The build script automatically detects Xcode Developer tools, ensures CocoaPods is installed, prebuilds the native iOS workspace, syncs multi-resolution AppIcon assets, and compiles release binaries into `release/ios/`:
+
+```bash
+# Build iOS Simulator Release .app bundle (no signing certificates required):
+npm run build:ios:sim
+# Or alias:
+npm run build:ios
+
+# Build iOS Device Archive (.xcarchive):
+npm run build:ios:archive
+
+# Clean build and recompile:
+node scripts/build-ios.js --clean
+```
+Output files appear in:
+`release/ios/IndiChat.app` — Standalone compiled iOS application bundle  
+`release/ios/IndiChat-Simulator.zip` — Compressed bundle ready for iOS Simulator  
+`release/ios/icon.png` — 1024x1024 App Store icon
 
 ---
 

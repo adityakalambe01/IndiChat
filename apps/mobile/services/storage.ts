@@ -10,6 +10,7 @@ export const STORAGE_KEYS = {
   RECENT_GIFS: 'chat_recent_gifs',
   RECENT_STICKERS: 'chat_recent_stickers',
   CALL_HISTORY: 'chat_call_history',
+  LAST_BACKUP_PATH: 'chat_last_backup_path',
 };
 
 export const storage = {

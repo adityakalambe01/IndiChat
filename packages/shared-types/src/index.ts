@@ -187,3 +187,23 @@ export interface CallSignalPayload {
   signalType: 'offer' | 'answer' | 'ice-candidate' | 'hangup';
   data: unknown;
 }
+
+export interface MatchContactsRequest {
+  phoneNumbers: string[];
+}
+
+export interface MatchedContactDto {
+  userId: UUID;
+  username: string;
+  displayName: string;
+  avatarKey?: string;
+  phoneNumber: string;
+  isOnline?: boolean;
+  lastSeenAt?: string;
+}
+
+export interface MatchContactsResponse {
+  matches: MatchedContactDto[];
+  matchedCount: number;
+}
+
