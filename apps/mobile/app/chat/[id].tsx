@@ -28,6 +28,7 @@ import { api, getApiBaseUrl } from '../../services/api';
 import { wsClient } from '../../services/websocket';
 import { storage, STORAGE_KEYS } from '../../services/storage';
 import { callHistoryService, CallHistoryItem } from '../../services/callHistory';
+import { callService } from '../../services/callService';
 import { generateUUID } from '../../utils/uuid';
 import { EMOJI_CATEGORIES, EmojiItem } from '../../data/emojiData';
 import {
@@ -54,6 +55,7 @@ import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
 import { getDeterministicAvatarColor, FONTS } from '../../theme/tokens';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Emojis category tabs with icons
 const EMOJI_TAB_CATEGORIES = [
@@ -493,32 +495,8 @@ export default function ChatScreen() {
     title?: string;
   } | null>(null);
 
-  // Calling modal
-  const [activeCall, setActiveCall] = useState<{
-    targetName: string;
-    isVideo: boolean;
-    status: 'calling' | 'connected';
-    duration: number;
-    isMuted: boolean;
-  } | null>(null);
-
-  // Incoming call state in chat screen
-  const [incomingCall, setIncomingCall] = useState<{
-    senderUserId: string;
-    callerName: string;
-    isVideo: boolean;
-  } | null>(null);
-
-  const [isSpeakerOn, setIsSpeakerOn] = useState(false);
-  const [isFrontCamera, setIsFrontCamera] = useState(true);
-  const [isVideoMuted, setIsVideoMuted] = useState(false);
-
   const flatListRef = useRef<FlatList>(null);
   const hasAutoCalledRef = useRef(false);
-  const activeCallRef = useRef(activeCall);
-  activeCallRef.current = activeCall;
-  const incomingCallRef = useRef(incomingCall);
-  incomingCallRef.current = incomingCall;
 
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
@@ -641,7 +619,7 @@ export default function ChatScreen() {
   useEffect(() => {
     if (!currentUser || !conversationId) return;
     messages.forEach((msg) => {
-      if (msg.senderId !== currentUser.id) {
+      if (msg.senderId !== currentUser.id && UUID_REGEX.test(msg.id)) {
         const isRead = msg.receipts?.some((r) => r.userId === currentUser.id && r.readAt != null);
         if (!isRead) {
           wsClient.markRead(msg.id, conversationId);
@@ -659,11 +637,15 @@ export default function ChatScreen() {
       if (currentUser && msg.senderId !== currentUser.id) {
         if (msg.conversationId === conversationId) {
           // Since user is actively in this chat, mark new incoming message as seen immediately!
-          wsClient.markRead(msg.id, conversationId);
-          api.markRead(msg.id).catch(() => {});
+          if (UUID_REGEX.test(msg.id)) {
+            wsClient.markRead(msg.id, conversationId);
+            api.markRead(msg.id).catch(() => {});
+          }
         } else {
           // Message for another chat, acknowledge delivery
-          wsClient.markDelivered(msg.id, msg.conversationId);
+          if (UUID_REGEX.test(msg.id)) {
+            wsClient.markDelivered(msg.id, msg.conversationId);
+          }
         }
       }
 
@@ -708,78 +690,11 @@ export default function ChatScreen() {
       );
     });
 
-    const unsubCall = wsClient.onCallSignal((signal) => {
-      if (signal.signalType === 'offer' && signal.senderUserId) {
-        const caller = (signal.data as any)?.callerName || contactName || 'Incoming Caller';
-        setIncomingCall({
-          senderUserId: signal.senderUserId,
-          callerName: caller,
-          isVideo: Boolean((signal.data as any)?.isVideo),
-        });
-      } else if (signal.signalType === 'answer') {
-        setActiveCall((prev) => (prev ? { ...prev, status: 'connected' } : null));
-      } else if (signal.signalType === 'hangup') {
-        const call = activeCallRef.current;
-        const incoming = incomingCallRef.current;
-        if (incoming) {
-          callHistoryService.addCall({
-            conversationId: conversationId || undefined,
-            contactName: incoming.callerName || contactName,
-            targetUserId: incoming.senderUserId,
-            isVideo: incoming.isVideo,
-            type: 'missed',
-            duration: 'Missed',
-            subtitle: 'Missed',
-          });
-        } else if (call) {
-          const isConnected = call.status === 'connected' && call.duration > 0;
-          let durationText: string;
-          if (isConnected) {
-            if (call.duration < 60) {
-              durationText = `${call.duration} sec`;
-            } else {
-              const mins = Math.floor(call.duration / 60);
-              const secs = call.duration % 60;
-              durationText = secs > 0 ? `${mins} min ${secs} sec` : `${mins} min`;
-            }
-          } else {
-            durationText = 'No answer';
-          }
-
-          callHistoryService.addCall({
-            conversationId: conversationId || undefined,
-            contactName: contactName || call.targetName,
-            targetUserId: targetUserId || undefined,
-            isVideo: call.isVideo,
-            type: isConnected ? 'incoming' : 'missed',
-            duration: durationText,
-            subtitle: durationText,
-          });
-        }
-        setActiveCall(null);
-        setIncomingCall(null);
-      }
-    });
-
     return () => {
       unsubMsg();
       unsubReceipt();
-      unsubCall();
     };
   }, [conversationId, contactName]);
-
-  // Handle accepted call passed from chats screen navigation
-  useEffect(() => {
-    if (queryAcceptedCall) {
-      setActiveCall({
-        targetName: contactName,
-        isVideo: queryAcceptedCall === 'video',
-        status: 'connected',
-        duration: 0,
-        isMuted: false,
-      });
-    }
-  }, [queryAcceptedCall, contactName]);
 
   // Handle autoCall when entering from Calls tab or New Call contact modal
   useEffect(() => {
@@ -788,17 +703,6 @@ export default function ChatScreen() {
       handleStartCall(queryAutoCall === 'video');
     }
   }, [queryAutoCall, targetUserId]);
-
-  // Call duration counter
-  useEffect(() => {
-    let interval: any;
-    if (activeCall && activeCall.status === 'connected') {
-      interval = setInterval(() => {
-        setActiveCall((prev) => (prev ? { ...prev, duration: prev.duration + 1 } : null));
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [activeCall?.status]);
 
   const handleSendMessage = async (content: string, type: MessageType = 'TEXT') => {
     if (!content.trim()) return;
@@ -985,128 +889,12 @@ export default function ChatScreen() {
       return;
     }
 
-    setActiveCall({
+    callService.startCall({
+      targetUserId: effectiveTargetId,
       targetName: contactName,
       isVideo,
-      status: 'calling',
-      duration: 0,
-      isMuted: false,
-    });
-
-    wsClient.sendCallSignal({
-      targetUserId: effectiveTargetId,
-      signalType: 'offer',
-      data: {
-        isVideo,
-        callerName: currentUser?.displayName || currentUser?.username || 'IndiChat User',
-      },
-    });
-  };
-
-  const handleHangupCall = () => {
-    const effectiveTargetId =
-      targetUserId ||
-      (conversationId && !conversationId.startsWith('c-') ? conversationId : null);
-    if (effectiveTargetId) {
-      wsClient.sendCallSignal({
-        targetUserId: effectiveTargetId,
-        signalType: 'hangup',
-        data: {},
-      });
-    }
-
-    const currentCall = activeCallRef.current || activeCall;
-    if (currentCall) {
-      const isVoice = !currentCall.isVideo;
-      const isConnected = currentCall.status === 'connected' && currentCall.duration > 0;
-      let durationText: string;
-      if (isConnected) {
-        if (currentCall.duration < 60) {
-          durationText = `${currentCall.duration} sec`;
-        } else {
-          const mins = Math.floor(currentCall.duration / 60);
-          const secs = currentCall.duration % 60;
-          durationText = secs > 0 ? `${mins} min ${secs} sec` : `${mins} min`;
-        }
-      } else {
-        durationText = 'No answer';
-      }
-
-      const status = isConnected ? 'connected' : 'no_answer';
-
-      const callPayload = {
-        callType: isVoice ? 'voice' : 'video',
-        status,
-        duration: currentCall.duration,
-        durationText,
-        endedAt: new Date().toISOString(),
-      };
-
-      // 1. Post to chat thread as WhatsApp call bubble
-      handleSendMessage(JSON.stringify(callPayload), 'CALL');
-
-      // 2. Persist in call history logs
-      callHistoryService.addCall({
-        conversationId: conversationId || undefined,
-        contactName: contactName || currentCall.targetName,
-        targetUserId: effectiveTargetId || undefined,
-        isVideo: currentCall.isVideo,
-        type: 'outgoing',
-        duration: durationText,
-        subtitle: durationText,
-      });
-    }
-
-    setActiveCall(null);
-    setIncomingCall(null);
-  };
-
-  const handleAcceptIncomingCall = () => {
-    if (!incomingCall) return;
-    wsClient.sendCallSignal({
-      targetUserId: incomingCall.senderUserId,
-      signalType: 'answer',
-      data: {},
-    });
-    setTargetUserId(incomingCall.senderUserId);
-    setActiveCall({
-      targetName: incomingCall.callerName,
-      isVideo: incomingCall.isVideo,
-      status: 'connected',
-      duration: 0,
-      isMuted: false,
-    });
-    setIncomingCall(null);
-  };
-
-  const handleDeclineIncomingCall = () => {
-    if (!incomingCall) return;
-    wsClient.sendCallSignal({
-      targetUserId: incomingCall.senderUserId,
-      signalType: 'hangup',
-      data: {},
-    });
-
-    const callPayload = {
-      callType: incomingCall.isVideo ? 'video' : 'voice',
-      status: 'declined',
-      duration: 0,
-      durationText: 'Declined',
-      endedAt: new Date().toISOString(),
-    };
-    handleSendMessage(JSON.stringify(callPayload), 'CALL');
-
-    callHistoryService.addCall({
       conversationId: conversationId || undefined,
-      contactName: incomingCall.callerName,
-      targetUserId: incomingCall.senderUserId,
-      isVideo: incomingCall.isVideo,
-      type: 'missed',
-      duration: 'Declined',
-      subtitle: 'Declined',
     });
-
-    setIncomingCall(null);
   };
 
   const formatMessageTime = (isoString?: string) => {
@@ -1996,178 +1784,6 @@ export default function ChatScreen() {
                   <Ionicons name="send" size={20} color="#000" />
                 )}
               </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      )}
-
-      {/* Fullscreen Calling Interface */}
-      {activeCall && (
-        <Modal visible animationType="slide">
-          <View style={styles.callingOverlay}>
-            {/* Top Bar with Security Badge & Contact Name */}
-            <View style={styles.callingTopHeader}>
-              <View style={styles.e2eePill}>
-                <Ionicons name="lock-closed" size={13} color="#25D366" />
-                <Text style={styles.e2eePillText}>End-to-end encrypted</Text>
-              </View>
-              <Text style={styles.callingTargetName}>{activeCall.targetName}</Text>
-              <Text style={styles.callingStatusText}>
-                {activeCall.status === 'calling'
-                  ? 'Calling...'
-                  : `${activeCall.isVideo ? 'Video' : 'Voice'} Call • ${formatDuration(activeCall.duration)}`}
-              </Text>
-            </View>
-
-            {/* Video Call Body vs Voice Call Body */}
-            {activeCall.isVideo ? (
-              <View style={styles.videoStreamContainer}>
-                {/* Remote Video Stream Simulation */}
-                <View style={styles.remoteVideoCanvas}>
-                  {!isVideoMuted ? (
-                    <View style={styles.remoteVideoActiveFeed}>
-                      <View style={styles.callingAvatarLarge}>
-                        <Text style={styles.callingAvatarInitials}>
-                          {activeCall.targetName.charAt(0).toUpperCase()}
-                        </Text>
-                      </View>
-                      <Text style={styles.remoteVideoActiveLabel}>
-                        {activeCall.status === 'connected' ? 'Live Video Connected' : 'Connecting Video...'}
-                      </Text>
-                    </View>
-                  ) : (
-                    <View style={styles.videoOffPlaceholder}>
-                      <Ionicons name="videocam-off" size={48} color="#8696a0" />
-                      <Text style={{ color: '#8696a0', marginTop: 8, fontSize: 14 }}>Video Paused</Text>
-                    </View>
-                  )}
-                </View>
-
-                {/* Self Picture-in-Picture Preview Window */}
-                <View style={styles.selfPipWindow}>
-                  <View style={styles.pipInner}>
-                    <Ionicons name="person" size={26} color="#53bdeb" />
-                    <Text style={styles.pipText}>You</Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.pipFlipBtn}
-                    onPress={() => setIsFrontCamera((prev) => !prev)}
-                  >
-                    <Ionicons name="camera-reverse" size={16} color="#fff" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ) : (
-              /* Voice Call Concentric Waveform Avatar */
-              <View style={styles.voiceCallCenter}>
-                <View style={styles.callPulseOuter}>
-                  <View style={styles.callPulseMiddle}>
-                    <View style={styles.callingAvatar}>
-                      <Text style={styles.callingAvatarText}>
-                        {activeCall.targetName.charAt(0).toUpperCase()}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            )}
-
-            {/* Floating Glassmorphism Controls Dock */}
-            <View style={styles.callingControlsDock}>
-              {/* Speaker Toggle */}
-              <TouchableOpacity
-                style={[styles.callCtrlBtn, isSpeakerOn && styles.callCtrlBtnActive]}
-                onPress={() => setIsSpeakerOn((prev) => !prev)}
-              >
-                <Ionicons
-                  name={isSpeakerOn ? 'volume-high' : 'volume-medium-outline'}
-                  size={24}
-                  color={isSpeakerOn ? '#000' : '#fff'}
-                />
-              </TouchableOpacity>
-
-              {/* Video Toggle / Upgrade to Video */}
-              <TouchableOpacity
-                style={[
-                  styles.callCtrlBtn,
-                  activeCall.isVideo && !isVideoMuted && styles.callCtrlBtnActive,
-                ]}
-                onPress={() => {
-                  if (activeCall.isVideo) {
-                    setIsVideoMuted((prev) => !prev);
-                  } else {
-                    setActiveCall((prev) => (prev ? { ...prev, isVideo: true } : null));
-                  }
-                }}
-              >
-                <Ionicons
-                  name={
-                    activeCall.isVideo
-                      ? isVideoMuted
-                        ? 'videocam-off'
-                        : 'videocam'
-                      : 'videocam-outline'
-                  }
-                  size={24}
-                  color={activeCall.isVideo && !isVideoMuted ? '#000' : '#fff'}
-                />
-              </TouchableOpacity>
-
-              {/* Mic Mute Toggle */}
-              <TouchableOpacity
-                style={[styles.callCtrlBtn, activeCall.isMuted && styles.callCtrlBtnMuted]}
-                onPress={() => setActiveCall((prev) => (prev ? { ...prev, isMuted: !prev.isMuted } : null))}
-              >
-                <Ionicons
-                  name={activeCall.isMuted ? 'mic-off' : 'mic'}
-                  size={24}
-                  color="#fff"
-                />
-              </TouchableOpacity>
-
-              {/* End Call Button */}
-              <TouchableOpacity style={styles.hangupCircleBtn} onPress={handleHangupCall}>
-                <Ionicons name="call" size={28} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      )}
-
-      {/* Incoming Call Modal in chat screen */}
-      {incomingCall && (
-        <Modal visible transparent animationType="slide">
-          <View style={styles.incomingModalOverlay}>
-            <View style={styles.incomingModalCard}>
-              <View style={styles.incomingModalAvatarCircle}>
-                <Ionicons
-                  name={incomingCall.isVideo ? 'videocam' : 'call'}
-                  size={32}
-                  color="#25D366"
-                />
-              </View>
-              <Text style={styles.incomingModalCallerName}>{incomingCall.callerName}</Text>
-              <Text style={styles.incomingModalCallType}>
-                WhatsApp {incomingCall.isVideo ? 'Video' : 'Voice'} Call...
-              </Text>
-
-              <View style={styles.incomingModalButtonsRow}>
-                <TouchableOpacity
-                  style={[styles.incomingCircleBtn, styles.incomingDeclineBtn]}
-                  onPress={handleDeclineIncomingCall}
-                >
-                  <Ionicons name="call" size={24} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
-                  <Text style={styles.incomingBtnLabel}>Decline</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.incomingCircleBtn, styles.incomingAcceptBtn]}
-                  onPress={handleAcceptIncomingCall}
-                >
-                  <Ionicons name="call" size={24} color="#fff" />
-                  <Text style={styles.incomingBtnLabel}>Accept</Text>
-                </TouchableOpacity>
-              </View>
             </View>
           </View>
         </Modal>
