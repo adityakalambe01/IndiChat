@@ -96,18 +96,18 @@ if (!projectExists || forcePrebuild) {
     process.exit(prebuildRes.status || 1);
   }
 
-  // Run pod install in ios directory
-  console.log('\n📦 Step 2: Installing CocoaPods dependencies...');
-  const podRes = spawnSync('pod', ['install'], {
-    cwd: iosDir,
-    stdio: 'inherit',
-    env: process.env,
-    shell: true
-  });
-  if (podRes.status !== 0) {
-    console.error('\n❌ Error: CocoaPods install failed.');
-    process.exit(podRes.status || 1);
-  }
+}
+
+// Existing native projects also need dependency reconciliation after npm changes.
+console.log('\n📦 Step 2: Installing CocoaPods dependencies...');
+const podRes = spawnSync('pod', ['install'], {
+  cwd: iosDir,
+  stdio: 'inherit',
+  env: process.env,
+});
+if (podRes.status !== 0) {
+  console.error('\n❌ Error: CocoaPods install failed.');
+  process.exit(podRes.status || 1);
 }
 
 // 5. Synchronize AppIcon assets

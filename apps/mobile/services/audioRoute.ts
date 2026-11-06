@@ -1,15 +1,13 @@
 /**
  * apps/mobile/services/audioRoute.ts
  *
- * TypeScript wrapper for native Android AudioManager controller (IndiChatAudioRoute):
+ * Native Android AudioManager / iOS RTCAudioSession routing (IndiChatAudioRoute):
  *  - Controls speakerphone vs earpiece communication device routing
  *  - Handles audio focus for USAGE_VOICE_COMMUNICATION
- *  - Graceful fallback for Web and non-Android environments
+ *  - Reports unsupported routing without inventing a device state
  */
 
 import { NativeModules, Platform } from 'react-native';
-
-const { IndiChatAudioRoute } = NativeModules;
 
 export type AudioRouteName = 'speaker' | 'earpiece' | 'bluetooth' | 'wired' | 'unknown';
 
@@ -19,21 +17,26 @@ export interface AudioRouteStatus {
 }
 
 class AudioRouteService {
-  private isAvailable: boolean = Platform.OS === 'android' && Boolean(IndiChatAudioRoute);
+  get isAvailable(): boolean {
+    return (Platform.OS === 'android' || Platform.OS === 'ios') &&
+      ['startCallAudio', 'setSpeakerphoneOn', 'getAudioRoute', 'stopCallAudio'].every(
+        key => typeof NativeModules.IndiChatAudioRoute?.[key] === 'function'
+      );
+  }
 
   /**
    * Initializes call audio mode (MODE_IN_COMMUNICATION) and requests audio focus.
    */
   async startCallAudio(defaultToSpeaker: boolean = false): Promise<{ success: boolean; currentRoute: AudioRouteName }> {
     if (!this.isAvailable) {
-      return { success: true, currentRoute: defaultToSpeaker ? 'speaker' : 'earpiece' };
+      return { success: false, currentRoute: 'unknown' };
     }
     try {
-      const res = await IndiChatAudioRoute.startCallAudio(defaultToSpeaker);
-      return { success: true, currentRoute: (res?.currentRoute as AudioRouteName) || (defaultToSpeaker ? 'speaker' : 'earpiece') };
+      const res = await NativeModules.IndiChatAudioRoute.startCallAudio(defaultToSpeaker);
+      return { success: res?.success !== false && ['speaker', 'earpiece', 'bluetooth', 'wired'].includes(res?.currentRoute), currentRoute: res?.currentRoute || 'unknown' };
     } catch (e) {
       console.warn('[AudioRoute] startCallAudio failed:', e);
-      return { success: false, currentRoute: defaultToSpeaker ? 'speaker' : 'earpiece' };
+      return { success: false, currentRoute: 'unknown' };
     }
   }
 
@@ -42,18 +45,18 @@ class AudioRouteService {
    */
   async setSpeakerphoneOn(enable: boolean): Promise<{ success: boolean; isSpeaker: boolean; currentRoute: AudioRouteName }> {
     if (!this.isAvailable) {
-      return { success: true, isSpeaker: enable, currentRoute: enable ? 'speaker' : 'earpiece' };
+      return { success: false, isSpeaker: false, currentRoute: 'unknown' };
     }
     try {
-      const res = await IndiChatAudioRoute.setSpeakerphoneOn(enable);
+      const res = await NativeModules.IndiChatAudioRoute.setSpeakerphoneOn(enable);
       return {
-        success: true,
+        success: res?.success !== false && typeof res?.isSpeakerphoneOn === 'boolean' && ['speaker', 'earpiece', 'bluetooth', 'wired'].includes(res?.currentRoute),
         isSpeaker: Boolean(res?.isSpeakerphoneOn),
-        currentRoute: (res?.currentRoute as AudioRouteName) || (enable ? 'speaker' : 'earpiece'),
+        currentRoute: (res?.currentRoute as AudioRouteName) || 'unknown',
       };
     } catch (e) {
       console.warn('[AudioRoute] setSpeakerphoneOn failed:', e);
-      return { success: false, isSpeaker: enable, currentRoute: enable ? 'speaker' : 'earpiece' };
+      return { success: false, isSpeaker: false, currentRoute: 'unknown' };
     }
   }
 
@@ -62,10 +65,10 @@ class AudioRouteService {
    */
   async getAudioRoute(): Promise<AudioRouteStatus> {
     if (!this.isAvailable) {
-      return { route: 'earpiece', isSpeaker: false };
+      return { route: 'unknown', isSpeaker: false };
     }
     try {
-      const res = await IndiChatAudioRoute.getAudioRoute();
+      const res = await NativeModules.IndiChatAudioRoute.getAudioRoute();
       return {
         route: (res?.route as AudioRouteName) || 'unknown',
         isSpeaker: Boolean(res?.isSpeaker),
@@ -88,11 +91,11 @@ class AudioRouteService {
    */
   async stopCallAudio(): Promise<boolean> {
     if (!this.isAvailable) {
-      return true;
+      return false;
     }
     try {
-      await IndiChatAudioRoute.stopCallAudio();
-      return true;
+      const result = await NativeModules.IndiChatAudioRoute.stopCallAudio();
+      return result === true || result?.success === true;
     } catch (e) {
       console.warn('[AudioRoute] stopCallAudio failed:', e);
       return false;

@@ -29,6 +29,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { callService, ActiveCallSession } from '../services/callService';
+import { observeNativeRTCView, renderableVideoURL } from '../services/nativeWebRTC';
+import { audioRouteService } from '../services/audioRoute';
 import { LiquidGlassSurface } from './LiquidGlassSurface';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -72,23 +74,12 @@ export const CallOverlay: React.FC = () => {
       setSession(active);
     });
 
-    // Dynamically load RTCView from react-native-webrtc only when native module has real bindings
-    const hasNativeWebRTC = Boolean(
-      NativeModules &&
-      NativeModules.WebRTCModule &&
-      typeof (NativeModules.WebRTCModule as any).startCall === 'function'
+    const cancelViewLoad = observeNativeRTCView(
+      NativeModules.WebRTCModule,
+      view => setRtcViewComponent(() => view),
     );
-    if (hasNativeWebRTC) {
-      import('react-native-webrtc')
-        .then((m) => {
-          if (m.RTCView) {
-            setRtcViewComponent(() => m.RTCView);
-          }
-        })
-        .catch(() => {});
-    }
 
-    return () => unsub();
+    return () => { cancelViewLoad(); unsub(); };
   }, []);
 
   // Subtle pulse animation - kept static at 1.0 to preserve UI stability and avoid starving Android UiAutomation
@@ -101,6 +92,7 @@ export const CallOverlay: React.FC = () => {
   }
 
   const RTCView = rtcViewComponent;
+  const remoteVideoURL = renderableVideoURL(session.remoteStream);
   const isIncomingRinging = session.state === 'incoming_ringing';
   const isOutgoingRinging = session.state === 'outgoing_ringing';
   const isConnecting = session.state === 'connecting';
@@ -186,7 +178,7 @@ export const CallOverlay: React.FC = () => {
       <StatusBar barStyle="light-content" />
       <View style={styles.fullscreenCallContainer}>
         {/* VIDEO MODE: Remote video stream */}
-        {session.isVideo && session.remoteStream && RTCView ? (
+        {session.isVideo && remoteVideoURL && RTCView ? (
           <View style={styles.remoteVideoContainer}>
             <RTCViewSafeBoundary
               fallback={
@@ -196,7 +188,8 @@ export const CallOverlay: React.FC = () => {
               }
             >
               <RTCView
-                streamURL={session.remoteStream.toURL()}
+                streamURL={remoteVideoURL}
+                zOrder={0}
                 style={styles.remoteVideo}
                 objectFit="cover"
               />
@@ -210,6 +203,7 @@ export const CallOverlay: React.FC = () => {
                     streamURL={session.localStream.toURL()}
                     style={styles.localPipVideo}
                     mirror={session.isFrontCamera}
+                    zOrder={1}
                     objectFit="cover"
                   />
                 </RTCViewSafeBoundary>
@@ -225,6 +219,9 @@ export const CallOverlay: React.FC = () => {
               </View>
             </Animated.View>
 
+            {session.isVideo && !RTCView && (
+              <Text style={styles.videoFallbackText}>Video view unavailable on this build</Text>
+            )}
             <Text style={styles.peerNameText} numberOfLines={1}>
               {session.peerName}
             </Text>
@@ -333,11 +330,13 @@ export const CallOverlay: React.FC = () => {
 
           {/* 4. Speakerphone Toggle */}
           <TouchableOpacity
-            style={[styles.dockBtn, session.isSpeakerOn && styles.dockBtnActiveGreen]}
+            disabled={!audioRouteService.isAvailable}
+            accessibilityState={{ disabled: !audioRouteService.isAvailable }}
+            style={[styles.dockBtn, session.isSpeakerOn && styles.dockBtnActiveGreen, !audioRouteService.isAvailable && { opacity: 0.4 }]}
             onPress={() => callService.toggleSpeakerphone()}
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel={session.isSpeakerOn ? 'Switch to Earpiece' : 'Switch to Speakerphone'}
+            accessibilityLabel={!audioRouteService.isAvailable ? 'Audio routing unavailable' : session.isSpeakerOn ? 'Switch to Earpiece' : 'Switch to Speakerphone'}
           >
             <Ionicons
               name={session.isSpeakerOn ? 'volume-high' : 'volume-medium'}
