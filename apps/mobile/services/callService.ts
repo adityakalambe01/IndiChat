@@ -337,7 +337,7 @@ class CallService {
       statusText: 'Calling...',
       isMuted: false,
       isVideoMuted: !hasVideo,
-      isSpeakerOn: hasVideo,
+      isSpeakerOn: false,
       isFrontCamera: true,
       isPeerMuted: false,
       isReceivingMedia: false,
@@ -357,10 +357,12 @@ class CallService {
 
     // Initialize native audio routing
     try {
-      await audioRouteService.startCallAudio(hasVideo);
-      const speakerOn = await audioRouteService.isSpeakerphoneOn();
-      if (this.currentSession) {
-        this.currentSession.isSpeakerOn = speakerOn;
+      const session = this.currentSession;
+      const generation = this.audioRouteGeneration;
+      const result = await audioRouteService.startCallAudio(hasVideo);
+      if (this.currentSession !== session || generation !== this.audioRouteGeneration) return { success: false, error: 'Call ended during audio setup.' };
+      if (result.success && session) {
+        session.isSpeakerOn = result.currentRoute === 'speaker';
       }
     } catch (e) {
       console.warn('[CallService] AudioRoute initialization note:', e);
@@ -504,7 +506,7 @@ class CallService {
         statusText: `Incoming ${isVideo ? 'Video' : 'Voice'} Call...`,
         isMuted: false,
         isVideoMuted: !isVideo,
-        isSpeakerOn: isVideo,
+        isSpeakerOn: false,
         isFrontCamera: true,
         isPeerMuted: false,
         isReceivingMedia: false,
@@ -659,7 +661,7 @@ class CallService {
       statusText: 'Connecting...',
       isMuted: false,
       isVideoMuted: !hasVideo,
-      isSpeakerOn: hasVideo,
+      isSpeakerOn: false,
       isFrontCamera: true,
       isPeerMuted: false,
       isReceivingMedia: false,
@@ -676,10 +678,12 @@ class CallService {
     this.bindPeerConnectionEvents(pc, remoteStream);
 
     try {
-      await audioRouteService.startCallAudio(hasVideo);
-      const speakerOn = await audioRouteService.isSpeakerphoneOn();
-      if (this.currentSession) {
-        this.currentSession.isSpeakerOn = speakerOn;
+      const session = this.currentSession;
+      const generation = this.audioRouteGeneration;
+      const result = await audioRouteService.startCallAudio(hasVideo);
+      if (this.currentSession !== session || generation !== this.audioRouteGeneration) return false;
+      if (result.success && session) {
+        session.isSpeakerOn = result.currentRoute === 'speaker';
       }
     } catch (e) {
       console.warn('[CallService] AudioRoute note on accept:', e);
@@ -831,17 +835,23 @@ class CallService {
   /**
    * Toggle speakerphone vs earpiece via native AudioRouteModule.
    */
+  private audioRouteGeneration = 0;
+
   public async toggleSpeakerphone(): Promise<boolean> {
-    if (!this.currentSession) return false;
-    const nextSpeaker = !this.currentSession.isSpeakerOn;
+    const session = this.currentSession;
+    const generation = this.audioRouteGeneration;
+    if (!session || session.state === 'ended' || session.state === 'idle') return false;
     try {
-      await audioRouteService.setSpeakerphoneOn(nextSpeaker);
-      this.currentSession.isSpeakerOn = nextSpeaker;
-      this.notify();
-      return nextSpeaker;
+      const result = await audioRouteService.setSpeakerphoneOn(!session.isSpeakerOn);
+      if (generation !== this.audioRouteGeneration || this.currentSession !== session || (['ended', 'idle'] as string[]).includes(session.state)) return false;
+      if (result.success) {
+        session.isSpeakerOn = result.isSpeaker;
+        this.notify();
+      }
+      return session.isSpeakerOn;
     } catch (e) {
       console.warn('[CallService] Failed to toggle speakerphone:', e);
-      return this.currentSession.isSpeakerOn;
+      return this.currentSession === session && session.isSpeakerOn;
     }
   }
 
@@ -870,18 +880,23 @@ class CallService {
     pc.ontrack = (event: any) => {
       if (this.pc !== pc) return;
       console.log('[CallService] Remote track received:', event.track?.kind);
-      if (event.track) {
-        remoteStream.addTrack(event.track);
+      if (event.track && this.currentSession) {
+        const session = this.currentSession;
+        // Event streams already have native track bindings. Prefer their react
+        // tag so RTCView does not resolve a placeholder stream before tracks exist.
+        if (event.streams?.[0]) session.remoteStream = event.streams[0];
+        else remoteStream.addTrack(event.track);
+        this.notify();
 
         // Listen for peer track mute/unmute
         event.track.onmute = () => {
-          if (event.track.kind === 'audio' && this.currentSession) {
+          if (event.track.kind === 'audio' && this.currentSession === session && this.pc === pc) {
             this.currentSession.isPeerMuted = true;
             this.notify();
           }
         };
         event.track.onunmute = () => {
-          if (event.track.kind === 'audio' && this.currentSession) {
+          if (event.track.kind === 'audio' && this.currentSession === session && this.pc === pc) {
             this.currentSession.isPeerMuted = false;
             this.notify();
           }
@@ -1061,6 +1076,7 @@ class CallService {
     statusText = 'Call ended',
     notifyPeer = true
   ): Promise<void> {
+    this.audioRouteGeneration++;
     this.clearTimers();
 
     if (!this.currentSession) return;
@@ -1085,13 +1101,6 @@ class CallService {
       this.notify();
     }
 
-    // Stop native audio routing and restore audio manager mode
-    try {
-      await audioRouteService.stopCallAudio();
-    } catch (e) {
-      console.warn('[CallService] AudioRoute cleanup note:', e);
-    }
-
     // Release local media capture tracks
     if (session.localStream) {
       try {
@@ -1106,17 +1115,30 @@ class CallService {
       session.localStream = null;
     }
 
-    // Close and release RTCPeerConnection
-    if (this.pc) {
+    // Release the ending call before awaiting native routing. A new call may
+    // start while that promise is pending; cleanup must never close its peer.
+    const peer = this.pc;
+    this.pc = null;
+    if (peer) {
       try {
-        this.pc.close();
+        peer.onconnectionstatechange = null;
+        peer.oniceconnectionstatechange = null;
+        peer.onicecandidate = null;
+        peer.ontrack = null;
+        peer.close();
       } catch {}
-      this.pc = null;
     }
 
     if (this.candidateQueue) {
       this.candidateQueue.clear();
       this.candidateQueue = null;
+    }
+
+    // Stop native audio routing and restore audio manager mode
+    try {
+      await audioRouteService.stopCallAudio();
+    } catch (e) {
+      console.warn('[CallService] AudioRoute cleanup note:', e);
     }
 
     // Record Call in persistent history
@@ -1156,6 +1178,7 @@ class CallService {
       console.warn('[CallService] Failed to record call in history:', err);
     }
 
+    if (this.currentSession !== session) return;
     if (this.cleanupTimer) {
       clearTimeout(this.cleanupTimer);
       this.cleanupTimer = null;
@@ -1169,6 +1192,7 @@ class CallService {
       this.notify();
 
       this.cleanupTimer = setTimeout(() => {
+        if (this.currentSession !== session) return;
         this.currentSession = null;
         this.pendingIncomingOfferData = null;
         this.cleanupTimer = null;

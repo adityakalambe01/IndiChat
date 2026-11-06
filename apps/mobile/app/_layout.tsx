@@ -13,11 +13,12 @@ import { useFonts } from 'expo-font';
 import { ThemeProvider, useTheme } from '../theme/useTheme';
 import { LiquidGlassSurface } from '../components/LiquidGlassSurface';
 import { AmbientCanvas } from '../components/AmbientCanvas';
+import { navigationAnimation } from '../theme/navigation';
 import { CallOverlay } from '../components/CallOverlay';
 
 function RootNavigation() {
   const router = useRouter();
-  const { palette, isDark } = useTheme();
+  const { palette, isDark, isReducedMotion } = useTheme();
   const [sessionRevokedReason, setSessionRevokedReason] = useState<string | null>(null);
 
   useEffect(() => {
@@ -90,7 +91,7 @@ function RootNavigation() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: 'transparent' },
-          animation: 'slide_from_right',
+          animation: navigationAnimation(isReducedMotion),
         }}
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />

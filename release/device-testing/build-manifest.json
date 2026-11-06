@@ -1,0 +1,971 @@
+{
+  "built_at_utc": "2026-11-06T17:59:17.022461+00:00",
+  "revision": "613df0b4aa05bfc4c297c10fda0751e3b7208d15",
+  "includes_uncommitted_changes": true,
+  "source_manifest_sha256": "46cc49ecaed20357e20121e5d13bc85cf8934dbd636f1a1ac7f111caaf04d2aa",
+  "files": [
+    {
+      "path": "apps/mobile/android/.gitignore",
+      "sha256": "1cafe560047f690b751dcd151ddb2fc15ac6746c816c0e19e39ab15bdf804cfa"
+    },
+    {
+      "path": "apps/mobile/android/app/build.gradle",
+      "sha256": "f4b9e7054c2715406d02d0628aeaa27e5512deb9de30e519befdb9baafa32429"
+    },
+    {
+      "path": "apps/mobile/android/app/debug.keystore",
+      "sha256": "221e0a3106aa4c3ccc154e0a418b55020b3f9ea6e84f92e8749cd9e2f39f5e58"
+    },
+    {
+      "path": "apps/mobile/android/app/proguard-rules.pro",
+      "sha256": "8bd4d7b69a1d78e8322b459b5e8d48234adce7481df04da34c0140d52ffb367a"
+    },
+    {
+      "path": "apps/mobile/android/app/src/debug/AndroidManifest.xml",
+      "sha256": "fb1795032c764d975376e1612ab7022058eca2268a45efbe731a47a5d3ac0f60"
+    },
+    {
+      "path": "apps/mobile/android/app/src/debugOptimized/AndroidManifest.xml",
+      "sha256": "fb1795032c764d975376e1612ab7022058eca2268a45efbe731a47a5d3ac0f60"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/AndroidManifest.xml",
+      "sha256": "07e4ac3dd3bc4103c9563dd4130b6f0e9c338976cdb0f5ccdd33fae5f77a781e"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/assets/fonts/Inter-Bold.ttf",
+      "sha256": "b37284b5701b6b168dfc770aa1a4ac492106422fd3ba76bc7641e37434e8019c"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/assets/fonts/Inter-Medium.ttf",
+      "sha256": "8c883f63b2c4157d997319f2c8bc6995ed4357ef371940d31ca159004a4aae63"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/assets/fonts/Inter-Regular.ttf",
+      "sha256": "1b08e7fc267a5c7e1d614100f604b83e7e8a0be241f0f288faa2b3ac93a683ba"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/assets/fonts/Inter-SemiBold.ttf",
+      "sha256": "e7a1aaf7eda9f2fad4131725fa556265ec75ca7b2d756260173a040363e8d4f7"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/java/com/indichat/app/AudioRouteModule.kt",
+      "sha256": "3b1b2b691ce0bbd10a705cb4fa8eb9554e07de294c897c336175c3a7586ad23d"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/java/com/indichat/app/AudioRoutePackage.kt",
+      "sha256": "e39d46f90be749b2da9be3448e4df78137cd39842d5f16bbb1df63a0e5528e35"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/java/com/indichat/app/MainActivity.kt",
+      "sha256": "f9bca23af628127e50d9b81379f0bf2208abaec7c1a937fe47187b18eca7bfa7"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/java/com/indichat/app/MainApplication.kt",
+      "sha256": "65a38443e9ebe00e0da1748f887b543668998ffa3bcb39613a1042c4e143f58b"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/drawable-hdpi/notification_icon.png",
+      "sha256": "40857c616225c55551f6fd668d63d14bd945a341f0f27ad77949f1490203e032"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/drawable-hdpi/splashscreen_logo.png",
+      "sha256": "de493bea3fe222a87262ac441ce25822b72227c499b566b446d43f507b5d569f"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/drawable-mdpi/notification_icon.png",
+      "sha256": "5432388c7443949a1c40aaf2e7edecd5b1b9772f70c8fdde247f4a2df5c9f474"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/drawable-mdpi/splashscreen_logo.png",
+      "sha256": "9266465eaaf99020b2270e83fef396ec1c6452143b5df7298a449a5c19ade0f7"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/drawable-xhdpi/notification_icon.png",
+      "sha256": "b562b25efc0a0b2a02529147ada6a05f13306822cef97bf78ff5a008531f8f3c"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/drawable-xhdpi/splashscreen_logo.png",
+      "sha256": "9ac37b57596be138ad8fa987640c6b60ded326a14f30ee371033094545798fa1"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/drawable-xxhdpi/notification_icon.png",
+      "sha256": "51cbd2ff086e7fbe229d1c20c267746e9f8016fc7f4bc2d4e81fedfc1896d850"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/drawable-xxhdpi/splashscreen_logo.png",
+      "sha256": "df1bcc648b35f43696e906a8b78b29fb9c9b703b97c6e7dfc421d938c1adb1fb"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/drawable-xxxhdpi/notification_icon.png",
+      "sha256": "3ef845d78fc4db5d264933c8bc8f7cdb6780a48d46612b2e74529319f6a93727"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/drawable-xxxhdpi/splashscreen_logo.png",
+      "sha256": "a8875f85dbae725284210db32fe0317aded962d6845ecd55f10406c8dd8b7413"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/drawable/ic_launcher_background.xml",
+      "sha256": "51fca95679d075ddbe2b9fe7ad2efb5ef545c5770a9ad6cafe8bf610c18c67be"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/drawable/rn_edit_text_material.xml",
+      "sha256": "738e3aaad53180caba1419a6d5db8465a0742662fe59a4bbaf05f1061cbc3390"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
+      "sha256": "03d70962a0beea2bb6ab1a838b015d90da6c33adb045ff85f7b198aca70df08d"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml",
+      "sha256": "03d70962a0beea2bb6ab1a838b015d90da6c33adb045ff85f7b198aca70df08d"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-hdpi/ic_launcher.png",
+      "sha256": "67996acc3330098e3773361abf7648aa4b1116a546c5b6af422516cf11f0d781"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png",
+      "sha256": "09d401588fa3de25a70d0778c5a5ffeb032b620b0f103670b7fae4787bf096e4"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png",
+      "sha256": "0ab880b9cec0f94e0f29bfda2d29d30ab0ca88b0661c58e93ad3ebf0219d2ba2"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-mdpi/ic_launcher.png",
+      "sha256": "f1c20e85b5d1ae35d4d012a044b6ae2e47ada395137590e5cff1eeb376d8e13f"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png",
+      "sha256": "55b30eb49abec31c760708bf20128fee844b6911b5cf2bb7992a7cdcfa2fec27"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png",
+      "sha256": "c5b7d9df2b6ae1339264405f1592ba8dd5449cc81a23e018da009de896aeb524"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png",
+      "sha256": "3fae7ecfc7bd781bd413d6161bf98cdce88a2ef5bfdfc3384349c39f1dbd5da1"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png",
+      "sha256": "902406642dc6a4482f951d5c1fa56a9e19989fc38d5d2e8261b8b2ea27cef599"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png",
+      "sha256": "f5b0c80b01ff9f388bd08a5671e168b9d7c41893544159b2506e38af1fc604d8"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+      "sha256": "cb939c94fabfc8381f851f14ce58c5ce0c664aa6b164be828a376179027440b2"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png",
+      "sha256": "f72489911d0f87bb286321532f48ff57a211f7fe78cb0f89039300b80e584d26"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png",
+      "sha256": "8e27aec9ba8c871385bdf8ad5a8f2740cc138e5ee8094ac3e6c70d8271398e68"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+      "sha256": "4c2da7139c8d694d0eaa5e79348ad60858ddc3dca6183d745541398100b1786c"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png",
+      "sha256": "de493bea3fe222a87262ac441ce25822b72227c499b566b446d43f507b5d569f"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png",
+      "sha256": "9ebe57093548d9ba677674422e352f1eda87688132c0c2baf077d7c11f2a49c5"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/values-night/colors.xml",
+      "sha256": "c30a9f37e6b34372e1db8c812d64a18719acf7c52c11ff2f7e5e5ed5e05c2072"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/values/colors.xml",
+      "sha256": "8bdff3d024166fe2aa86955136ea7b96c7b2426ced96a6801c064e4007cb90d9"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/values/strings.xml",
+      "sha256": "39d3964ef3341306609bb42a422ce316a73ec2b20f5f318a1e136d057ce5c576"
+    },
+    {
+      "path": "apps/mobile/android/app/src/main/res/values/styles.xml",
+      "sha256": "e40414258372e05336fde31cd6a59ba286f0735dcc548fec42180b59af12b0f0"
+    },
+    {
+      "path": "apps/mobile/android/build.gradle",
+      "sha256": "70b1557db64ee8d7ba826e912256493e9bbdadd80a0e2aea48bf1ae423bca8ae"
+    },
+    {
+      "path": "apps/mobile/android/gradle.properties",
+      "sha256": "14c475cd96b0036ff21789c455a7bde84d903d92d47febde85d3bb206a2023b9"
+    },
+    {
+      "path": "apps/mobile/android/gradle/wrapper/gradle-wrapper.jar",
+      "sha256": "b3a875ddc1f044746e1b1a55f645584505f4a10438c1afea9f15e92a7c42ec13"
+    },
+    {
+      "path": "apps/mobile/android/gradle/wrapper/gradle-wrapper.properties",
+      "sha256": "00995eb9aec39c7e029736a4f980da37409c1035e377142f37b5f4eed111d1be"
+    },
+    {
+      "path": "apps/mobile/android/gradlew",
+      "sha256": "fb68debc1b1acf8ec55dc0d5e5495e1dedd0bd6b61f304bee61613eeb2bd9b92"
+    },
+    {
+      "path": "apps/mobile/android/gradlew.bat",
+      "sha256": "982f1b2979dd2d13505c11e92192ab43eef338242ca61587f86f8d7fbc86f67b"
+    },
+    {
+      "path": "apps/mobile/android/settings.gradle",
+      "sha256": "309fb751a840b8c5edca04c8c9b448ecb21ce8df8b0a1c5e8ca316db9aea1ef9"
+    },
+    {
+      "path": "apps/mobile/app.json",
+      "sha256": "86c484ac0bd95c6be91a5d8ca4f415c63058439f9794765f0b3326a595d44c4b"
+    },
+    {
+      "path": "apps/mobile/app/_layout.tsx",
+      "sha256": "0cb54b0cc08693e8a94096a30c3395c23268ffdffe1564272c2ca75e03d2ea8d"
+    },
+    {
+      "path": "apps/mobile/app/chat/[id].tsx",
+      "sha256": "167ccbf3bc38c59c366e0b60019011e7d6054d70bdc5559a108698b4f7861ff9"
+    },
+    {
+      "path": "apps/mobile/app/chats.tsx",
+      "sha256": "9594cca63c990cafa8e214cc72dd5c1cc5b5059d802ecc04891ace464aad2850"
+    },
+    {
+      "path": "apps/mobile/app/contacts.tsx",
+      "sha256": "fae7b458c45704a19113629d88b56018f3ee0bd0c0cc33ecdd5297dac6e4a252"
+    },
+    {
+      "path": "apps/mobile/app/index.tsx",
+      "sha256": "32034221f70c305bb45f3d455c646ecf87d00e3255ce5010e5bce27205a856dd"
+    },
+    {
+      "path": "apps/mobile/app/settings/account.tsx",
+      "sha256": "fe4fb7093a62cbebda4133317286d6c76f7460e7561cd207197ae765c10fc7f5"
+    },
+    {
+      "path": "apps/mobile/app/settings/appearance.tsx",
+      "sha256": "ee0310a0d6bce84cbe194ad1c5eb91938b0da19239b369b9e167dc20ca28e17e"
+    },
+    {
+      "path": "apps/mobile/app/settings/backup.tsx",
+      "sha256": "afca61b1060b62cea161872136333622fbceb8e974173c081cb1983412dfefeb"
+    },
+    {
+      "path": "apps/mobile/app/settings/chats.tsx",
+      "sha256": "ea380698197026f21453c2aee896e63c036a25e854b188c21b5e2e80ec8473f1"
+    },
+    {
+      "path": "apps/mobile/app/settings/delete-account.tsx",
+      "sha256": "3b98743d2e8e10909b40de3c598a44d4bb1e7f27b69f7d25a10f60eac259d486"
+    },
+    {
+      "path": "apps/mobile/app/settings/help.tsx",
+      "sha256": "9f87742a35e87a3876022f438b38a2fab542eccad84bfebf39cf03df61f24b2e"
+    },
+    {
+      "path": "apps/mobile/app/settings/index.tsx",
+      "sha256": "81389b33e879e3ff67db30d5c26c7a211661d5b7b20624660a55c98f56fc8c34"
+    },
+    {
+      "path": "apps/mobile/app/settings/language.tsx",
+      "sha256": "f590f85973d3abbfc1dfe2c5f914a302b010ff4a3d86a96f6db045311dbe3a11"
+    },
+    {
+      "path": "apps/mobile/app/settings/link-device.tsx",
+      "sha256": "a99f81e0e0937e38efa53852c4193be9e9f27986c29070fbb2962c9d65830708"
+    },
+    {
+      "path": "apps/mobile/app/settings/linked-devices.tsx",
+      "sha256": "e5a634a71cc46791b909066b11266ae8ab6ead4754d5ee80ea8a321fe5f6a868"
+    },
+    {
+      "path": "apps/mobile/app/settings/notifications.tsx",
+      "sha256": "e8141347c8ed21f771d648b6662dfb5294594db28e55d5fc48ab8398b7bc97f0"
+    },
+    {
+      "path": "apps/mobile/app/settings/passkeys.tsx",
+      "sha256": "f87be5b7d14f12991ef98bdbf7eed1cf4570f7af109ad320f5974c83befe8e48"
+    },
+    {
+      "path": "apps/mobile/app/settings/password.tsx",
+      "sha256": "0cfa43f9e124da7ca57043fb5b51001ecf0bccc01c1049e052dcd5f3d8c6d38d"
+    },
+    {
+      "path": "apps/mobile/app/settings/phone.tsx",
+      "sha256": "afa5b3c98d6e4dd9043c65ee7dc5ede508f04a2be01a9e06fa75773097f7ce83"
+    },
+    {
+      "path": "apps/mobile/app/settings/privacy.tsx",
+      "sha256": "27dacabedeca862e64cc50a99181525992616ff6d040f9cc7f046a4145abaa02"
+    },
+    {
+      "path": "apps/mobile/app/settings/profile.tsx",
+      "sha256": "caea15e1837eb9abeae898b668b1384b6f12f0764a0936683934fbc67ebe3a6f"
+    },
+    {
+      "path": "apps/mobile/app/settings/server.tsx",
+      "sha256": "e280dd261326f14f449f24f28ceca6c1b8483db3f23eec9fc7957d23897a722a"
+    },
+    {
+      "path": "apps/mobile/app/settings/storage.tsx",
+      "sha256": "792b4e233e27b1f6f125e92759e07a4052e979df864c7a915e7843aa1fad6897"
+    },
+    {
+      "path": "apps/mobile/app/settings/two-factor.tsx",
+      "sha256": "df8b3abc5890dd5c98c0818b9cc9a20940b270a6dbee7b1d21dc95569bcfe82f"
+    },
+    {
+      "path": "apps/mobile/app/settings/wallpaper.tsx",
+      "sha256": "6a7a44a7a524cec4c2a1ea565c2b3e783a08929c1f6a48ba41884803f1736de9"
+    },
+    {
+      "path": "apps/mobile/app/settings/webrtc-spike.tsx",
+      "sha256": "4985768f928d3a9243ab368a1f7936cb3fe6eaf0108e69c813f488e634a20b46"
+    },
+    {
+      "path": "apps/mobile/assets/adaptive-icon.png",
+      "sha256": "4845b81f3746851547e2297ff80772ef12f93464280ee15cc4c13d9fcb9f59e7"
+    },
+    {
+      "path": "apps/mobile/assets/favicon.png",
+      "sha256": "f1c20e85b5d1ae35d4d012a044b6ae2e47ada395137590e5cff1eeb376d8e13f"
+    },
+    {
+      "path": "apps/mobile/assets/fonts/Inter-Bold.ttf",
+      "sha256": "b37284b5701b6b168dfc770aa1a4ac492106422fd3ba76bc7641e37434e8019c"
+    },
+    {
+      "path": "apps/mobile/assets/fonts/Inter-Medium.ttf",
+      "sha256": "8c883f63b2c4157d997319f2c8bc6995ed4357ef371940d31ca159004a4aae63"
+    },
+    {
+      "path": "apps/mobile/assets/fonts/Inter-Regular.ttf",
+      "sha256": "1b08e7fc267a5c7e1d614100f604b83e7e8a0be241f0f288faa2b3ac93a683ba"
+    },
+    {
+      "path": "apps/mobile/assets/fonts/Inter-SemiBold.ttf",
+      "sha256": "e7a1aaf7eda9f2fad4131725fa556265ec75ca7b2d756260173a040363e8d4f7"
+    },
+    {
+      "path": "apps/mobile/assets/icon.png",
+      "sha256": "4845b81f3746851547e2297ff80772ef12f93464280ee15cc4c13d9fcb9f59e7"
+    },
+    {
+      "path": "apps/mobile/assets/splash-icon.png",
+      "sha256": "8212463ac634216b0c779442e60a80065eda7b65c3d1a76716ed7c90ee71194b"
+    },
+    {
+      "path": "apps/mobile/babel.config.js",
+      "sha256": "8f13985c193e48863d653178c228cce10e7e1d4f49908470640f3676b9ebd298"
+    },
+    {
+      "path": "apps/mobile/components/AmbientCanvas.tsx",
+      "sha256": "0eecf2da7095b3e6a37fb59745834d70e02a6456bd87e6a007d6e0764993033e"
+    },
+    {
+      "path": "apps/mobile/components/CallOverlay.tsx",
+      "sha256": "dbd75584289e29e3ca710d6b62e132cf654e631b2e8d2d3985111d842e10e2ba"
+    },
+    {
+      "path": "apps/mobile/components/CompactSearchField.tsx",
+      "sha256": "fcbad5a8dc123ab7b613d5cd961c55c63c98de2eab67c44aebb337daab86500e"
+    },
+    {
+      "path": "apps/mobile/components/FloatingDock.tsx",
+      "sha256": "ce3616955f04961cf91336d4173cfd6fa3e68aad64db354b037b6fc6f0ecba9a"
+    },
+    {
+      "path": "apps/mobile/components/InAppSwitch.tsx",
+      "sha256": "83a42e44708235a8751a8e57d200627af68b1a2431c81e1db007ace9491a5a2a"
+    },
+    {
+      "path": "apps/mobile/components/LiquidGlassSurface.tsx",
+      "sha256": "bc940637d6c73e92c7f0bd38e5030b810dd8769d7b46d943659f7c16cb78e355"
+    },
+    {
+      "path": "apps/mobile/components/LocalArchiveViewerModal.tsx",
+      "sha256": "97bd0b1b8d83d3c57cee9556ead9c3a6f2e946bdde991c30c6b1928d8e430111"
+    },
+    {
+      "path": "apps/mobile/components/PreviewIcon.tsx",
+      "sha256": "4a2b88b2171d3e09c46fa00486c010402d5f0d77115f45a89bc520784edbb414"
+    },
+    {
+      "path": "apps/mobile/components/ScreenHeader.tsx",
+      "sha256": "107bd128d54bc20d1ee6be564ae0006c50e9fdd86dda2e46eb29adc6147fb9ec"
+    },
+    {
+      "path": "apps/mobile/components/StickerView.tsx",
+      "sha256": "4bbc277f10749731dfe5a5e7794e34f588ce358c2940116a3d1bb5b1a4aeeb9c"
+    },
+    {
+      "path": "apps/mobile/data/emojiData.ts",
+      "sha256": "4f2b0ff5580f5f37d5b653088e71eb65ffeb4d490c1f15eae85368aae8a3f4b8"
+    },
+    {
+      "path": "apps/mobile/data/gifData.ts",
+      "sha256": "53a9786b127b57e0fa1b63ce2f1870b614f18ebea805e16238078592cf6b438f"
+    },
+    {
+      "path": "apps/mobile/data/stickerData.ts",
+      "sha256": "5ea7c419c70856f55624d9d01d67cf9d7ac2de832169257c2a9c755b7f13eb20"
+    },
+    {
+      "path": "apps/mobile/ios/.gitignore",
+      "sha256": "f8042134be9ad24176d8d630255be93f8a0223925ae88c34b603c8989baa8345"
+    },
+    {
+      "path": "apps/mobile/ios/.xcode.env",
+      "sha256": "3c02dca07775b31ce4e77dfb3bb660d7c6e577474d65a6216f1ea9bef54e1ca6"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat.xcodeproj/project.pbxproj",
+      "sha256": "3abf5f26d5c886bcacb3f2c6872543ce1b857abe38ab25bac460f6c00607f5ce"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat.xcodeproj/xcshareddata/xcschemes/IndiChat.xcscheme",
+      "sha256": "93ad985c7c3e4a2052a412e91f67c73457c9dfe8f328abb4764f985ec2ce4f90"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat.xcworkspace/contents.xcworkspacedata",
+      "sha256": "7f6ddb0f3e5fe853ef8be32df05909fc1867f6b3a39a3aad3053b83a5a45172b"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/AppDelegate.swift",
+      "sha256": "a32411bd8ba43cd99b7580adaac49d0d7c6d469ce79b14721379dafac4b13b91"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/App-Icon-1024x1024@1x.png",
+      "sha256": "568fd742cfe8cf1b8c295c7dda80bce1071e1a10c85bc6a3b0b803ad1a5bd188"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/Contents.json",
+      "sha256": "4e63658af653ca4e1ba6d89e446bed291fc34bdeb9db743fabd105102397bb41"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/icon-1024.png",
+      "sha256": "cc7afd4dded7be627317852c01e695d4fd65e6453732ec4697c04d2c9daf8fcf"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/icon-20.png",
+      "sha256": "7e0416d020a58afe0070e5825b8b1c019d633fed982aed085934df20e9c12304"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/icon-20@2x.png",
+      "sha256": "3d73916f22ec1ba5a7303471014b60cc087df6112ac9b79e2da24d1262fa11e1"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/icon-20@3x.png",
+      "sha256": "53d470e54dcf91791649d3f243924edf392623fc53f87eefad70f379a1332778"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/icon-29.png",
+      "sha256": "dd2c7092e38dc4fa51380e7679419ac4f86f0cf0c17f8f5a17a85b23123b1bc5"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/icon-29@2x.png",
+      "sha256": "77b6247df900e3a289d55ed0d7288aaef1bcd04248e8c98e54b493784d1d4f38"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/icon-29@3x.png",
+      "sha256": "cf0276ae89b41bd7c19580c898b9307084442afada94ae62d9e65133f9f07f8d"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/icon-40.png",
+      "sha256": "3d73916f22ec1ba5a7303471014b60cc087df6112ac9b79e2da24d1262fa11e1"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/icon-40@2x.png",
+      "sha256": "bfe93eb3b9bb9fc5eb56ec6a7c5f55c306b326237577324101a56a2df80669d0"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/icon-40@3x.png",
+      "sha256": "a07fa5f475bbe17d7ad55586153ee3cfe5eb8824d09562a46eabcf870eb9d4f1"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/icon-60@2x.png",
+      "sha256": "a07fa5f475bbe17d7ad55586153ee3cfe5eb8824d09562a46eabcf870eb9d4f1"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/icon-60@3x.png",
+      "sha256": "6a380e908a3f2ae08580b38b0684d80ee856013e9aab6739761c11d9ad6ead4d"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/icon-76.png",
+      "sha256": "4b10514be70d232278ee6c4176bf4b9586b244e89b04c012fbb76679dfc78a02"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/icon-76@2x.png",
+      "sha256": "401e970c2a6bab03fc59eecb9eb46837c16a7ceb6d83923abeaf7ee1ca954440"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset/icon-83.5@2x.png",
+      "sha256": "308f5863eab571c5717641868b6c7f0143c97942a89b4a8c5eed9ed5771ed3f1"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Images.xcassets/Contents.json",
+      "sha256": "632a1481b9e3b957f3b34267728744d61272e3db32751432551b9eb7c58ad7a2"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/IndiChat-Bridging-Header.h",
+      "sha256": "4a625b53abd4333ca454a4161ba62ab1b0cb44e8a4581326c0bcfe03dc26dd5c"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/IndiChat.entitlements",
+      "sha256": "f4b663f5b41b12078a2eeaf7713a11b4ba0c04a1f2109689a8c58dc51aba6e3f"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Info.plist",
+      "sha256": "70ea86db8e12eb823eb092bcdff3cea2d1a21767e1a881b68c2d6d32e18d18e4"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Inter-Bold.ttf",
+      "sha256": "b37284b5701b6b168dfc770aa1a4ac492106422fd3ba76bc7641e37434e8019c"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Inter-Medium.ttf",
+      "sha256": "8c883f63b2c4157d997319f2c8bc6995ed4357ef371940d31ca159004a4aae63"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Inter-Regular.ttf",
+      "sha256": "1b08e7fc267a5c7e1d614100f604b83e7e8a0be241f0f288faa2b3ac93a683ba"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Inter-SemiBold.ttf",
+      "sha256": "e7a1aaf7eda9f2fad4131725fa556265ec75ca7b2d756260173a040363e8d4f7"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/PrivacyInfo.xcprivacy",
+      "sha256": "06949f6d09a83cea00c3a4895bb7300f2580d52852c6ade1a9caa169934a1001"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/SceneDelegate.swift",
+      "sha256": "61429e238705597529eb503571ff28b33ae8c2d00fef8726693b1f29b8d2939a"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/SplashScreen.storyboard",
+      "sha256": "0763588212466aaec0b9121db1e318eba07aff23b29940f7df97728c6f69f2d1"
+    },
+    {
+      "path": "apps/mobile/ios/IndiChat/Supporting/Expo.plist",
+      "sha256": "9e93c2a9d202979e3b37d5b3e4e20f4dd6e88c2d48add9769a7ea98bfc7556a8"
+    },
+    {
+      "path": "apps/mobile/ios/Podfile",
+      "sha256": "9b7dfc1ee833d23e0040e3dd493b004f0dc639b8de48ca7e9941c63b46cf7e08"
+    },
+    {
+      "path": "apps/mobile/ios/Podfile.lock",
+      "sha256": "d0254c90b04af659cea1417b7090ad0446a4678082ff4d3ce10ca8af13856c2b"
+    },
+    {
+      "path": "apps/mobile/ios/Podfile.properties.json",
+      "sha256": "661b0978a38219f4625688d4b486cb7eab50ebcb064fbb1e4966c6320c3c08b7"
+    },
+    {
+      "path": "apps/mobile/metro.config.js",
+      "sha256": "f41499d2cb38afaa74044c4171187ce642ec71ea6577e5d9cc04befbf0e960df"
+    },
+    {
+      "path": "apps/mobile/native/audio-route/IndiChatAudioRoute.m",
+      "sha256": "4e82f2ce03f52d261cd247ccac1d90961f58190919494d050746c712abc22c4a"
+    },
+    {
+      "path": "apps/mobile/native/audio-route/IndiChatAudioRoute.podspec",
+      "sha256": "ae8df29a3a6027d7fc5d23495cbf1516bb5e7ec8992c9455f83a60cd3a111cf8"
+    },
+    {
+      "path": "apps/mobile/package.json",
+      "sha256": "a4cc6cb796e6eaa70fe7b2698c5efe03932124e5aa3420238ca826d921888256"
+    },
+    {
+      "path": "apps/mobile/plugins/AudioRouteModule.kt",
+      "sha256": "3b1b2b691ce0bbd10a705cb4fa8eb9554e07de294c897c336175c3a7586ad23d"
+    },
+    {
+      "path": "apps/mobile/plugins/AudioRoutePackage.kt",
+      "sha256": "e39d46f90be749b2da9be3448e4df78137cd39842d5f16bbb1df63a0e5528e35"
+    },
+    {
+      "path": "apps/mobile/plugins/withAudioRoute.js",
+      "sha256": "a7aa1f8d722dda46ec5e1d6190841a6e1579e8b9fc0525f4535e35c58920884e"
+    },
+    {
+      "path": "apps/mobile/services/api.ts",
+      "sha256": "fb4339382b5eb284d71cf5d8332e2f804143b169f5eb946bb39bf47c2159458b"
+    },
+    {
+      "path": "apps/mobile/services/audioRoute.ts",
+      "sha256": "16fcad6467bce85ecf88abfe3420a825f145e58c250744dfeb3fe3d556822181"
+    },
+    {
+      "path": "apps/mobile/services/backup.ts",
+      "sha256": "88ebbf4b1d76bde246d282a49e30d56a0322e64bdb5cc620557be48db4a74de2"
+    },
+    {
+      "path": "apps/mobile/services/callHistory.ts",
+      "sha256": "0f978b2ece7bd598bfe03ee9d5784a517bc28edb9f8cbe1dc1a3a5e41d9b4398"
+    },
+    {
+      "path": "apps/mobile/services/callService.ts",
+      "sha256": "d03f9be4e86b458e522f8088ca26e9c32cdcaf118372ebed7c82d7b49e19d901"
+    },
+    {
+      "path": "apps/mobile/services/contacts.ts",
+      "sha256": "1a3fe782a53c1383b6603f222ed2b59c6ccb7f329ab015e1ee946ff87c4c7743"
+    },
+    {
+      "path": "apps/mobile/services/nativeWebRTC.ts",
+      "sha256": "fa8313bb72ee482de0902b3455de93b5723ba14a3f39f79df068b7320696e6c8"
+    },
+    {
+      "path": "apps/mobile/services/notifications.ts",
+      "sha256": "3fb63c093bdc19ffb98468fadb1a471378173b9bd9df07ef69121710e5bdcfcf"
+    },
+    {
+      "path": "apps/mobile/services/settings.ts",
+      "sha256": "cbe89a02c3721d02ebe5c9e235fd8fba28aca78aadd0fb5523446ab58a46fefb"
+    },
+    {
+      "path": "apps/mobile/services/storage.ts",
+      "sha256": "8d4e42e7c1368cd4bd930878039922ecbe91a0b137833c2f3f2545d22d1b3450"
+    },
+    {
+      "path": "apps/mobile/services/webrtcSpike.ts",
+      "sha256": "7f6f01610f34f80b57ddff44bbaca3c4ef8238495b3ad85be25dce3a4802db30"
+    },
+    {
+      "path": "apps/mobile/services/websocket.ts",
+      "sha256": "ab4a7234193a8cb4479283b662c99afe8e43c23502acebb103d0469151dbc1cd"
+    },
+    {
+      "path": "apps/mobile/theme/BlurTargetContext.tsx",
+      "sha256": "6e9f1fa9bf143a29a252ce5b3f323cb56e85eba900dbc42da27f2cb59ffcc1d1"
+    },
+    {
+      "path": "apps/mobile/theme/navigation.ts",
+      "sha256": "83c8b4d6e4cefec46bb3dd1e3ffb0ce30d9ff73d0eb512db83cc15072f4dc0f4"
+    },
+    {
+      "path": "apps/mobile/theme/resolveTheme.ts",
+      "sha256": "add9cc6e0ca5785195674739f3337474131cd99f33f28b62adb9b46043839c79"
+    },
+    {
+      "path": "apps/mobile/theme/tokens.ts",
+      "sha256": "0446a5f791141fcf5d53f6daa506acfa873bca266455a387846650228a5e9ea3"
+    },
+    {
+      "path": "apps/mobile/theme/useTheme.tsx",
+      "sha256": "a59f87e5c602235ac5a5c0991b66a055988199c886c22cbed2b438da58889ff7"
+    },
+    {
+      "path": "apps/mobile/tsconfig.json",
+      "sha256": "629f4fc6d0d64e70efab37c190901c04dd49b8fef6bf425d0cc0e967686d7e50"
+    },
+    {
+      "path": "apps/mobile/utils/device.ts",
+      "sha256": "abc9ed3971f4a46d0c2f965a6aeeb4674d654fb5390b31b09d84b0cb8482e817"
+    },
+    {
+      "path": "apps/mobile/utils/i18n.ts",
+      "sha256": "d32d81b020f4cb05d64983db74c9db836ac348f57be0ffd226205f71d29e7654"
+    },
+    {
+      "path": "apps/mobile/utils/timeAgo.ts",
+      "sha256": "21ae4326c13f32d7e723122930bd85bf8df5d04e9b81b6ef3dcc710edbca1683"
+    },
+    {
+      "path": "apps/mobile/utils/useUnsavedChangesGuard.ts",
+      "sha256": "8db225ea7f94eac9f1332717f969679e8b15e5d351d39d0280297ab8f9b18659"
+    },
+    {
+      "path": "apps/mobile/utils/uuid.ts",
+      "sha256": "ee2476accb37fd5d2ddb552844a767f0297f06c66d51b4545c4cc0e0a8239c6e"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "4dd6af49c5f0eff899158cb1fc819ee2ed317d8022ac6d96e8fbda2570b292a2"
+    },
+    {
+      "path": "package.json",
+      "sha256": "6345019a506825d773e7f0c50590b744132dc8e8da3a297a6d1531855b9f8d32"
+    },
+    {
+      "path": "packages/shared-types/package.json",
+      "sha256": "d4e6229e0ab4620f2989906d47d770a116af7a6d8a3f23fe9458b84b0af9db10"
+    },
+    {
+      "path": "packages/shared-types/src/index.d.ts",
+      "sha256": "e3eee39100256f47e90245002b471e70d140a22b5297a6ebd06a009e8f2c6bcb"
+    },
+    {
+      "path": "packages/shared-types/src/index.js",
+      "sha256": "d43aa81f5bc89faa359e0f97c814ba25155591ff078fbb9bfd40f8c7c9683230"
+    },
+    {
+      "path": "packages/shared-types/src/index.ts",
+      "sha256": "906a890ded82a8462de3616842e78bcd7f73c71e643a3b9e2d8b6359b44f3870"
+    },
+    {
+      "path": "packages/shared-types/tsconfig.json",
+      "sha256": "1b244fcdc8e9a8b516cb29ca21326282de45deed749b61173d9fb1094e1b8208"
+    },
+    {
+      "path": "scripts/analyze_blur_surface_region.mjs",
+      "sha256": "8fb287cf8719dd63f9be7880abe73a3b12d6045481cc5b39264ca53a8689dd05"
+    },
+    {
+      "path": "scripts/build-android.js",
+      "sha256": "71bbdb22c2a6ed40572fbfc5d88de83a798de8c3662138eddb9babee18c4398a"
+    },
+    {
+      "path": "scripts/build-ios.js",
+      "sha256": "9ebdb0744f70e234a915bcd6f15a14aba98849b3c19d80460d472ac166769a6a"
+    },
+    {
+      "path": "scripts/build-linux.js",
+      "sha256": "ff9c416446c35c5f5c6434f44cdde24e91025135c167c0466949615b25dca5e9"
+    },
+    {
+      "path": "scripts/capture_chats_verified.mjs",
+      "sha256": "885d3ea9338c0cd8fac6d52ff40115509708fd1b001887c434b0fb987ed63ebe"
+    },
+    {
+      "path": "scripts/capture_genuine_call_overlay.mjs",
+      "sha256": "8e447796c5e4619795ad915b56de9a2e9836302c73f004087aac5ddc1ea4a4ed"
+    },
+    {
+      "path": "scripts/capture_native_verification.mjs",
+      "sha256": "72843c68044945e5c420787426172cf1d951bbd2be2f20ffb8cc05b83dddb076"
+    },
+    {
+      "path": "scripts/capture_preview_cdp.mjs",
+      "sha256": "91c7ae2f4f42d213005f8e6fb9ce21e52e08482470392e5721b2d40f80426e2f"
+    },
+    {
+      "path": "scripts/capture_preview_per_platform_viewports.mjs",
+      "sha256": "45be6c2d7c92b63785b93bfd73c8e609b6de9d5e5deae3bd884f92004805d6e2"
+    },
+    {
+      "path": "scripts/capture_settings_comparison.mjs",
+      "sha256": "18b93579af29369b2b958f6dc63ed54494b8845c14c85b53b330d3651ed1aa4a"
+    },
+    {
+      "path": "scripts/exercise_call_and_revocation.mjs",
+      "sha256": "277dc9401f2f603612d0ecd08594925cb5ddd33def50c50fce33f66c3f18a289"
+    },
+    {
+      "path": "scripts/exercise_ios_revocation.mjs",
+      "sha256": "ebd49927beadef86cf28fb19e2efcac10ab4da0cef603ea59eab011b859ea54b"
+    },
+    {
+      "path": "scripts/exercise_revocation.mjs",
+      "sha256": "8e0b5ec14ffd7f639cd669595ac637f425e7c74caa44245273de47526c1ea08a"
+    },
+    {
+      "path": "scripts/exercise_saved_appearance_independent_of_os.mjs",
+      "sha256": "78436ea1644d218bc988d8d951e6c04059c605b2e1e5d33715c8bc314e061873"
+    },
+    {
+      "path": "scripts/find_diff_region.mjs",
+      "sha256": "36c1b63a397ca97d75c914ac0008ba85cfc9e3554c7c63e63ae547c64905c670"
+    },
+    {
+      "path": "scripts/generate_navigable_comparison_gallery.mjs",
+      "sha256": "4327d0b871ec6c177ef23d9d5d339afc617bed48caa63ec02da25099315cc8b2"
+    },
+    {
+      "path": "scripts/generate_side_by_side.mjs",
+      "sha256": "5e3d717b8f254f47f1455037c17947c9642c85a405fc152322aaf330cf2ef807"
+    },
+    {
+      "path": "scripts/mocks/external-mock.mjs",
+      "sha256": "ad65fd505d50c0f2d8e495d907f073cb5e0d7c5587fd6b205c5d9c9310b36c37"
+    },
+    {
+      "path": "scripts/native-audio-probe/README.md",
+      "sha256": "8118fd4b6ee639a23c572f597c29c16133887c926c9242fa8e11f8274d5fbdc0"
+    },
+    {
+      "path": "scripts/native-audio-probe/build.sh",
+      "sha256": "ba4b98fed383826b0843f37a082949badf571668d13bcc0ee5957b7860c17aea"
+    },
+    {
+      "path": "scripts/native-audio-probe/main.m",
+      "sha256": "1e794b2d4ddeddf93320edfc78003246f564d1bbe6716f34fd11cd58fdb61cc7"
+    },
+    {
+      "path": "scripts/native-audio-probe/stubs/React/RCTBridgeModule.h",
+      "sha256": "b3fc114abb515af0443054f4856aaa36f9d54b469ef06db88bfda240f402e789"
+    },
+    {
+      "path": "scripts/native-ui-test/README.md",
+      "sha256": "7be69fc420502590f68df1ab076007391f81a8d8c27b11b9e3b1ce21b43d09fa"
+    },
+    {
+      "path": "scripts/native-ui-test/RuntimeUITests.swift",
+      "sha256": "73dcf2bf7453670c52e32b242b784e67a22c1a26bab5fec59d1a5c02d32a270f"
+    },
+    {
+      "path": "scripts/native-ui-test/android/AndroidManifest.xml",
+      "sha256": "c29a077bfba5b71e6c28e832cecb668a7b8e487fd44257509f6a6955b00fb4ed"
+    },
+    {
+      "path": "scripts/native-ui-test/android/Driver.java",
+      "sha256": "556104dc085922c107e41ccbbd8c7c0648b210566bbe5059d3486ba28f510c5d"
+    },
+    {
+      "path": "scripts/native-ui-test/android/build.sh",
+      "sha256": "5d108debf2587a44ce226b325c1c8c45e8f96854231f18a37c79de0a9cd4951a"
+    },
+    {
+      "path": "scripts/native-ui-test/command.mjs",
+      "sha256": "7acf7a10defacfb04fa868e65e2ad3ea9f67cfb695c06adfcbcfb8c3968c6c73"
+    },
+    {
+      "path": "scripts/native-ui-test/create-project.rb",
+      "sha256": "dbb6598dbdf54a7318d3d172c010857e07cae96a6533745b8cc3589bce17fe89"
+    },
+    {
+      "path": "scripts/native-ui-test/respond-devicehub.mjs",
+      "sha256": "cac0fdc7647d9a85de57ab5243069414cb1bdc78135b4479cb013777f43de965"
+    },
+    {
+      "path": "scripts/recapture_affected_screens.mjs",
+      "sha256": "04f3bef2f96cac40c28e3dcaa1b0f6e8c00a8a7d88e65f7226d12af9c36ddc1e"
+    },
+    {
+      "path": "scripts/recheck_all_screens.mjs",
+      "sha256": "7e5cce74b7e01f01a891e4eea7e9203d0fe452090c7190c77d4387e79ff50b9f"
+    },
+    {
+      "path": "scripts/register-loader.mjs",
+      "sha256": "6e5a7e5c6caa82e6ea31f63f828851eb71e4b9a86785da610b04a22316a9a7d9"
+    },
+    {
+      "path": "scripts/render_all_composites.mjs",
+      "sha256": "2f3ccb6b2ad12369f559ad0f5acc32f1226ee46e1cfe1926c686a9e68d0c930f"
+    },
+    {
+      "path": "scripts/render_composites.mjs",
+      "sha256": "0df8b1874cb21c97c74c3389dd8152e5d6776e9e82395ab465558ca4fc18c3ed"
+    },
+    {
+      "path": "scripts/run_final_verification_pass.mjs",
+      "sha256": "1200970227e207dd1f5692dd3ef6569d8d2f9885c9d4546a58155f40d127c22a"
+    },
+    {
+      "path": "scripts/seed-db.js",
+      "sha256": "80d3a8b2e5771096beec51aada318df2b3728c9314a5d13953e5ccbb6bece7c9"
+    },
+    {
+      "path": "scripts/seed_demo_users.sql",
+      "sha256": "3b9d6b9ff45c733b1892b0cd6bd53255589ab552417c1f7fe85eed5a949de42a"
+    },
+    {
+      "path": "scripts/sync-logos.js",
+      "sha256": "ef09e1a808e74c1faab1737ad77d58eb45201106e3f14da62854860d660a883d"
+    },
+    {
+      "path": "scripts/test-resolver.mjs",
+      "sha256": "9351622cfcf3737820471d77f5a6cb300baccea4ee0727ae866cbe4f0faee146"
+    },
+    {
+      "path": "scripts/test_appearance_persistence.mjs",
+      "sha256": "e1094272bfc2856e213806d4ff9d20058556e1fcdf32f37d7afdb40802fafc4e"
+    },
+    {
+      "path": "scripts/test_auth_recovery.mjs",
+      "sha256": "f406d5fd538199b97fcf288c7a7730f1678f6953865c2bac7484ddfe76022f8c"
+    },
+    {
+      "path": "scripts/test_backup_service.mjs",
+      "sha256": "57cd0c56e3a530b3259616c9b25b7e63bb3c6047e2708e9dc2f79bf8dc2b66c2"
+    },
+    {
+      "path": "scripts/test_blur_capture_and_analysis.mjs",
+      "sha256": "f5e767d8189af7435b3371b2698260cfe828b2bce04613c4ccd62b3461a6d1d7"
+    },
+    {
+      "path": "scripts/test_call_fixes.mjs",
+      "sha256": "e0df9a96190947ce642b031d911d65838633ccf7f29a7730f500c99cb0f0c8ce"
+    },
+    {
+      "path": "scripts/test_call_service.mjs",
+      "sha256": "4b06e2ccab1b0ba78702a206a5f5e15e93b615c4d0227e6550a10a23e6e51e7a"
+    },
+    {
+      "path": "scripts/test_ios_build_workflow.mjs",
+      "sha256": "d6d41af9ec11d014483fa6ba02ecc8640974c3cd7c1a4dd679fbe6a1059e8f5c"
+    },
+    {
+      "path": "scripts/test_webrtc_spike.mjs",
+      "sha256": "ae7c29d0d765ca84b9e894ef199218ac5ea2eea1f44038cb0a24a50f05da0a11"
+    },
+    {
+      "path": "scripts/verify-mobile-redesign.js",
+      "sha256": "5dd5ba4da47d1259f5cde39151b971deffa452564b85cf6edc0dbed185f3b09e"
+    },
+    {
+      "path": "scripts/verify_all_demo_users.js",
+      "sha256": "afb0c8594030a7f466c44928a972cd1bdcbd5bb91a06e8ce779a5127de4ca16f"
+    },
+    {
+      "path": "scripts/verify_all_requirements.mjs",
+      "sha256": "6fb94d748b4c415f55373689d4de1ca2137ea290eceb28069ad56878ff05222b"
+    },
+    {
+      "path": "scripts/verify_app_journeys.mjs",
+      "sha256": "0f28788fce8b5c444cc421f0f700ffa2fad395fece7e99e923514f455e114e36"
+    },
+    {
+      "path": "scripts/verify_chats_target_wrapper.mjs",
+      "sha256": "9f061f5e78702ecfad266a6c50f65248ab1846196de6b46360950f895895f39e"
+    },
+    {
+      "path": "scripts/verify_cross_browser_call.mjs",
+      "sha256": "b3211ee19216720046846eb6931bf3f5007145f063048e60e83f3d7e1332fc38"
+    },
+    {
+      "path": "scripts/verify_native_acceptance.mjs",
+      "sha256": "9393d4d767128ccb3ba7e7b2453bb9e333d6fa4f9765ca8401bef9ab81215829"
+    },
+    {
+      "path": "scripts/verify_prebuild_plugin.mjs",
+      "sha256": "d382ed60f3b4937c286a77d9d15098154bd896146874641a80d94ba7b7c4ca1b"
+    },
+    {
+      "path": "scripts/verify_reduced_motion_android.mjs",
+      "sha256": "b47516f1bcb46e21d0b24ad0605905a948584fedea1b4c175d87b8ccdb72f428"
+    },
+    {
+      "path": "scripts/verify_ws.js",
+      "sha256": "b934b7266797a2ca44416a8d8945139eb3673c2eb6896f1264802314c63c0596"
+    }
+  ],
+  "android": {
+    "path": "IndiChat-Android.apk",
+    "sha256": "c1bbd7cd8f9813ffcb54d0d1f21e7415199c52f7c2d31413ec8cf9ad088c0d37",
+    "signing": "existing local development certificate; APK signature verified",
+    "version": "1.0.0 (1)"
+  },
+  "ios": {
+    "status": "physical-device archive built successfully; NOT installable until signed",
+    "path": "IndiChat-iPhone-Unsigned-Archive.zip",
+    "size_bytes": 97355921,
+    "sha256": "0c20ca71a96441ca87f21cb7902028a3417cbef02d91001fcbafa8df526216be",
+    "architecture": "arm64 / iphoneos",
+    "native_webrtc_included": true,
+    "signing": "blocked: zero valid Apple signing identities; no provisioning profiles"
+  }
+}

@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.indichat.acceptancedriver">
+<uses-sdk android:minSdkVersion="24" android:targetSdkVersion="36"/>
+<application android:label="IndiChat Acceptance Driver" android:debuggable="true"/>
+<instrumentation android:name=".Driver" android:targetPackage="com.indichat.acceptancedriver" android:functionalTest="true"/>
+</manifest>
