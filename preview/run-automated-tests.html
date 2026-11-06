@@ -1,0 +1,837 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>IndiChat Automated Test Suite</title>
+  <link rel="stylesheet" href="preview-common.css">
+  <style>
+    #testResultsContainer {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: rgba(5, 8, 12, 0.96);
+      color: #f0f4f2;
+      border: 2px solid #10b981;
+      border-radius: 12px;
+      padding: 16px;
+      font-family: monospace;
+      font-size: 13px;
+      z-index: 99999;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+      display: none;
+    }
+    .test-pass { color: #10b981; }
+    .test-fail { color: #ef4444; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <!-- Studio Top Navigation Bar -->
+  <header class="studio-top-bar" role="banner">
+    <div class="studio-left">
+      <a class="back-link" href="index.html">← Back to Previews Gallery</a>
+      <div class="studio-title-badge">
+        <span>IndiChat Automated Test Runner</span>
+        <span class="platform-pill">All Platforms</span>
+      </div>
+    </div>
+    <div class="studio-controls">
+      <button class="restore-window-pill" id="restoreWindowPill">◱ Restore Mockup Window</button>
+      <button class="studio-btn" id="btnResetDemoData">↺ Reset Demo Data</button>
+      <button class="studio-btn theme-toggle-btn">☀</button>
+    </div>
+  </header>
+
+  <!-- Viewport Workspace Wrapper -->
+  <main class="preview-viewport-wrap">
+    <div class="window-mockup" id="appWindow">
+
+      <!-- Chrome Header (macOS + Windows + Linux controls) -->
+      <div class="window-chrome chrome-macos" aria-label="Mock Window Chrome">
+        <div class="macos-traffic-lights">
+          <button class="traffic-light close" aria-label="Close"></button>
+          <button class="traffic-light minimize" aria-label="Minimize"></button>
+          <button class="traffic-light zoom" aria-label="Zoom"></button>
+        </div>
+        <div class="macos-title">IndiChat Automated Verification Suite</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="icon-btn" id="btnGnomeAppMenu" style="width:28px;height:28px" title="IndiChat Menu" aria-label="IndiChat menu">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <div class="windows-caption-controls" style="display:flex">
+            <button class="win-caption-btn win-min" aria-label="Minimize">—</button>
+            <button class="win-caption-btn win-max" aria-label="Maximize">□</button>
+            <button class="win-caption-btn win-close" aria-label="Close">✕</button>
+          </div>
+        </div>
+
+        <!-- GNOME App Dropdown Menu -->
+        <div class="gnome-app-dropdown" id="gnomeAppDropdownMenu">
+          <button class="studio-btn" id="gnomeMenuSettings" style="width:100%;justify-content:flex-start;font-size:12.5px;padding:8px 12px">Preferences (Settings)</button>
+          <button class="studio-btn" id="gnomeMenuShortcuts" style="width:100%;justify-content:flex-start;font-size:12.5px;padding:8px 12px">Keyboard Shortcuts</button>
+          <button class="studio-btn" id="gnomeMenuHelp" style="width:100%;justify-content:flex-start;font-size:12.5px;padding:8px 12px">Help &amp; About</button>
+          <div style="height:1px;background:var(--border-subtle);margin:4px 0"></div>
+          <button class="studio-btn danger" id="gnomeMenuQuit" style="width:100%;justify-content:flex-start;font-size:12.5px;padding:8px 12px">Quit IndiChat</button>
+        </div>
+      </div>
+
+      <!-- Application Workspace (4-Zone Layout) -->
+      <div class="app-workspace">
+
+        <!-- Zone 1: Navigation Rail -->
+        <nav class="app-nav-rail" aria-label="Primary navigation">
+          <div class="rail-logo">i</div>
+          <div class="rail-items">
+            <button class="rail-btn active" data-rail-tab="chats" aria-label="Chats tab" title="Chats">
+              <span class="rail-badge" id="railChatsBadge">3</span>
+              💬
+            </button>
+            <button class="rail-btn" data-rail-tab="status" aria-label="Status updates" title="Status">⭕</button>
+            <button class="rail-btn" data-rail-tab="calls" aria-label="Calls log" title="Calls">📞</button>
+            <button class="rail-btn" data-rail-tab="communities" aria-label="Communities &amp; Circles" title="Communities">👥</button>
+            <button class="rail-btn" data-rail-tab="starred" aria-label="Starred messages" title="Starred">★</button>
+          </div>
+          <div class="rail-bottom">
+            <button class="rail-btn theme-toggle-btn">☀</button>
+            <button class="rail-btn" id="railSettingsBtn">⚙</button>
+            <div class="rail-user-avatar" id="railUserAvatarBtn">RK</div>
+          </div>
+        </nav>
+
+        <!-- Zone 2: Multi-View Sidebar -->
+        <aside class="app-sidebar">
+          <!-- View A: Chats List -->
+          <div class="sidebar-view active" id="sidebarView-chats">
+            <div class="sidebar-header">
+              <h1>Chats</h1>
+              <div class="sidebar-actions">
+                <button class="icon-btn" id="btnNewChatHeader" aria-label="New chat">＋</button>
+                <button class="icon-btn" id="btnSidebarMenu" aria-label="Menu">⋮</button>
+                <div class="sidebar-dropdown-menu" id="sidebarDropdownMenu" style="display:none">
+                  <button class="menu-item-row" id="menuActionNewGroup">👥 New Group</button>
+                  <button class="menu-item-row" id="menuActionStarred">★ Starred Messages</button>
+                  <button class="menu-item-row" id="menuActionMarkAllRead">✓ Mark All as Read</button>
+                  <button class="menu-item-row" id="menuActionSettings">⚙ Settings</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="sidebar-search-box">
+              <div class="search-input-wrap">
+                <input type="text" id="sidebarSearchInput" placeholder="Search chats..." aria-label="Search chats">
+              </div>
+            </div>
+
+            <div class="filter-chips-bar" role="tablist">
+              <button class="filter-chip active" data-filter="all">All</button>
+              <button class="filter-chip" data-filter="unread">Unread</button>
+              <button class="filter-chip" data-filter="groups">Groups</button>
+            </div>
+
+            <div class="conversations-scroll" id="conversationList"></div>
+          </div>
+
+          <!-- View B: Status Stories -->
+          <div class="sidebar-view" id="sidebarView-status">
+            <div class="sidebar-header"><h2>Status Updates</h2></div>
+            <div class="conversations-scroll" id="statusListContainer"></div>
+          </div>
+
+          <!-- View C: Calls Log -->
+          <div class="sidebar-view" id="sidebarView-calls">
+            <div class="sidebar-header"><h2>Calls History</h2></div>
+            <div class="conversations-scroll" id="callsListContainer"></div>
+          </div>
+
+          <!-- View D: Starred Messages -->
+          <div class="sidebar-view" id="sidebarView-starred">
+            <div class="sidebar-header"><h2>Starred Messages</h2></div>
+            <div class="conversations-scroll" id="starredListContainer"></div>
+          </div>
+
+          <!-- View E: Communities & Circles -->
+          <div class="sidebar-view" id="sidebarView-communities">
+            <div class="sidebar-header">
+              <h2>Communities</h2>
+              <div class="sidebar-actions">
+                <button class="icon-btn" id="btnNewCommunityHeader" aria-label="New community circle" title="New Community Circle" onclick="window.IndiChatPreviewEngine.openCommunityCircleModal()">＋</button>
+              </div>
+            </div>
+            <div class="conversations-scroll" id="communitiesListContainer"></div>
+          </div>
+        </aside>
+
+        <!-- Zone 3: Active Conversation -->
+        <section class="app-chat-window" id="appChatWindow">
+          <header class="chat-header">
+            <div class="chat-header-contact" id="chatHeaderContact">
+              <div class="chat-header-avatar" id="chatHeaderAvatar">AS</div>
+              <div class="chat-header-info">
+                <div class="chat-header-name" id="chatHeaderName">Aarav Sharma</div>
+                <div class="chat-header-status" id="chatHeaderStatus">Online</div>
+              </div>
+            </div>
+            <div class="chat-header-actions">
+              <button class="icon-btn" id="btnAudioCall" aria-label="Audio call">📞</button>
+              <button class="icon-btn" id="btnVideoCall" aria-label="Video call">📹</button>
+              <button class="icon-btn" id="btnToggleInChatSearch" aria-label="Search inside chat">🔍</button>
+              <button class="icon-btn" id="btnToggleDetails" aria-label="Toggle contact details">ℹ</button>
+            </div>
+          </header>
+
+          <div class="inchat-search-bar" id="inChatSearchBar" style="display:none">
+            <input type="text" class="inchat-search-input" id="inChatSearchInput" placeholder="Search in chat...">
+            <span class="inchat-matches-count" id="inChatMatchesCount"></span>
+            <button class="icon-btn" id="btnInChatPrev">▲</button>
+            <button class="icon-btn" id="btnInChatNext">▼</button>
+            <button class="icon-btn" id="btnCloseInChatSearch">✕</button>
+          </div>
+
+          <div class="messages-stream" id="messagesStream"></div>
+
+          <div class="quoted-reply-active-bar" id="quotedReplyActiveBar" style="display:none">
+            <div class="quoted-reply-text">
+              <strong id="quotedReplyAuthor">Replying</strong>
+              <span id="quotedReplyText">Text</span>
+            </div>
+            <button class="icon-btn" id="btnCancelQuotedReply">✕</button>
+          </div>
+
+          <div class="attachment-popup-menu" id="attachmentMenu" style="display:none">
+            <button class="attachment-menu-item" id="attachOptionPhotos">📷 Photos</button>
+            <button class="attachment-menu-item" id="attachOptionDoc">📄 Document</button>
+            <button class="attachment-menu-item" id="attachOptionCamera">📸 Camera</button>
+            <button class="attachment-menu-item" id="attachOptionPoll">📊 Poll</button>
+          </div>
+
+          <div class="emoji-gif-sticker-panel" id="emojiGifStickerPanel" style="display:none">
+            <div class="picker-tabs-header">
+              <button class="picker-tab-btn active" data-picker-tab="emoji">Emoji</button>
+              <button class="picker-tab-btn" data-picker-tab="gif">GIF</button>
+              <button class="picker-tab-btn" data-picker-tab="sticker">Stickers</button>
+            </div>
+            <div class="picker-content-scroll" id="pickerContentScroll"></div>
+          </div>
+
+          <form class="chat-composer-bar" id="chatComposerForm">
+            <button type="button" class="icon-btn" id="btnEmojiPickerToggle">😊</button>
+            <button type="button" class="icon-btn" id="btnAttachment">＋</button>
+            <input type="text" class="composer-input-field" id="composerInputField" placeholder="Type a message...">
+            <button type="button" class="icon-btn" id="btnRupeePayment">₹</button>
+            <button type="submit" class="composer-send-btn">➤</button>
+          </form>
+        </section>
+
+        <!-- Zone 4: Details Panel -->
+        <aside class="app-details-panel" id="detailsPanel"></aside>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Test Results Display Container -->
+  <div id="testResultsContainer" style="display:block">
+    <h2>IndiChat Verification Results</h2>
+    <div id="testSummary" style="font-weight:bold;margin:10px 0;">Running tests...</div>
+    <div id="testOutput"></div>
+  </div>
+
+  <script src="preview-fixtures.js"></script>
+  <script src="preview-common.js"></script>
+
+  <script>
+    // --- AUTOMATED TEST RUNNER ---
+    (async function runAllTests() {
+      const output = document.getElementById('testOutput');
+      const summary = document.getElementById('testSummary');
+      const results = [];
+
+      function assert(name, condition, details = '') {
+        const pass = !!condition;
+        results.push({ name, pass, details });
+        const div = document.createElement('div');
+        div.className = pass ? 'test-pass' : 'test-fail';
+        div.textContent = `${pass ? '✓ PASS' : '✗ FAIL'}: ${name} ${details ? '(' + details + ')' : ''}`;
+        output.appendChild(div);
+        console.log(`${pass ? 'PASS' : 'FAIL'}: ${name} ${details}`);
+        return pass;
+      }
+
+      function sleep(ms) {
+        return new Promise(r => setTimeout(r, ms));
+      }
+
+      try {
+        // Reset to default fixtures first
+        window.IndiChatPreviewEngine.resetDemoData(false);
+        await sleep(50);
+
+        // TEST 1: Initial Render
+        const convoItems = document.querySelectorAll('#conversationList .conversation-item');
+        assert('Initial conversations count', convoItems.length >= 6, `Found ${convoItems.length}`);
+        const activeName = document.getElementById('chatHeaderName')?.textContent;
+        assert('Initial active chat', activeName === 'Aarav Sharma', `Active: ${activeName}`);
+        
+        // Ensure details panel is open (or toggle it open)
+        if (!window.IndiChatPreviewEngine.state.detailsPanelOpen) {
+          document.getElementById('btnToggleDetails')?.click();
+          await sleep(50);
+        }
+        assert('Details panel rendered', document.querySelector('.details-hero-name')?.textContent === 'Aarav Sharma');
+
+        // TEST 2: Conversation Switching
+        const priyaItem = Array.from(convoItems).find(el => el.textContent.includes('Priya Patel'));
+        if (priyaItem) priyaItem.click();
+        await sleep(50);
+        assert('Switch to Priya Patel', document.getElementById('chatHeaderName')?.textContent === 'Priya Patel');
+
+        // TEST 3: Sidebar Search & Filter
+        const searchInput = document.getElementById('sidebarSearchInput');
+        searchInput.value = 'Aarav';
+        searchInput.dispatchEvent(new Event('input'));
+        await sleep(50);
+        const filteredConvos = document.querySelectorAll('#conversationList .conversation-item');
+        assert('Search filter Aarav', filteredConvos.length === 1, `Found ${filteredConvos.length}`);
+
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input'));
+        await sleep(50);
+
+        // Test Unread Filter
+        const unreadChip = document.querySelector('.filter-chip[data-filter="unread"]');
+        if (unreadChip) unreadChip.click();
+        await sleep(50);
+        const unreadConvos = document.querySelectorAll('#conversationList .conversation-item');
+        assert('Unread filter chip', unreadConvos.length > 0, `Unread count: ${unreadConvos.length}`);
+
+        // Reset to All Filter & Switch to Aarav
+        const allChip = document.querySelector('.filter-chip[data-filter="all"]');
+        if (allChip) allChip.click();
+        window.IndiChatPreviewEngine.setActiveContact('c-aarav');
+        await sleep(50);
+
+        // TEST 4: Local Message Sending & Delivery Tick Progression
+        const initialMsgCount = document.querySelectorAll('#messagesStream .message-bubble').length;
+        window.IndiChatPreviewEngine.sendMessage('Test delivery progression');
+        await sleep(50);
+
+        const newMsgCount = document.querySelectorAll('#messagesStream .message-bubble').length;
+        assert('Message added to stream', newMsgCount === initialMsgCount + 1);
+
+        let curLastBubble = document.querySelector('#messagesStream .message-bubble:last-of-type');
+        assert('Initial tick is Sent', curLastBubble?.querySelector('.read-tick')?.textContent === '✓', 'Sent tick');
+
+        await sleep(700);
+        curLastBubble = document.querySelector('#messagesStream .message-bubble:last-of-type');
+        assert('Tick progresses to Delivered', curLastBubble?.querySelector('.read-tick')?.textContent === '✓✓', 'Delivered tick');
+
+        await sleep(900);
+        curLastBubble = document.querySelector('#messagesStream .message-bubble:last-of-type');
+        const isCyan = curLastBubble?.querySelector('.read-tick')?.classList.contains('cyan');
+        assert('Tick progresses to Read Cyan (#53bdeb)', isCyan, 'Cyan read tick');
+
+        // TEST 5: In-Chat Search
+        const inChatBtn = document.getElementById('btnToggleInChatSearch');
+        inChatBtn?.click();
+        await sleep(50);
+        assert('In-chat search bar opens', document.getElementById('inChatSearchBar')?.style.display === 'flex');
+
+        const inChatInput = document.getElementById('inChatSearchInput');
+        inChatInput.value = 'Test';
+        inChatInput.dispatchEvent(new Event('input'));
+        await sleep(50);
+        const matchCountText = document.getElementById('inChatMatchesCount')?.textContent;
+        assert('In-chat search finds matches', matchCountText.includes('1 of'), `Matches: ${matchCountText}`);
+
+        document.getElementById('btnCloseInChatSearch')?.click();
+        await sleep(50);
+        assert('In-chat search closes', document.getElementById('inChatSearchBar')?.style.display === 'none');
+
+        // TEST 6: Quoted Reply
+        const replyActionBtn = document.querySelector('[data-action="reply"]');
+        if (replyActionBtn) replyActionBtn.click();
+        await sleep(50);
+        assert('Quoted reply bar active', document.getElementById('quotedReplyActiveBar')?.style.display === 'flex');
+        window.IndiChatPreviewEngine.sendMessage('Replying to you');
+        await sleep(50);
+        assert('Quoted reply sent and bar cleared', document.getElementById('quotedReplyActiveBar')?.style.display === 'none');
+
+        // TEST 7: Emoji Reactions
+        const reactActionBtn = document.querySelector('[data-action="reaction-pick"]');
+        if (reactActionBtn) reactActionBtn.click();
+        await sleep(50);
+        const wowBtn = document.querySelector('.reaction-emoji-btn[data-emoji="😮"]');
+        assert('Reaction popover appears', !!wowBtn);
+        if (wowBtn) wowBtn.click();
+        await sleep(50);
+        const reactionBadge = Array.from(document.querySelectorAll('.reaction-badge')).find(b => b.textContent.includes('😮'));
+        assert('Reaction badge added to bubble', !!reactionBadge, 'Found 😮 reaction badge');
+
+        // TEST 8: UPI Rupee (₹) Payment Modal
+        window.IndiChatPreviewEngine.openPaymentDialog();
+        await sleep(50);
+        const paymentModal = document.getElementById('paymentModal');
+        assert('UPI payment dialog opened', paymentModal?.style.display === 'grid');
+        const confirmPayBtn = document.getElementById('btnConfirmPayment');
+        if (confirmPayBtn) confirmPayBtn.click();
+        await sleep(50);
+        assert('Payment modal closed after pay', paymentModal?.style.display === 'none');
+        const paymentBubble = Array.from(document.querySelectorAll('#messagesStream .message-bubble')).pop();
+        assert('Payment bubble rendered', paymentBubble?.textContent.includes('₹500') || paymentBubble?.textContent.includes('Paid'));
+
+        // TEST 9: Audio/Video Call Simulation
+        window.IndiChatPreviewEngine.startCallSimulation(false);
+        await sleep(50);
+        const callOverlay = document.getElementById('callOverlay');
+        assert('Call overlay active', callOverlay?.style.display === 'flex');
+
+        const muteBtn = document.getElementById('callMuteBtn');
+        muteBtn?.click();
+        assert('Microphone mute toggled', muteBtn?.classList.contains('active'));
+
+        const endCallBtn = document.getElementById('endCallBtn');
+        endCallBtn?.click();
+        await sleep(50);
+        assert('Call overlay closed', callOverlay?.style.display === 'none');
+
+        // Check call was added to call log
+        const callLogCount = window.IndiChatPreviewEngine.state.callLogs.length;
+        assert('Call logged to history', callLogCount > 0);
+
+        // TEST 10: Navigation Rail Tabs
+        window.IndiChatPreviewEngine.setActiveRailTab('status');
+        await sleep(50);
+        assert('Status sidebar view active', document.getElementById('sidebarView-status')?.classList.contains('active'));
+
+        window.IndiChatPreviewEngine.setActiveRailTab('calls');
+        await sleep(50);
+        assert('Calls sidebar view active', document.getElementById('sidebarView-calls')?.classList.contains('active'));
+
+        window.IndiChatPreviewEngine.setActiveRailTab('starred');
+        await sleep(50);
+        assert('Starred sidebar view active', document.getElementById('sidebarView-starred')?.classList.contains('active'));
+
+        window.IndiChatPreviewEngine.setActiveRailTab('chats');
+        await sleep(50);
+        assert('Chats sidebar view active', document.getElementById('sidebarView-chats')?.classList.contains('active'));
+
+        // TEST 11: Settings Modal (Profile, 2FA, Theme, Wallpaper, Read Receipts, Linked Devices)
+        window.IndiChatPreviewEngine.openSettingsModal('profile');
+        await sleep(50);
+        const settingsModal = document.getElementById('settingsModalBackdrop');
+        assert('Settings modal opened', settingsModal?.style.display === 'grid');
+
+        // Edit display name
+        const nameInput = document.getElementById('profileDisplayNameInput');
+        if (nameInput) nameInput.value = 'Riya Kapoor (Verified)';
+        document.getElementById('formEditProfile')?.dispatchEvent(new Event('submit'));
+        await sleep(50);
+        assert('Profile name updated in state', window.IndiChatPreviewEngine.state.userProfile.displayName === 'Riya Kapoor (Verified)');
+
+        // Switch to Account
+        document.querySelector('[data-settings-tab="account"]')?.click();
+        await sleep(50);
+        const check2fa = document.getElementById('check2FAEnabled');
+        if (check2fa) {
+          check2fa.checked = true;
+          check2fa.dispatchEvent(new Event('change'));
+        }
+        assert('2FA state persisted', window.IndiChatPreviewEngine.state.userProfile.twoFactorEnabled === true);
+
+        // Switch to Appearance
+        document.querySelector('[data-settings-tab="appearance"]')?.click();
+        await sleep(50);
+        const lightRadio = document.querySelector('input[name="appThemeRadio"][value="light"]');
+        if (lightRadio) {
+          lightRadio.checked = true;
+          lightRadio.dispatchEvent(new Event('change'));
+        }
+        assert('Light theme applied', document.documentElement.getAttribute('data-theme') === 'light');
+
+        const darkRadio = document.querySelector('input[name="appThemeRadio"][value="dark"]');
+        if (darkRadio) {
+          darkRadio.checked = true;
+          darkRadio.dispatchEvent(new Event('change'));
+        }
+        assert('Dark theme applied', document.documentElement.getAttribute('data-theme') === 'dark');
+
+        // Switch to Wallpaper
+        document.querySelector('[data-settings-tab="wallpaper"]')?.click();
+        await sleep(50);
+        document.querySelector('[data-wallpaper-id="emerald"]')?.click();
+        await sleep(50);
+        assert('Emerald wallpaper selected', window.IndiChatPreviewEngine.state.userProfile.chatWallpaper === 'emerald');
+
+        // Switch to Linked Devices
+        document.querySelector('[data-settings-tab="devices"]')?.click();
+        await sleep(50);
+        const devCountBefore = window.IndiChatPreviewEngine.state.userProfile.linkedDevices.length;
+        const revokeBtn = document.querySelector('[data-revoke-dev-id]');
+        if (revokeBtn) {
+          // Stub confirm to true
+          const origConfirm = window.confirm;
+          window.confirm = () => true;
+          revokeBtn.click();
+          window.confirm = origConfirm;
+          await sleep(50);
+          assert('Device session revoked', window.IndiChatPreviewEngine.state.userProfile.linkedDevices.length === devCountBefore - 1);
+        }
+
+        document.getElementById('closeSettingsModalX')?.click();
+        await sleep(50);
+        assert('Settings modal closed', settingsModal?.style.display === 'none');
+
+        // TEST 12: Window Minimize and Restore Pill
+        const minBtn = document.querySelector('.traffic-light.minimize');
+        if (minBtn) minBtn.click();
+        await sleep(50);
+        const mockup = document.getElementById('appWindow');
+        const restorePill = document.getElementById('restoreWindowPill');
+        assert('Mock window minimized', mockup?.classList.contains('minimized'));
+        assert('Restore pill displayed', restorePill?.style.display === 'inline-flex');
+
+        restorePill?.click();
+        await sleep(50);
+        assert('Mock window restored', !mockup?.classList.contains('minimized'));
+        assert('Restore pill hidden', restorePill?.style.display === 'none');
+
+        // TEST 13: Reset Demo Data
+        window.IndiChatPreviewEngine.resetDemoData(false);
+        await sleep(50);
+        assert('Reset restored Aarav as default active', window.IndiChatPreviewEngine.state.activeContactId === 'c-aarav');
+        assert('Reset restored original profile name', window.IndiChatPreviewEngine.state.userProfile.displayName === 'Riya Kapoor');
+
+        // TEST 14: Communities & Circles Flow
+        window.IndiChatPreviewEngine.setActiveRailTab('communities');
+        await sleep(50);
+        assert('Communities rail tab active', document.getElementById('sidebarView-communities')?.classList.contains('active'));
+        const circleCards = document.querySelectorAll('#communitiesListContainer .community-circle-card');
+        assert('Communities circle cards rendered', circleCards.length >= 2, `Found ${circleCards.length}`);
+
+        // Open Circle Details modal
+        const firstCircle = window.IndiChatPreviewEngine.state.communities[0];
+        window.IndiChatPreviewEngine.openCommunityCircleModal(firstCircle);
+        await sleep(50);
+        const commModal = document.getElementById('communityCircleModal');
+        assert('Community circle details modal opens', commModal?.style.display === 'grid');
+
+        // Add sub-group
+        const sgInput = document.getElementById('inputNewSubGroupName');
+        if (sgInput) sgInput.value = 'Release Squad 2026';
+        document.getElementById('formAddSubGroup')?.dispatchEvent(new Event('submit'));
+        await sleep(50);
+        const hasNewSubGroup = firstCircle.subGroups.some(sg => sg.name === 'Release Squad 2026');
+        assert('Sub-group added to circle in state', hasNewSubGroup);
+        document.getElementById('closeCommunityModalX')?.click();
+        await sleep(50);
+        assert('Community circle modal closes', commModal?.style.display === 'none');
+
+        // Create new community circle
+        window.IndiChatPreviewEngine.openCommunityCircleModal();
+        await sleep(50);
+        assert('Create community circle modal opens', commModal?.style.display === 'grid');
+        const cNameInput = document.getElementById('inputNewCircleName');
+        const cDescInput = document.getElementById('inputNewCircleDesc');
+        if (cNameInput && cDescInput) {
+          cNameInput.value = 'Bangalore Developers Circle';
+          cDescInput.value = 'Local tech and architecture meetups';
+        }
+        document.getElementById('formCreateCircle')?.dispatchEvent(new Event('submit'));
+        await sleep(50);
+        const hasNewCircle = window.IndiChatPreviewEngine.state.communities.some(c => c.name === 'Bangalore Developers Circle');
+        assert('New community circle created in state', hasNewCircle);
+
+        // TEST 15: Avatar Color & Initials Picker Modal
+        window.IndiChatPreviewEngine.openAvatarPickerModal();
+        await sleep(50);
+        const avatarModal = document.getElementById('avatarPickerModal');
+        assert('Avatar Picker modal opens', avatarModal?.style.display === 'grid');
+        const purpleDot = document.querySelector('.avatar-preset-dot[data-color-val="#8b5cf6"]');
+        if (purpleDot) purpleDot.click();
+        const initialsInput = document.getElementById('inputAvatarInitials');
+        if (initialsInput) {
+          initialsInput.value = 'VK';
+          initialsInput.dispatchEvent(new Event('input'));
+        }
+        document.getElementById('btnSaveAvatarPicker')?.click();
+        await sleep(50);
+        assert('Avatar color saved in state', window.IndiChatPreviewEngine.state.userProfile.avatarColor === '#8b5cf6');
+        assert('Avatar initials saved in state', window.IndiChatPreviewEngine.state.userProfile.avatarInitials === 'VK');
+        assert('Avatar Picker modal closed', avatarModal?.style.display === 'none');
+
+        // TEST 16: Change Password Modal
+        window.IndiChatPreviewEngine.openChangePasswordModal();
+        await sleep(50);
+        const passModal = document.getElementById('changePasswordModal');
+        assert('Change Password modal opens', passModal?.style.display === 'grid');
+        const curPass = document.getElementById('inputCurrentPassword');
+        const newPass = document.getElementById('inputNewPassword');
+        const confPass = document.getElementById('inputConfirmPassword');
+        if (curPass && newPass && confPass) {
+          curPass.value = 'currentPass123';
+          newPass.value = 'SecureNewPass888';
+          confPass.value = 'SecureNewPass888';
+        }
+        document.getElementById('formChangePassword')?.dispatchEvent(new Event('submit'));
+        await sleep(50);
+        assert('Password updated timestamp set', window.IndiChatPreviewEngine.state.userProfile.lastPasswordChanged === 'Just now');
+        assert('Change Password modal closed', passModal?.style.display === 'none');
+
+        // TEST 17: Change Phone Number Modal
+        window.IndiChatPreviewEngine.openChangePhoneModal();
+        await sleep(50);
+        const phoneModal = document.getElementById('changePhoneModal');
+        assert('Change Phone modal opens', phoneModal?.style.display === 'grid');
+        const phoneInput = document.getElementById('inputNewPhoneNumber');
+        if (phoneInput) phoneInput.value = '+91 99887 76655';
+        document.getElementById('formChangePhone')?.dispatchEvent(new Event('submit'));
+        await sleep(50);
+        assert('Phone number updated in state', window.IndiChatPreviewEngine.state.userProfile.phoneNumber === '+91 99887 76655');
+        assert('Change Phone modal closed', phoneModal?.style.display === 'none');
+
+        // TEST 18: Passkeys Management Modal
+        window.IndiChatPreviewEngine.openPasskeysModal();
+        await sleep(50);
+        const pkModal = document.getElementById('passkeysManagementModal');
+        assert('Passkeys modal opens', pkModal?.style.display === 'grid');
+        const pkCountBefore = window.IndiChatPreviewEngine.state.passkeys.length;
+        assert('Enrolled passkeys listed', pkCountBefore >= 2);
+        const removePkBtn = document.querySelector('[data-remove-passkey-id]');
+        if (removePkBtn) removePkBtn.click();
+        await sleep(50);
+        assert('Passkey removed from state', window.IndiChatPreviewEngine.state.passkeys.length === pkCountBefore - 1);
+        document.getElementById('closePasskeysModalX')?.click();
+        await sleep(50);
+        assert('Passkeys modal closed', pkModal?.style.display === 'none');
+
+        // TEST 19: Delete Account Modal
+        window.IndiChatPreviewEngine.openDeleteAccountModal();
+        await sleep(50);
+        const delModal = document.getElementById('deleteAccountModal');
+        assert('Delete Account modal opens', delModal?.style.display === 'grid');
+        const delConfirmInput = document.getElementById('inputDeleteAccountConfirm');
+        const delExecBtn = document.getElementById('btnExecuteDeleteAccount');
+        assert('Delete button initially disabled', delExecBtn?.disabled === true);
+        if (delConfirmInput) {
+          delConfirmInput.value = 'DELETE';
+          delConfirmInput.dispatchEvent(new Event('input'));
+        }
+        assert('Delete button enabled on exact DELETE input', delExecBtn?.disabled === false);
+        document.getElementById('btnCancelDeleteAccount')?.click();
+        await sleep(50);
+        assert('Delete Account modal cancelled and closed', delModal?.style.display === 'none');
+
+        // TEST 20: Contact Support Modal
+        window.IndiChatPreviewEngine.openContactSupportModal();
+        await sleep(50);
+        const supportModal = document.getElementById('contactSupportModal');
+        assert('Contact Support modal opens', supportModal?.style.display === 'grid');
+        const supportSubj = document.getElementById('inputSupportSubject');
+        const supportDesc = document.getElementById('inputSupportDescription');
+        if (supportSubj && supportDesc) {
+          supportSubj.value = 'WebSocket latency test';
+          supportDesc.value = 'Preview engine running nominal.';
+        }
+        document.getElementById('formContactSupport')?.dispatchEvent(new Event('submit'));
+        await sleep(50);
+        assert('Contact Support modal submitted and closed', supportModal?.style.display === 'none');
+
+        // TEST 21: E2E Encryption Safety Numbers Verification
+        window.IndiChatPreviewEngine.setActiveRailTab('chats');
+        window.IndiChatPreviewEngine.state.detailsPanelOpen = true;
+        window.IndiChatPreviewEngine.setActiveContact('c-aarav');
+        await sleep(50);
+        const aaravContact = window.IndiChatPreviewEngine.state.contacts.find(c => c.id === 'c-aarav');
+        window.IndiChatPreviewEngine.openSafetyNumbersModal(aaravContact);
+        await sleep(50);
+        const safetyModal = document.getElementById('safetyNumbersModal');
+        assert('Safety Numbers modal opens', safetyModal?.style.display === 'grid');
+        document.getElementById('btnConfirmVerifiedNumbers')?.click();
+        await sleep(50);
+        assert('Contact marked verified in state', aaravContact?.verified === true);
+        assert('Safety Numbers modal closed', safetyModal?.style.display === 'none');
+        assert('Details panel shows verified badge', document.getElementById('btnVerifyEncryptionSection')?.textContent.includes('Verified'));
+
+        // TEST 22: Media Lightbox & Document Viewer from Details Panel
+        const firstMediaChip = document.querySelector('.media-thumbnail-chip[data-chip-type="image"]');
+        if (firstMediaChip) firstMediaChip.click();
+        await sleep(50);
+        const lightboxModal = document.getElementById('lightboxViewerModal');
+        assert('Media Lightbox modal opens on chip click', lightboxModal?.style.display === 'flex');
+        document.getElementById('closeLightboxBtn')?.click();
+        await sleep(50);
+        assert('Media Lightbox modal closes', lightboxModal?.style.display === 'none');
+
+        const firstDocChip = document.querySelector('.media-thumbnail-chip[data-chip-type="document"]');
+        if (firstDocChip) firstDocChip.click();
+        await sleep(50);
+        const docModal = document.getElementById('docViewerModalBackdrop');
+        assert('Document Viewer modal opens on chip click', docModal?.style.display === 'grid');
+        document.getElementById('closeDocViewerBtn')?.click();
+        await sleep(50);
+        assert('Document Viewer modal closes', docModal?.style.display === 'none');
+
+        // TEST 23: Audio Voice Note Playback Toggle
+        window.IndiChatPreviewEngine.setActiveContact('c-aarav');
+        // Ensure Aarav has an audio message or append one
+        aaravContact.messages.push({
+          id: 'm-audio-test',
+          sender: 'them',
+          senderDisplayName: 'Aarav Sharma',
+          type: 'audio',
+          audioDuration: '0:18',
+          time: '09:30 AM',
+          status: 'read'
+        });
+        window.IndiChatPreviewEngine.setActiveContact('c-aarav');
+        await sleep(50);
+        const audioPlayBtn = document.querySelector('#messagesStream [data-action="play-audio"]');
+        assert('Audio play button rendered', !!audioPlayBtn);
+        if (audioPlayBtn) {
+          audioPlayBtn.click();
+          await sleep(50);
+          const audioCard = audioPlayBtn.closest('.audio-attachment-card');
+          assert('Audio note playing class active', audioCard?.classList.contains('playing'));
+          assert('Audio button icon shows pause', audioPlayBtn.textContent === '❚❚');
+
+          audioPlayBtn.click();
+          await sleep(50);
+          assert('Audio note playing class removed on pause', !audioCard?.classList.contains('playing'));
+          assert('Audio button icon shows play', audioPlayBtn.textContent === '▶');
+        }
+
+        // TEST 24: Emoji, GIF & Sticker Picker
+        const pickerBtn = document.getElementById('btnEmojiPickerToggle');
+        pickerBtn?.click();
+        await sleep(50);
+        const pickerPanel = document.getElementById('emojiGifStickerPanel');
+        assert('Picker panel opens', pickerPanel?.style.display === 'flex');
+
+        // Insert Emoji
+        const firstEmojiBtn = document.querySelector('.emoji-btn-item');
+        if (firstEmojiBtn) firstEmojiBtn.click();
+        await sleep(50);
+        const composerInputEl = document.getElementById('composerInputField');
+        assert('Emoji inserted into composer input', composerInputEl?.value.length > 0);
+
+        // Send GIF
+        const gifTabBtn = document.querySelector('[data-picker-tab="gif"]');
+        if (gifTabBtn) gifTabBtn.click();
+        await sleep(50);
+        const gifCard = document.querySelector('.gif-card-btn');
+        const msgCountBeforeGif = document.querySelectorAll('#messagesStream .message-bubble').length;
+        if (gifCard) gifCard.click();
+        await sleep(50);
+        const msgCountAfterGif = document.querySelectorAll('#messagesStream .message-bubble').length;
+        assert('GIF sent immediately to messages stream', msgCountAfterGif === msgCountBeforeGif + 1);
+
+        // Send Sticker
+        pickerBtn?.click();
+        await sleep(50);
+        const stickerTabBtn = document.querySelector('[data-picker-tab="sticker"]');
+        if (stickerTabBtn) stickerTabBtn.click();
+        await sleep(50);
+        const stickerCard = document.querySelector('.sticker-card-btn');
+        const msgCountBeforeSticker = document.querySelectorAll('#messagesStream .message-bubble').length;
+        if (stickerCard) stickerCard.click();
+        await sleep(50);
+        const msgCountAfterSticker = document.querySelectorAll('#messagesStream .message-bubble').length;
+        assert('Sticker sent immediately to messages stream', msgCountAfterSticker === msgCountBeforeSticker + 1);
+
+        // TEST 25: Attachment Pipeline & Modal
+        const attachBtn = document.getElementById('btnAttachment');
+        attachBtn?.click();
+        await sleep(50);
+        assert('Attachment menu opens', document.getElementById('attachmentMenu')?.style.display === 'flex');
+        document.getElementById('attachOptionPhotos')?.click();
+        await sleep(50);
+        const attachModal = document.getElementById('attachmentPreviewModal');
+        assert('Attachment preview modal opens', attachModal?.style.display === 'grid');
+        const attachCaption = document.getElementById('attachmentCaptionInput');
+        if (attachCaption) attachCaption.value = 'Testing attachment pipeline';
+        const msgCountBeforeAttach = document.querySelectorAll('#messagesStream .message-bubble').length;
+        document.getElementById('btnConfirmSendAttachment')?.click();
+        await sleep(50);
+        const msgCountAfterAttach = document.querySelectorAll('#messagesStream .message-bubble').length;
+        assert('Attachment sent to messages stream with caption', msgCountAfterAttach === msgCountBeforeAttach + 1);
+        assert('Attachment modal closed', attachModal?.style.display === 'none');
+
+        // TEST 26: Conversation Switching & Draft Isolation
+        // Type draft in Aarav
+        window.IndiChatPreviewEngine.setActiveContact('c-aarav');
+        await sleep(50);
+        composerInputEl.value = 'Secret draft for Aarav';
+        composerInputEl.dispatchEvent(new Event('input'));
+        await sleep(50);
+
+        // Switch to Priya
+        window.IndiChatPreviewEngine.setActiveContact('c-priya');
+        await sleep(50);
+        assert('Priya composer input is empty (Aarav draft isolated)', composerInputEl.value === '');
+        window.IndiChatPreviewEngine.sendMessage('Hello Priya unique message');
+        await sleep(50);
+        const priyaHasMsg = window.IndiChatPreviewEngine.state.contacts.find(c => c.id === 'c-priya').messages.some(m => m.text === 'Hello Priya unique message');
+        assert('Message saved in Priya conversation', priyaHasMsg);
+
+        // Switch back to Aarav
+        window.IndiChatPreviewEngine.setActiveContact('c-aarav');
+        await sleep(50);
+        const aaravHasPriyaMsg = window.IndiChatPreviewEngine.state.contacts.find(c => c.id === 'c-aarav').messages.some(m => m.text === 'Hello Priya unique message');
+        assert('Priya message does NOT leak into Aarav conversation', !aaravHasPriyaMsg);
+        assert('Aarav draft restored upon switching back', composerInputEl.value === 'Secret draft for Aarav');
+        composerInputEl.value = '';
+
+        // TEST 27: Keyboard Shortcuts & Escape Key Dismissal
+        window.IndiChatPreviewEngine.openKeyboardShortcutsModal();
+        await sleep(50);
+        const shortcutsModal = document.getElementById('keyboardShortcutsModal');
+        assert('Keyboard shortcuts modal opens', shortcutsModal?.style.display === 'grid');
+        // Press Escape to dismiss
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        await sleep(50);
+        assert('Escape key dismisses keyboard shortcuts modal', shortcutsModal?.style.display === 'none');
+
+        // Cmd/Ctrl+, opens Settings
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: ',', metaKey: true, bubbles: true }));
+        await sleep(50);
+        assert('Cmd+, opens Settings modal', document.getElementById('settingsModalBackdrop')?.style.display === 'grid');
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        await sleep(50);
+        assert('Escape key dismisses Settings modal', document.getElementById('settingsModalBackdrop')?.style.display === 'none');
+
+        // TEST 28: Linux GNOME App Dropdown Menu
+        const gnomeMenuBtn = document.getElementById('btnGnomeAppMenu');
+        gnomeMenuBtn?.click();
+        await sleep(50);
+        const gnomeMenu = document.getElementById('gnomeAppDropdownMenu');
+        assert('GNOME App dropdown menu opens', gnomeMenu?.style.display === 'flex');
+        document.getElementById('gnomeMenuShortcuts')?.click();
+        await sleep(50);
+        assert('GNOME menu shortcuts item opened dialog', shortcutsModal?.style.display === 'grid');
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        await sleep(50);
+
+        // TEST 29: Final Clean Reset
+        window.IndiChatPreviewEngine.resetDemoData(false);
+        await sleep(50);
+        assert('Final reset clean active contact', window.IndiChatPreviewEngine.state.activeContactId === 'c-aarav');
+        assert('Final reset clean profile name', window.IndiChatPreviewEngine.state.userProfile.displayName === 'Riya Kapoor');
+
+        // FINAL SUMMARY
+        const total = results.length;
+        const passed = results.filter(r => r.pass).length;
+        const failed = total - passed;
+        summary.innerHTML = `<span style="color:${failed === 0 ? '#10b981' : '#ef4444'}">TEST SUITE COMPLETE: ${passed} / ${total} ASSERTIONS PASSED (${failed} FAILED)</span>`;
+        document.getElementById('testResultsContainer').setAttribute('data-test-summary', `${passed}/${total} PASS`);
+        document.getElementById('testResultsContainer').setAttribute('data-test-failed', `${failed}`);
+      } catch (err) {
+        console.error('Test suite error:', err);
+        summary.innerHTML = `<span style="color:#ef4444">TEST RUN CRASHED: ${err.message}</span>`;
+      }
+    })();
+  </script>
+</body>
+</html>
