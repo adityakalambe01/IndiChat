@@ -115,15 +115,28 @@ Users can link multiple browser instances, mobile phones, or desktop apps:
 
 ## 5. WebRTC Audio & Video Calling Architecture
 
-- **Signaling Coordination**: WebRTC peer connections exchange SDP offers, SDP answers, and ICE candidate candidates through the backend via WebSocket type `call.signal`.
-- **Target Resolution**: Sockets route call signals either directly to a `targetUserId` or dynamically resolve participant IDs from a `conversationId`.
-- **Push Notification Trigger**: When an `offer` signal is sent to an offline or backgrounded user, the backend automatically dispatches an urgent push notification alerting them of the incoming call.
-- **Audio Feedback**: The web client synthesizes realistic ringtones, dial tones, and audio cues using the Web Audio API (`callAudio.ts`).
-- **Call Logging & In-Chat Bubbles**: Call start, duration, and completion are logged in the local call history and rendered as dedicated call status bubbles inside the chat thread.
+IndiChat supports cross-platform, peer-to-peer 1-to-1 audio and video calling between Web and Mobile clients:
+
+- **Signaling Coordination**: WebRTC peer connections exchange SDP offers, SDP answers, and trickle ICE candidates through the backend via WebSocket type `call.signal`.
+- **Session Correlation**: All signals carry a `callSessionId` preventing crosstalk across rapid consecutive calls, stale candidate injection, or race conditions.
+- **Deterministic Glare Resolution**: When simultaneous offers are sent between peers, lexicographical comparison of normalized sender user IDs breaks the tie cleanly (the lower UUID yields and answers the higher UUID's incoming offer without dropping resources).
+- **Native Android Audio Routing**: An in-tree Kotlin module (`AudioRouteModule.kt`) coordinates Android `AudioManager`, manages `MODE_IN_COMMUNICATION`, requests `AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE` for `USAGE_VOICE_COMMUNICATION`, handles earpiece/speakerphone toggling via `setCommunicationDevice()` (API 31+) / legacy fallbacks, and cleanly releases audio focus and modes on call teardown.
+- **In-Call Controls**: Real-time microphone mute, camera disable/preview hide, front/back camera flipping via `track._switchCamera()`, and speakerphone switching.
+- **Call Termination & Reasons**: Dedicated termination reasons (`user_ended`, `user_declined`, `user_busy`, `caller_cancelled`, `unanswered`) propagate through signaling hangups and immediately unmount UI overlays.
+- **Local Call Logging & In-Chat Bubbles**: Call start, duration, direction, and completion are logged in persistent local storage and rendered as dedicated call status bubbles inside the chat thread.
 
 ---
 
-## 6. Android Build & Packaging Pipeline
+## 6. Local Archive Export & Read-Only Viewer
+
+IndiChat provides a local privacy-preserving backup mechanism:
+- **Export**: Exports conversations and plaintext messages via `GET /api/v1/conversations/backup`, streamed and written locally to disk without remote attachment bloat.
+- **Read-Only Local Archive Viewer**: Modal interface (`LocalArchiveViewerModal.tsx`) strictly parses, validates format/version, and enforces safety limits (10 MB file size, 1,000 conversations, 50,000 messages, 10,000 characters per message).
+- **Untrusted Safety Architecture**: Imported archives are treated as unauthenticated, editable plaintext. The viewer never executes content, never auto-fetches remote attachments, and strictly never mutates or restores messages into live server conversations.
+
+---
+
+## 7. Android Build & Packaging Pipeline
 
 ```
 [Developer / CI CLI]
