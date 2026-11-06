@@ -17,7 +17,7 @@ interface CallModalProps {
 
 export const CallModal: React.FC<CallModalProps> = ({
   targetUserId,
-  targetName,
+  targetName = 'IndiChat User',
   callerName = 'IndiChat User',
   isVideo: initialIsVideo,
   isIncoming = false,
@@ -38,9 +38,16 @@ export const CallModal: React.FC<CallModalProps> = ({
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
   const queuedCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const isCleaningUpRef = useRef(false);
+  const callSessionIdRef = useRef<string>(
+    incomingOfferData?.callSessionId ||
+      (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `web-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`)
+  );
 
   // Initialize WebRTC and Signaling
   useEffect(() => {
+    let isCancelled = false;
     isCleaningUpRef.current = false;
 
     // Create RTCPeerConnection with Google STUN servers
@@ -52,15 +59,21 @@ export const CallModal: React.FC<CallModalProps> = ({
     });
     pcRef.current = pc;
 
+    const remoteMediaStream = new MediaStream();
     // Attach remote stream tracks to media elements
     pc.ontrack = (event) => {
       console.log('[WebRTC] Remote track received:', event.track.kind);
-      const [remoteStream] = event.streams;
-      if (remoteVideoRef.current && remoteStream) {
-        remoteVideoRef.current.srcObject = remoteStream;
+      const stream = (event.streams && event.streams[0]) ? event.streams[0] : remoteMediaStream;
+      if (!event.streams || !event.streams[0]) {
+        stream.addTrack(event.track);
       }
-      if (remoteAudioRef.current && remoteStream) {
-        remoteAudioRef.current.srcObject = remoteStream;
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = stream;
+        remoteVideoRef.current.play?.().catch(() => {});
+      }
+      if (remoteAudioRef.current) {
+        remoteAudioRef.current.srcObject = stream;
+        remoteAudioRef.current.play?.().catch(() => {});
       }
     };
 
@@ -70,7 +83,10 @@ export const CallModal: React.FC<CallModalProps> = ({
         wsClient.sendCallSignal({
           targetUserId,
           signalType: 'ice-candidate',
-          data: event.candidate.toJSON(),
+          data: {
+            ...event.candidate.toJSON(),
+            callSessionId: callSessionIdRef.current,
+          },
         });
       }
     };
@@ -82,6 +98,10 @@ export const CallModal: React.FC<CallModalProps> = ({
           audio: true,
           video: wantVideo,
         });
+        if (isCancelled || (pc.signalingState as string) === 'closed' || isCleaningUpRef.current) {
+          stream.getTracks().forEach((t) => t.stop());
+          return null;
+        }
         localStreamRef.current = stream;
 
         if (localVideoRef.current && wantVideo) {
@@ -89,17 +109,26 @@ export const CallModal: React.FC<CallModalProps> = ({
         }
 
         stream.getTracks().forEach((track) => {
-          pc.addTrack(track, stream);
+          if ((pc.signalingState as string) !== 'closed' && !isCleaningUpRef.current) {
+            pc.addTrack(track, stream);
+          }
         });
         return stream;
       } catch (err: any) {
+        if (isCancelled || (pc.signalingState as string) === 'closed' || isCleaningUpRef.current) return null;
         console.warn('[WebRTC] Primary getUserMedia failed:', err.message);
         if (wantVideo) {
           try {
             const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            if (isCancelled || (pc.signalingState as string) === 'closed' || isCleaningUpRef.current) {
+              audioStream.getTracks().forEach((t) => t.stop());
+              return null;
+            }
             localStreamRef.current = audioStream;
             audioStream.getTracks().forEach((track) => {
-              pc.addTrack(track, audioStream);
+              if ((pc.signalingState as string) !== 'closed' && !isCleaningUpRef.current) {
+                pc.addTrack(track, audioStream);
+              }
             });
             setIsVideo(false);
             setMediaWarning('Camera unavailable; switched to audio call.');
@@ -118,26 +147,28 @@ export const CallModal: React.FC<CallModalProps> = ({
     if (!isIncoming) {
       // Outgoing call: play ringback, acquire media, and send offer
       callAudio.playOutgoingRing();
-      acquireMediaStream(initialIsVideo).then(async () => {
+      acquireMediaStream(initialIsVideo).then(async (stream) => {
+        if (isCancelled || !stream || (pc.signalingState as string) === 'closed' || isCleaningUpRef.current) return;
         try {
           const offer = await pc.createOffer({
             offerToReceiveAudio: true,
             offerToReceiveVideo: initialIsVideo,
           });
+          if (isCancelled || (pc.signalingState as string) === 'closed' || isCleaningUpRef.current) return;
           await pc.setLocalDescription(offer);
 
           wsClient.sendCallSignal({
             targetUserId,
             signalType: 'offer',
-            data: { sdp: offer, isVideo: initialIsVideo, callerName },
+            data: {
+              sdp: offer,
+              isVideo: initialIsVideo,
+              callerName,
+              callSessionId: callSessionIdRef.current,
+            },
           });
         } catch (offerErr) {
           console.error('[WebRTC] Failed to create offer:', offerErr);
-          wsClient.sendCallSignal({
-            targetUserId,
-            signalType: 'offer',
-            data: { isVideo: initialIsVideo, callerName },
-          });
         }
       });
     } else {
@@ -149,12 +180,18 @@ export const CallModal: React.FC<CallModalProps> = ({
     const unsubSignal = wsClient.onCallSignal(async (signal: CallSignalPayload) => {
       if (isCleaningUpRef.current) return;
 
+      const sigData = (signal.data as any) || {};
+      if (sigData.callSessionId && callSessionIdRef.current && sigData.callSessionId !== callSessionIdRef.current) {
+        console.warn('[WebRTC] Stale signal ignored:', sigData.callSessionId);
+        return;
+      }
+
       if (signal.signalType === 'answer') {
         console.log('[WebRTC] Received call answer from peer');
         callAudio.stopAll();
         setConnected(true);
 
-        const sdp = (signal.data as any)?.sdp;
+        const sdp = sigData.sdp;
         if (sdp && pc.signalingState !== 'closed') {
           try {
             await pc.setRemoteDescription(new RTCSessionDescription(sdp));
@@ -168,7 +205,7 @@ export const CallModal: React.FC<CallModalProps> = ({
           }
         }
       } else if (signal.signalType === 'ice-candidate') {
-        const cand = signal.data as any;
+        const cand = sigData;
         if (cand && pc.signalingState !== 'closed') {
           if (pc.remoteDescription) {
             try {
@@ -181,12 +218,25 @@ export const CallModal: React.FC<CallModalProps> = ({
           }
         }
       } else if (signal.signalType === 'hangup') {
-        console.log('[WebRTC] Remote peer hung up call');
-        endCall(false);
+        const reason = sigData.reason;
+        console.log('[WebRTC] Remote peer hung up call. Reason:', reason);
+        let reasonNotice = '';
+        if (reason === 'user_declined') reasonNotice = 'Call was declined by peer.';
+        else if (reason === 'user_busy') reasonNotice = 'User is busy on another call.';
+        else if (reason === 'caller_cancelled') reasonNotice = 'Call was cancelled by caller.';
+        else if (reason === 'timeout') reasonNotice = 'Call timed out (no answer).';
+
+        if (reasonNotice) {
+          setMediaWarning(reasonNotice);
+          setTimeout(() => endCall(false), 1200);
+        } else {
+          endCall(false);
+        }
       }
     });
 
     return () => {
+      isCancelled = true;
       unsubSignal();
       callAudio.stopAll();
       if (localStreamRef.current) {
@@ -214,7 +264,7 @@ export const CallModal: React.FC<CallModalProps> = ({
   }, [connected]);
 
   // Clean teardown helper
-  const endCall = (notifyPeer = true) => {
+  const endCall = (notifyPeer = true, reason: string = 'user_ended') => {
     if (isCleaningUpRef.current) return;
     isCleaningUpRef.current = true;
 
@@ -227,7 +277,10 @@ export const CallModal: React.FC<CallModalProps> = ({
       wsClient.sendCallSignal({
         targetUserId,
         signalType: 'hangup',
-        data: {},
+        data: {
+          callSessionId: callSessionIdRef.current,
+          reason,
+        },
       });
     }
 
@@ -298,7 +351,10 @@ export const CallModal: React.FC<CallModalProps> = ({
         wsClient.sendCallSignal({
           targetUserId,
           signalType: 'answer',
-          data: { sdp: answer },
+          data: {
+            sdp: answer,
+            callSessionId: callSessionIdRef.current,
+          },
         });
         return;
       } catch (e) {
@@ -310,7 +366,9 @@ export const CallModal: React.FC<CallModalProps> = ({
     wsClient.sendCallSignal({
       targetUserId,
       signalType: 'answer',
-      data: {},
+      data: {
+        callSessionId: callSessionIdRef.current,
+      },
     });
   };
 
@@ -354,6 +412,7 @@ export const CallModal: React.FC<CallModalProps> = ({
               ref={remoteVideoRef}
               autoPlay
               playsInline
+              muted
               className="call-remote-video"
             />
             {/* Overlay if remote video hasn't arrived or is off */}
@@ -436,7 +495,7 @@ export const CallModal: React.FC<CallModalProps> = ({
         </div>
       ) : (
         /* VOICE CALL / INCOMING DIALOG */
-        <div className="call-dialog">
+        <div className="call-dialog call-dialog-voice">
           <div className="call-encryption-pill" style={{ marginBottom: '8px' }}>
             <ShieldCheck size={14} color="#25D366" />
             <span>End-to-end encrypted</span>

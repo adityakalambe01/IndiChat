@@ -27,7 +27,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User, Conversation } from '@chat/shared-types';
 import { storage, STORAGE_KEYS } from '../../services/storage';
 import { api } from '../../services/api';
-import { settingsService } from '../../services/settings';
+import { settingsService, isDevelopmentOrInternalBuild } from '../../services/settings';
 import { useTheme } from '../../theme/useTheme';
 import { LiquidGlassSurface } from '../../components/LiquidGlassSurface';
 import { AmbientCanvas } from '../../components/AmbientCanvas';
@@ -213,6 +213,19 @@ export default function SettingsHomeScreen() {
       badgeType: 'emerald',
       category: 'System & Session',
     },
+    ...(isDevelopmentOrInternalBuild()
+      ? [
+          {
+            id: 'webrtc-spike',
+            title: 'WebRTC Spike (Dev)',
+            desc: 'Hardware media, loopback & RTCView',
+            route: '/settings/webrtc-spike',
+            icon: 'video' as const,
+            badgeType: 'emerald' as const,
+            category: 'System & Session',
+          },
+        ]
+      : []),
     {
       id: 'help',
       title: 'Help & Support',

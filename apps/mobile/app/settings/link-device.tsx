@@ -57,8 +57,8 @@ export default function LinkDeviceScreen() {
         ]}
       >
         <LiquidGlassSurface style={styles.heroCard}>
-          <View style={styles.qrIconCircle}>
-            <Ionicons name="qr-code-outline" size={36} color="#00a884" />
+          <View style={styles.linkIconCircle}>
+            <Ionicons name="link-outline" size={36} color="#00a884" />
           </View>
           <Text style={[styles.title, { color: palette.textPrimary }]}>
             Link with Code
@@ -66,6 +66,13 @@ export default function LinkDeviceScreen() {
           <Text style={[styles.subtitle, { color: palette.textSecondary }]}>
             Enter this code on your IndiChat Desktop or Web browser to link your session.
           </Text>
+
+          <View style={styles.devNotice}>
+            <Ionicons name="information-circle-outline" size={15} color="#eab308" style={{ marginRight: 6 }} />
+            <Text style={styles.devNoticeText}>
+              Pairing Relay In Development: Code-based session transfer and optical QR scanning are not yet connected to a live relay server.
+            </Text>
+          </View>
 
           <View style={[styles.codeBox, { backgroundColor: palette.bgSecondary, borderColor: palette.glassBorder }]}>
             <Text style={[styles.codeText, { color: palette.textPrimary }]}>{pairingCode}</Text>
@@ -165,7 +172,7 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: 'center',
   },
-  qrIconCircle: {
+  linkIconCircle: {
     width: 64,
     height: 64,
     borderRadius: 32,
@@ -173,6 +180,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
+  },
+  devNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(234, 179, 8, 0.1)',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(234, 179, 8, 0.25)',
+  },
+  devNoticeText: {
+    flex: 1,
+    fontSize: 11,
+    lineHeight: 15,
+    color: '#eab308',
   },
   title: {
     fontSize: 20,

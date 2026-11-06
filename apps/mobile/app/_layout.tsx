@@ -13,16 +13,12 @@ import { useFonts } from 'expo-font';
 import { ThemeProvider, useTheme } from '../theme/useTheme';
 import { LiquidGlassSurface } from '../components/LiquidGlassSurface';
 import { AmbientCanvas } from '../components/AmbientCanvas';
+import { CallOverlay } from '../components/CallOverlay';
 
 function RootNavigation() {
   const router = useRouter();
   const { palette, isDark } = useTheme();
   const [sessionRevokedReason, setSessionRevokedReason] = useState<string | null>(null);
-  const [incomingCall, setIncomingCall] = useState<{
-    senderUserId: string;
-    callerName: string;
-    isVideo: boolean;
-  } | null>(null);
 
   useEffect(() => {
     // Auto-connect websocket if authenticated token is present in storage
@@ -52,20 +48,6 @@ function RootNavigation() {
     const unsubDeviceRemoved = wsClient.onDeviceRemoved(handleRevoked);
     const unsubExpired = onSessionExpired(handleRevoked);
 
-    const unsubCall = wsClient.onCallSignal((signal) => {
-      if (signal.signalType === 'offer' && signal.senderUserId) {
-        const callerName = (signal.data as any)?.callerName || 'Incoming Caller';
-        const isVideo = Boolean((signal.data as any)?.isVideo);
-        setIncomingCall({
-          senderUserId: signal.senderUserId,
-          callerName,
-          isVideo,
-        });
-      } else if (signal.signalType === 'hangup') {
-        setIncomingCall(null);
-      }
-    });
-
     const unsubLinking = Linking.addEventListener('url', (event) => {
       try {
         const url = event.url;
@@ -84,7 +66,6 @@ function RootNavigation() {
       cleanupNotifications?.();
       unsubDeviceRemoved();
       unsubExpired();
-      unsubCall();
       unsubLinking.remove();
     };
   }, [router]);
@@ -128,104 +109,8 @@ function RootNavigation() {
         <Stack.Screen name="settings/server" options={{ headerShown: false }} />
       </Stack>
 
-      {/* Global Incoming Call Overlay */}
-      {incomingCall && (
-        <Modal visible transparent animationType="slide">
-          <View style={styles.incomingCallOverlay}>
-            <LiquidGlassSurface style={styles.incomingCallCard}>
-              <View style={styles.incomingCallAvatar}>
-                <Ionicons
-                  name={incomingCall.isVideo ? 'videocam' : 'call'}
-                  size={36}
-                  color="#25D366"
-                />
-              </View>
-              <Text style={[styles.incomingCallName, { color: palette.textPrimary }]}>
-                {incomingCall.callerName}
-              </Text>
-              <Text style={[styles.incomingCallType, { color: palette.textSecondary }]}>
-                IndiChat {incomingCall.isVideo ? 'Video' : 'Voice'} Call...
-              </Text>
-
-              <View style={styles.callButtonsRow}>
-                <TouchableOpacity
-                  style={[styles.callCircleBtn, styles.declineBtn]}
-                  onPress={() => {
-                    callHistoryService.addCall({
-                      contactName: incomingCall.callerName,
-                      targetUserId: incomingCall.senderUserId,
-                      isVideo: incomingCall.isVideo,
-                      type: 'missed',
-                      duration: 'Declined',
-                    });
-                    wsClient.sendCallSignal({
-                      targetUserId: incomingCall.senderUserId,
-                      signalType: 'hangup',
-                      data: {},
-                    });
-                    setIncomingCall(null);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel="Decline Call"
-                >
-                  <Ionicons name="call" size={26} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
-                  <Text style={styles.callLabel}>Decline</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.callCircleBtn, styles.acceptBtn]}
-                  onPress={async () => {
-                    const senderId = incomingCall.senderUserId;
-                    const callerName = incomingCall.callerName;
-                    const isVideo = incomingCall.isVideo;
-                    setIncomingCall(null);
-
-                    callHistoryService.addCall({
-                      contactName: callerName,
-                      targetUserId: senderId,
-                      isVideo,
-                      type: 'incoming',
-                      duration: 'Ongoing',
-                    });
-
-                    wsClient.sendCallSignal({
-                      targetUserId: senderId,
-                      signalType: 'answer',
-                      data: {},
-                    });
-
-                    try {
-                      const convs = await api.getConversations();
-                      const conv = convs?.find((c) =>
-                        c.members?.some((m) => m.userId === senderId || m.user?.id === senderId)
-                      );
-                      if (conv) {
-                        router.push(
-                          `/chat/${conv.id}?name=${encodeURIComponent(callerName)}&targetUserId=${senderId}&acceptedCall=${isVideo ? 'video' : 'voice'}`
-                        );
-                        return;
-                      }
-                      const newConv = await api.createConversation({ type: 'DIRECT', participantIds: [senderId] });
-                      router.push(
-                        `/chat/${newConv.id}?name=${encodeURIComponent(callerName)}&targetUserId=${senderId}&acceptedCall=${isVideo ? 'video' : 'voice'}`
-                      );
-                    } catch (e) {
-                      router.push(
-                        `/chat/${senderId}?name=${encodeURIComponent(callerName)}&targetUserId=${senderId}&acceptedCall=${isVideo ? 'video' : 'voice'}`
-                      );
-                    }
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel="Accept Call"
-                >
-                  <Ionicons name="call" size={26} color="#fff" />
-                  <Text style={styles.callLabel}>Accept</Text>
-                </TouchableOpacity>
-              </View>
-            </LiquidGlassSurface>
-          </View>
-        </Modal>
-      )}
+      {/* Global Real WebRTC Call Interface (Incoming, Outgoing, Connected) */}
+      <CallOverlay />
 
       {/* Global Session Revoked / Removed Modal */}
       {sessionRevokedReason && (

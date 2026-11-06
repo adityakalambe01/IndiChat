@@ -61,6 +61,19 @@ export interface MobileAppSettings {
   reducedMotion: ReducedMotionOption;
 }
 
+/**
+ * Strict build-level restriction for diagnostic test harnesses.
+ * Requires an active development environment (__DEV__ or NODE_ENV !== 'production')
+ * or an explicit compile-time / build configuration flag (EXPO_PUBLIC_INTERNAL_BUILD === 'true').
+ * User preferences or runtime toggles cannot unlock diagnostics in production builds.
+ */
+export function isDevelopmentOrInternalBuild(): boolean {
+  if (typeof __DEV__ !== 'undefined' && __DEV__) return true;
+  if (process.env.NODE_ENV !== 'production') return true;
+  if (process.env.EXPO_PUBLIC_INTERNAL_BUILD === 'true') return true;
+  return false;
+}
+
 const DEFAULT_SETTINGS: MobileAppSettings = {
   linkedDevices: [],
   passkeyEnabled: false,

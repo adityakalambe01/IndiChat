@@ -1,5 +1,6 @@
 import type {
   AuthResponse,
+  AuthTokens,
   LoginRequest,
   RegisterRequest,
   User,
@@ -78,6 +79,10 @@ export function onSessionExpired(callback: (reason: string) => void): () => void
   return () => {
     sessionExpiredCallbacks.delete(callback);
   };
+}
+
+export function notifySessionExpired(reason: string): void {
+  sessionExpiredCallbacks.forEach((fn) => fn(reason));
 }
 
 async function getAuthHeader(): Promise<Record<string, string>> {
@@ -189,6 +194,12 @@ export const api = {
     });
   },
 
+  refreshTokens: (refreshToken: string) =>
+    request<AuthTokens>('/auth/refresh', {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken }),
+    }),
+
   // Users
   getMe: () => request<User>('/users/me'),
   searchUsers: (query: string) => request<User[]>(`/users/search?q=${encodeURIComponent(query)}`),
@@ -299,7 +310,7 @@ export const api = {
     }),
 
   // Chat Backup & History
-  getChatBackup: () => request<any>('/conversations/backup'),
+  getChatBackup: (signal?: AbortSignal) => request<any>('/conversations/backup', { signal }),
 
   clearAllMessages: () =>
     request<{ message: string }>('/conversations/messages/clear', {

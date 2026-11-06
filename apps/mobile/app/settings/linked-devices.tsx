@@ -72,7 +72,7 @@ export default function LinkedDevicesSettingsScreen() {
     <View style={[styles.screen, { backgroundColor: palette.bg }]}>
       <ScreenHeader
         title="Linked Devices"
-        rightIconName="qr-code-outline"
+        rightIconName="link-outline"
         onRightIconPress={() => router.push('/settings/link-device')}
         rightIconLabel="Link Device"
       />

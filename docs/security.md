@@ -70,3 +70,23 @@ IndiChat enforces strict data isolation:
 - **MinIO Object Isolation**: Media files are saved with randomized UUID filenames (`912ec803-b2ce-4f81-a836-9b88265a0b41`), preventing predictable resource enumeration.
 - **MIME Type Validation**: Files uploaded via `POST /api/v1/files/upload` are validated against approved MIME types and size limits (100MB maximum request size).
 - **Executable Protection**: Files categorized as executables or non-standard binaries are forced to `Content-Disposition: attachment` to protect clients from automatic browser execution.
+
+---
+
+## 6. Token Lifecycle, Auth Recovery & WebSocket Governance
+
+- **Token Refresh & Expiration**: When an access token expires, clients refresh credentials seamlessly via `POST /api/v1/auth/refresh` using the stored refresh token before retrying network requests.
+- **WebSocket Handshake & Auth Termination (Code 1008)**: If the WebSocket receives close code `1008` (Policy Violation / Expired Handshake Credentials), the socket client initiates an automatic token refresh. If the refresh token is expired, revoked, or invalid, the session immediately terminates, stored credentials are cleared, and the application redirects to the login screen with an expiration alert.
+- **Bounded Reconnect Attempts**: Reconnection loops are strictly bounded by `MAX_RECONNECT_ATTEMPTS = 5` with exponential backoff and jitter, preventing denial-of-service loops against backend servers.
+- **Intentional Logout Protection**: When a user explicitly logs out, an internal intentional disconnect guard (`isIntentionalDisconnect = true`) is activated. This completely inhibits token refreshes and background socket resurrect attempts.
+
+---
+
+## 7. Local Archive & Backup Security
+
+- **Read-Only Model**: Local archive imports (`LocalArchiveViewerModal.tsx`) are strictly read-only and local to the device. No server restore endpoint exists.
+- **Untrusted Plaintext Model**: Archives are treated as unauthenticated, editable text.
+- **Data Boundary Containment**:
+  - Imported archives are never merged into live database conversations.
+  - Remote attachments referenced inside archives are never fetched automatically.
+  - Files are subject to strict limits: 10 MB file size, 1,000 conversations, 50,000 messages, and 10,000 characters per message. Excess data is rejected with human-readable error messages.

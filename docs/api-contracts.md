@@ -412,13 +412,23 @@ Sent by recipient when opening conversation.
     "targetUserId": "761611c0-03fe-4ae1-8d26-7f8158d34fb2",
     "signalType": "offer",
     "data": {
-      "sdp": "...",
-      "isVideo": false
+      "callSessionId": "e14000b4-4b99-4d53-84e2-1aca409452b7",
+      "sdp": {
+        "type": "offer",
+        "sdp": "v=0\r\no=..."
+      },
+      "isVideo": false,
+      "callerName": "Alice Cooper"
     }
   }
 }
 ```
 *Supported `signalType` values*: `offer`, `answer`, `ice-candidate`, `hangup`.
+*Correlation & Edge-Case Handling in `data`*:
+- `callSessionId` *(string)*: Unique session UUID preventing crosstalk and stale session leakage.
+- `candidate` *(RTCIceCandidateInit)*: Trickle ICE candidate payload (for `ice-candidate`).
+- `reason` *(string, optional for `hangup`)*: Termination reason: `user_ended`, `user_declined`, `user_busy`, `caller_cancelled`, `unanswered`.
+- Deterministic glare resolution: When simultaneous offers collide, lexicographical ASCII comparison of normalized sender user IDs breaks the tie (lower UUID yields to higher UUID).
 
 ---
 
