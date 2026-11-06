@@ -218,9 +218,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   // Mark incoming messages as read when opening conversation (respecting read receipts privacy setting)
   useEffect(() => {
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (conversation && settingsService.getSettings().readReceipts) {
       messages.forEach((msg) => {
-        if (msg.senderId !== currentUser.id) {
+        if (msg.senderId !== currentUser.id && UUID_REGEX.test(msg.id)) {
           const isRead = msg.receipts?.some((r) => r.userId === currentUser.id && r.readAt != null);
           if (!isRead) {
             wsClient.markRead(msg.id, conversation.id);
