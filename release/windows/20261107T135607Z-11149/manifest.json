@@ -1,0 +1,20 @@
+{
+  "platform": "windows",
+  "arch": "x64",
+  "buildEnvironment": "Linux container; unsigned JS resource/uninstaller path",
+  "nativeRuntimeVerified": false,
+  "signed": false,
+  "artifacts": [
+    {
+      "file": "./release/windows/20261107T135607Z-11149/IndiChat-Setup-1.0.0.exe",
+      "bytes": 139744726,
+      "sha256": "705d735b9b77a73923abbf9961401e8d53cfd5e5c526ec85d36659780dbcda1a"
+    },
+    {
+      "file": "./release/windows/20261107T135607Z-11149/IndiChat-Portable-1.0.0.exe",
+      "bytes": 139432296,
+      "sha256": "90d2e6898bf99d0e829d4d84c6a17b340ca1ae9ea9464aabfcb57852e4b0229c"
+    }
+  ],
+  "pathBase": "project-root"
+}

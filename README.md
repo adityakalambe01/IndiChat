@@ -229,6 +229,51 @@ Compiled Linux binaries and store manifests are stored in `release/linux/`:
 
 ---
 
+## Build all local releases with one command
+
+From the project root:
+
+```bash
+npm run release:all
+```
+
+This runs the existing platform pipelines sequentially for:
+
+| Platform | Outputs under the project root |
+|---|---|
+| Windows | NSIS installer and portable EXE in `./release/windows/` |
+| macOS | DMG and ZIP in `./release/macos/` |
+| Linux | AppImage and Debian package in `./release/linux/` |
+| iOS | Simulator app/ZIP and device `.xcarchive` in `./release/ios/` |
+| Android | APK and AAB in `./release/android/` |
+
+All five targets require a macOS build host for the Apple targets, Xcode,
+CocoaPods, Java/Android SDK, installed workspace dependencies, and Docker for the
+Windows/Linux cross-builds. The default device archive requires iOS signing set up
+in Xcode. It does not export an IPA. Desktop signing follows the existing platform
+scripts; unsigned local packages are not store-ready distributions.
+
+```bash
+# Inspect the plan without building anything:
+npm run release:plan
+
+# Build all platforms but omit the signed iOS device archive:
+npm run release:all -- --ios-simulator-only
+
+# Rerun selected platforms:
+npm run release:all -- --platforms=windows,linux
+```
+
+The runner attempts every selected target, records fresh artifacts using
+project-root-relative paths, and writes `./release/build-all/<run-id>/summary.json`.
+It returns a nonzero exit code if any build fails, a required tool/host is
+unavailable, or a requested artifact format was not freshly generated. Existing
+artifacts alone do not count as a successful build. Platform scripts retain their
+existing output/overwrite behavior. The command does not publish, deploy, or
+establish native runtime verification.
+
+---
+
 ## 📜 Complete NPM Scripts Reference
 
 | Command | Description |

@@ -21,6 +21,8 @@
     "mobile:start": "NODE_PATH=apps/mobile/node_modules:node_modules npm --workspace=apps/mobile run start",
     "mobile:android": "NODE_PATH=apps/mobile/node_modules:node_modules npm --workspace=apps/mobile run android",
     "mobile:ios": "NODE_PATH=apps/mobile/node_modules:node_modules npm --workspace=apps/mobile run ios",
+    "release:all": "node scripts/build-all-releases.cjs",
+    "release:plan": "node scripts/build-all-releases.cjs --dry-run",
     "build:android": "node scripts/build-android.js",
     "build:android:apk": "node scripts/build-android.js --apk",
     "build:android:bundle": "node scripts/build-android.js --bundle",

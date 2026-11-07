@@ -225,7 +225,8 @@ if (buildArchive) {
   });
 
   if (archiveResult.status !== 0) {
-    console.warn(`\n⚠️  Note: Archive compilation requires code signing configured in Xcode.`);
+    console.error(`\n❌ iOS archive failed. Configure device signing in Xcode, or use the simulator-only build.`);
+    process.exit(archiveResult.status || 1);
   } else {
     console.log(`✔ iOS Archive Complete: ${archivePath}`);
   }

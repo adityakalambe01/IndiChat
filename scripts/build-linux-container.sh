@@ -6,19 +6,34 @@ build_id="$(date -u +%Y%m%dT%H%M%SZ)-$$"
 build_output="$root_dir/apps/desktop/dist-bin-linux/$build_id"
 release_output="$root_dir/release/linux/$build_id"
 # Pinned image used by the local packaging verification. Native GUI testing is separate.
-builder_image='electronuserland/builder@sha256:d11de66bf94805f9df748f5e4614858ced7b90ad7f309f29af720ed8bce392a5'
+cd "$root_dir"
+builder_image='indichat-desktop-verification:phase3'
+electron_dist="${INDICHAT_ELECTRON_DIST:-}"
+extra_mounts=()
+if [[ -n "$electron_dist" ]]; then
+  electron_dist="$(cd "$electron_dist" && pwd)"
+  node - "$electron_dist" <<'JS'
+require('./scripts/desktop-build-artifacts.cjs').verifyElectronDist(process.argv[2], 'linux');
+JS
+  extra_mounts=(-v "$electron_dist:/electron-dist:ro")
+fi
 cd "$root_dir"
 npm --workspace=apps/web run build
 mkdir -p "$build_output"
-docker run --rm --platform linux/amd64 -e USE_SYSTEM_7ZA=true \
+docker build --platform linux/amd64 -f scripts/desktop-linux-verification.Dockerfile -t "$builder_image" .
+docker run --rm --platform linux/amd64 -e USE_SYSTEM_7ZA=true "${extra_mounts[@]}" \
+  -e ELECTRON_BUILDER_BINARIES_MIRROR \
   -v "$root_dir:/project:ro" -v "$build_output:/out" -w /work \
   "$builder_image" bash -lc '
+    set -euo pipefail
     cp -a /project/apps/desktop/src /project/apps/desktop/assets \
       /project/apps/desktop/package.json /project/apps/desktop/electron-builder.json /work/
     cp -a /project/apps/web/dist /work/dist-web
     cp /project/LICENSE /LICENSE
+    extra_args=()
+    if [[ -d /electron-dist ]]; then extra_args=(--config.electronDist=/electron-dist); fi
     node /project/node_modules/electron-builder/cli.js --linux AppImage deb --x64 \
-      --config.directories.output=/out
+      --config.directories.output=/out "${extra_args[@]}"
   '
 node - "$build_output" "$release_output" <<'JS'
 const fs = require('node:fs');
@@ -26,7 +41,7 @@ const path = require('node:path');
 const { collectArtifacts } = require('./scripts/desktop-build-artifacts.cjs');
 const artifacts = collectArtifacts(process.argv[2], process.argv[3], ['AppImage', 'deb']);
 fs.writeFileSync(path.join(process.argv[3], 'manifest.json'), JSON.stringify({
-  platform: 'linux', arch: 'x64', nativeRuntimeVerified: false, artifacts
+  platform: 'linux', arch: 'x64', pathBase: 'project-root', nativeRuntimeVerified: false, artifacts
 }, null, 2) + '\n');
 console.log(JSON.stringify(artifacts, null, 2));
 JS

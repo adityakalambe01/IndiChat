@@ -1,0 +1,107 @@
+{
+  "platform": "linux",
+  "arch": "x64",
+  "app": "/opt/IndiChat/indichat",
+  "backend": "in-process mock HTTP service",
+  "passed": 19,
+  "total": 19,
+  "exitCode": 0,
+  "osSandboxVerified": false,
+  "checks": [
+    {
+      "name": "Packaged App Startup without --no-sandbox",
+      "passed": true,
+      "details": "PID: 58"
+    },
+    {
+      "name": "Renderer Node isolation (not OS sandbox proof)",
+      "passed": true,
+      "details": "Bridge: true, Node primitives absent (require: false, process: false)"
+    },
+    {
+      "name": "IPC getServerUrl Handler",
+      "passed": true,
+      "details": "Server URL: http://127.0.0.1:8195"
+    },
+    {
+      "name": "IPC setServerUrl Valid URL Handling",
+      "passed": true,
+      "details": "{\"success\":true,\"serverUrl\":\"http://127.0.0.1:8195\"}"
+    },
+    {
+      "name": "IPC setServerUrl Rejection of Invalid Protocol",
+      "passed": true,
+      "details": "Error invoking remote method 'set-server-url': Error: Invalid protocol 'javascript:'. Only HTTP and HTTPS are permitted."
+    },
+    {
+      "name": "IPC Sender Frame Isolation (Subframe Rejection)",
+      "passed": true,
+      "details": "contextBridge isolates electronAPI from sub-frames"
+    },
+    {
+      "name": "Window Control IPC Invocation",
+      "passed": true,
+      "details": "Minimize & maximize dispatched safely"
+    },
+    {
+      "name": "External-link IPC invocation",
+      "passed": true,
+      "details": "IPC dispatched; external browser outcome not asserted"
+    },
+    {
+      "name": "Embedded Proxy Serving Web Bundle",
+      "passed": true,
+      "details": "URL: http://127.0.0.1:45743/"
+    },
+    {
+      "name": "Authentication through Embedded Proxy",
+      "passed": true,
+      "details": "User: sandboxed_alice"
+    },
+    {
+      "name": "Message Transmission & Stream Rendering",
+      "passed": true,
+      "details": "Bubble rendered"
+    },
+    {
+      "name": "Reaction Mutation in Sandboxed Context",
+      "passed": true,
+      "details": "Reaction mutated via proxy"
+    },
+    {
+      "name": "Call UI Full-Screen Overlay Mounted",
+      "passed": true,
+      "details": "Verified full-bleed overlay in sandboxed runtime"
+    },
+    {
+      "name": "Sandboxed Theme Screenshots Captured",
+      "passed": true,
+      "details": "Saved to /results"
+    },
+    {
+      "name": "setServerUrl Handler Success",
+      "passed": true,
+      "details": "{\"success\":true,\"serverUrl\":\"http://127.0.0.1:8195\"}"
+    },
+    {
+      "name": "Clean Process Termination",
+      "passed": true,
+      "details": "PID 58 terminated"
+    },
+    {
+      "name": "Configuration JSON Persisted on Disk",
+      "passed": true,
+      "details": "Path: /tmp/indichat-linux-smoke/desktop-config.json, serverUrl: http://127.0.0.1:8195"
+    },
+    {
+      "name": "Sandboxed App Relaunch without --no-sandbox",
+      "passed": true,
+      "details": "New PID: 224"
+    },
+    {
+      "name": "Restored Server URL Matches After Relaunch",
+      "passed": true,
+      "details": "URL: http://127.0.0.1:8195"
+    }
+  ]
+}

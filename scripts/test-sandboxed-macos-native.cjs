@@ -1,9 +1,13 @@
 /**
  * test-sandboxed-macos-native.cjs
  *
- * Full Native Runtime Verification for Sandboxed macOS Application:
+ * Packaged desktop smoke verification (macOS default, configurable executable):
  * apps/desktop/dist-bin-sandboxed/mac-arm64/indichat.app
  *
+ * INDICHAT_PACKAGED_APP, INDICHAT_TEST_OUTPUT, INDICHAT_TEST_USERDATA,
+ * INDICHAT_TEST_BACKEND_PORT and INDICHAT_TEST_CDP_PORT select isolated test paths.
+ * Uses a mock HTTP service; this does not prove real-backend or media transport behavior.
+ * Renderer Node isolation is checked; OS sandbox verification is a separate check.
  * Requirements:
  * 1. sandbox: true verified in BrowserWindow without --no-sandbox CLI flag.
  * 2. Preload bridges and IPC sender rejection.
@@ -18,13 +22,15 @@ const { spawn } = require('child_process');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
+const WebSocket = require('ws');
 
-const APP_PATH = path.resolve(__dirname, '../apps/desktop/dist-bin-sandboxed/mac-arm64/indichat.app/Contents/MacOS/indichat');
-const TEST_USERDATA_DIR = '/tmp/indichat-sandboxed-test-userdata';
-const TEMP_BACKEND_PORT = 8195;
+const APP_PATH = process.env.INDICHAT_PACKAGED_APP || path.resolve(__dirname, '../apps/desktop/dist-bin-sandboxed/mac-arm64/indichat.app/Contents/MacOS/indichat');
+const TEST_USERDATA_DIR = process.env.INDICHAT_TEST_USERDATA || '/tmp/indichat-sandboxed-test-userdata';
+const TEMP_BACKEND_PORT = Number(process.env.INDICHAT_TEST_BACKEND_PORT || 8195);
 const TEMP_BACKEND_URL = `http://127.0.0.1:${TEMP_BACKEND_PORT}`;
-const CDP_PORT = 9445;
-const OUTPUT_DIR = path.resolve(__dirname, '../release/macos-sandboxed');
+const CDP_PORT = Number(process.env.INDICHAT_TEST_CDP_PORT || 9445);
+const OUTPUT_DIR = process.env.INDICHAT_TEST_OUTPUT || path.resolve(__dirname, '../release/macos-sandboxed');
+const checks = [];
 
 if (!fs.existsSync(OUTPUT_DIR)) {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -297,8 +303,12 @@ class CDPClient {
   }
 }
 
-async function connectToPackagedApp(port, maxAttempts = 40) {
+async function connectToPackagedApp(port, maxAttempts = 240, child = null) {
+  let lastError = null;
   for (let i = 0; i < maxAttempts; i++) {
+    if (child && (child.exitCode !== null || child.signalCode)) {
+      throw new Error(`Packaged app exited before CDP connected (code=${child.exitCode}, signal=${child.signalCode}); inspect runtime-stderr.log`);
+    }
     try {
       const res = await fetch(`http://127.0.0.1:${port}/json/list`);
       if (res.ok) {
@@ -313,10 +323,10 @@ async function connectToPackagedApp(port, maxAttempts = 40) {
           return client;
         }
       }
-    } catch (_) {}
+    } catch (err) { lastError = err; }
     await sleep(250);
   }
-  throw new Error(`Failed to connect to CDP on port ${port} after ${maxAttempts} attempts`);
+  throw new Error(`Failed to connect to CDP on port ${port} after ${maxAttempts} attempts: ${lastError?.message || "no page target"}`);
 }
 
 // ----------------------------------------------------------------------
@@ -324,7 +334,7 @@ async function connectToPackagedApp(port, maxAttempts = 40) {
 // ----------------------------------------------------------------------
 async function main() {
   console.log('======================================================================');
-  console.log('  IndiChat Sandboxed Native macOS Runtime Verification (sandbox: true)');
+  console.log(`  IndiChat packaged desktop smoke check (${process.platform}/${process.arch})`);
   console.log('======================================================================\n');
 
   console.log(`Executable Path: ${APP_PATH}`);
@@ -356,6 +366,7 @@ async function main() {
 
   function report(name, status, details = '') {
     totalChecks++;
+    checks.push({ name, passed: Boolean(status), details });
     if (status) {
       passedChecks++;
       console.log(`  ✓ ${name}: PASS ${details ? `(${details})` : ''}`);
@@ -376,13 +387,13 @@ async function main() {
     `--user-data-dir=${TEST_USERDATA_DIR}`
   ], {
     env: cleanEnv,
-    stdio: 'ignore'
+    stdio: ['ignore', 'ignore', fs.openSync(path.join(OUTPUT_DIR, 'runtime-stderr.log'), 'a')]
   });
 
   let cdp = null;
 
   try {
-    cdp = await connectToPackagedApp(CDP_PORT);
+    cdp = await connectToPackagedApp(CDP_PORT, 240, appProcess);
     report('Packaged App Startup without --no-sandbox', true, `PID: ${appProcess.pid}`);
     await sleep(2000);
 
@@ -406,7 +417,7 @@ async function main() {
     `);
 
     report(
-      'Chromium Renderer Sandbox Enforcement',
+      'Renderer Node isolation (not OS sandbox proof)',
       sandboxStatus.hasElectronApi && !sandboxStatus.hasRequire && !sandboxStatus.hasProcess && !sandboxStatus.hasBuffer,
       `Bridge: ${sandboxStatus.hasElectronApi}, Node primitives absent (require: ${sandboxStatus.hasRequire}, process: ${sandboxStatus.hasProcess})`
     );
@@ -492,7 +503,7 @@ async function main() {
         }
       })()
     `);
-    report('External Link Safe Handling', externalLinkHandling, 'openExternal routed via shell');
+    report('External-link IPC invocation', externalLinkHandling, 'IPC dispatched; external browser outcome not asserted');
 
     // 4. Embedded Proxy Connectivity & Authentication
     console.log('\n==> [5/7] Testing Embedded Proxy HTTP/WebSocket Connectivity & Auth...');
@@ -621,13 +632,13 @@ async function main() {
     await cdp.eval('document.documentElement.setAttribute("data-theme", "dark"); document.body.setAttribute("data-theme", "dark");');
     await sleep(400);
     const darkShot = await cdp.send('Page.captureScreenshot', { format: 'png' });
-    const darkPath = path.join(OUTPUT_DIR, 'sandboxed-macos-app-dark.png');
+    const darkPath = path.join(OUTPUT_DIR, `packaged-${process.platform}-dark.png`);
     fs.writeFileSync(darkPath, Buffer.from(darkShot.data, 'base64'));
 
     await cdp.eval('document.documentElement.setAttribute("data-theme", "light"); document.body.setAttribute("data-theme", "light");');
     await sleep(400);
     const lightShot = await cdp.send('Page.captureScreenshot', { format: 'png' });
-    const lightPath = path.join(OUTPUT_DIR, 'sandboxed-macos-app-light.png');
+    const lightPath = path.join(OUTPUT_DIR, `packaged-${process.platform}-light.png`);
     fs.writeFileSync(lightPath, Buffer.from(lightShot.data, 'base64'));
 
     await cdp.eval('document.documentElement.setAttribute("data-theme", "dark"); document.body.setAttribute("data-theme", "dark");');
@@ -667,10 +678,10 @@ async function main() {
       `--user-data-dir=${TEST_USERDATA_DIR}`
     ], {
       env: cleanEnv,
-      stdio: 'ignore'
+      stdio: ['ignore', 'ignore', fs.openSync(path.join(OUTPUT_DIR, 'runtime-stderr.log'), 'a')]
     });
 
-    cdp = await connectToPackagedApp(CDP_PORT);
+    cdp = await connectToPackagedApp(CDP_PORT, 240, appProcess);
     report('Sandboxed App Relaunch without --no-sandbox', true, `New PID: ${appProcess.pid}`);
 
     const restoredServerUrl = await cdp.eval('window.electronAPI ? window.electronAPI.getServerUrl() : null');
@@ -681,6 +692,7 @@ async function main() {
     await sleep(1500);
 
   } catch (err) {
+    report('Runtime suite completed without exception', false, err.message);
     console.error('Test execution error:', err);
     process.exitCode = 1;
   } finally {
@@ -695,6 +707,11 @@ async function main() {
 
   console.log('\n======================================================================');
   console.log(` Summary: ${passedChecks}/${totalChecks} Checks Passed`);
+  fs.writeFileSync(path.join(OUTPUT_DIR, 'packaged-runtime-results.json'), JSON.stringify({
+    platform: process.platform, arch: process.arch, app: APP_PATH, backend: 'in-process mock HTTP service',
+    passed: passedChecks, total: totalChecks, exitCode: process.exitCode || 0,
+    osSandboxVerified: false, checks
+  }, null, 2) + '\n');
   console.log('======================================================================');
 }
 

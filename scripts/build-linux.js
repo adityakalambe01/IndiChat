@@ -120,7 +120,7 @@ for (const target of targets) {
 // 6. Collect output binaries from desktop/dist-bin to release/linux
 console.log('\n>>> Collecting release artifacts into release/linux/...');
 const artifacts = collectArtifacts(desktopDistBinDir, releaseLinuxDir, targets);
-fs.writeFileSync(path.join(releaseLinuxDir, 'manifest.json'), JSON.stringify({ platform: 'linux', arch: 'x64', nativeRuntimeVerified: false, artifacts }, null, 2) + '\n');
+fs.writeFileSync(path.join(releaseLinuxDir, 'manifest.json'), JSON.stringify({ platform: 'linux', arch: 'x64', pathBase: 'project-root', nativeRuntimeVerified: false, artifacts }, null, 2) + '\n');
 for (const artifact of artifacts) console.log(`Created: ${artifact.file} (${artifact.bytes} bytes, SHA-256 ${artifact.sha256})`);
 
 console.log('\n====================================================');

@@ -76,7 +76,7 @@ d8b76fcc531847c9d5fd8b6b50a4fecb3df143cdb6f9b2beee2c61645b44527f  release/ios/In
 b7f79fd367d0725006555b3e9977742c942ac9d1a10ceff95382f81102ab308e  release/ios/IndiChat.app/main.jsbundle
 ```
 
-Paths are relative to `/Users/innodaredevil/Desktop/IndiChat`; evidence paths are local `/tmp/indichat-runtime-followup/` (ephemeral). Added `scripts/verify_native_acceptance.mjs`, `scripts/verify_reduced_motion_android.mjs`, `scripts/native-audio-probe/{main.m,build.sh,README.md,stubs/React/RCTBridgeModule.h}`, and `scripts/native-ui-test/{RuntimeUITests.swift,create-project.rb,command.mjs,respond-devicehub.mjs,README.md,android/Driver.java,android/AndroidManifest.xml,android/build.sh}`. The Android instrumentation driver is separate from the installed production app and avoids uiautomator's call-timer idle timeout. The XCTest driver uses its own command documents, not app hooks. Failed attempts and diagnostics remain in the evidence directory.
+Paths are relative to the project root (`.`); evidence paths are local `/tmp/indichat-runtime-followup/` (ephemeral). Added `scripts/verify_native_acceptance.mjs`, `scripts/verify_reduced_motion_android.mjs`, `scripts/native-audio-probe/{main.m,build.sh,README.md,stubs/React/RCTBridgeModule.h}`, and `scripts/native-ui-test/{RuntimeUITests.swift,create-project.rb,command.mjs,respond-devicehub.mjs,README.md,android/Driver.java,android/AndroidManifest.xml,android/build.sh}`. The Android instrumentation driver is separate from the installed production app and avoids uiautomator's call-timer idle timeout. The XCTest driver uses its own command documents, not app hooks. Failed attempts and diagnostics remain in the evidence directory.
 
 Unrelated changes and original app data were preserved. Acceptance added normal demo-account call-history entries. No database/app-data clearing, redesign, public-contract change, commit, push or deployment occurred. The remaining work requires an available physical iPhone for camera/rendering/actual route validation and further native AudioUnit/runtime investigation on the failing 27.0 environment; shared tests cannot establish that behavior.
 
@@ -141,14 +141,14 @@ Commands ran from repository root unless a working directory is specified. Permi
 | `npm ls react-native-webrtc --workspace=apps/mobile` | Exit 0; installed 155.0.1. No npm reinstall was necessary. |
 | `pod install` (cwd `apps/mobile/ios`) | Initial exit 1: restricted GitHub DNS access and missing CMake on PATH; monorepo NODE_PATH warning also observed. |
 | `NODE_PATH="$PWD/apps/mobile/node_modules:$PWD/node_modules" pod install --project-directory=apps/mobile/ios` | Exit 1: invoking from root caused autolinking `Pathname.new requires a String` at Podfile line 49. Corrected to run from the iOS working directory. |
-| `PATH="/Users/innodaredevil/Library/Android/sdk/cmake/3.22.1/bin:$PATH" NODE_PATH=/Users/innodaredevil/Desktop/IndiChat/apps/mobile/node_modules:/Users/innodaredevil/Desktop/IndiChat/node_modules pod install` (cwd `apps/mobile/ios`, elevated) | Exit 0; 116 dependencies / 116 pods. Installed both WebRTC pods and routing bridge. |
+| `PATH="$HOME/Library/Android/sdk/cmake/3.22.1/bin:$PATH" NODE_PATH="$PROJECT_ROOT/apps/mobile/node_modules:$PROJECT_ROOT/node_modules" pod install` (cwd `apps/mobile/ios`, elevated) | Exit 0; 116 dependencies / 116 pods. Installed both WebRTC pods and routing bridge. |
 | `npx tsc --noEmit -p apps/mobile/tsconfig.json` | Final exit 0. Intermediate new TS narrowing/return-type errors were fixed and rerun. |
 | `npm run web:build` | Exit 0; existing chunk-size warning (536.28 kB main JS). |
 | `node --experimental-strip-types --test scripts/test_call_service.mjs scripts/test_webrtc_spike.mjs scripts/test_appearance_persistence.mjs scripts/test_auth_recovery.mjs scripts/test_backup_service.mjs` | Initial exit 1: 31 passed / 6 auth live failures due sandbox localhost EPERM. |
 | `node --experimental-strip-types --test scripts/test_auth_recovery.mjs` (elevated) | Exit 0; **11/11 passed**, including live backend recovery. |
 | `node --experimental-strip-types --test --experimental-test-coverage --test-coverage-include='apps/mobile/services/audioRoute.ts' --test-coverage-include='apps/mobile/services/nativeWebRTC.ts' --test-coverage-include='apps/mobile/theme/navigation.ts' scripts/test_call_fixes.mjs scripts/test_call_service.mjs scripts/test_webrtc_spike.mjs scripts/test_appearance_persistence.mjs scripts/test_backup_service.mjs scripts/test_ios_build_workflow.mjs` | Exit 0; **41/41 passed**. |
 | `npm run build:android:apk` | Initial exit 1: Gradle cache lock EPERM. Elevated retry exit 0, BUILD SUCCESSFUL in 4m 37s. Final rebuild after production edits also exit 0. |
-| `PATH="/Users/innodaredevil/Library/Android/sdk/cmake/3.22.1/bin:$PATH" npm run build:ios:sim` (elevated) | Exit 0; **BUILD SUCCEEDED**, universal arm64/x86_64 simulator release. No module omissions or test-disabling build overrides. |
+| `PATH="$HOME/Library/Android/sdk/cmake/3.22.1/bin:$PATH" npm run build:ios:sim` (elevated) | Exit 0; **BUILD SUCCEEDED**, universal arm64/x86_64 simulator release. No module omissions or test-disabling build overrides. |
 | `adb -s emulator-5554 install -r release/android/IndiChat.apk` (full SDK adb path) | Exit 0, Success. Existing app data retained. |
 | `xcrun simctl install booted release/ios/IndiChat.app` / `xcrun simctl launch booted com.indichat.app` | Exit 0; launched PID 84123. Existing Bob session and conversations displayed. |
 | `node scripts/verify_cross_browser_call.mjs` | Original harness exit 1: Chrome debug port ECONNREFUSED. After harness repairs, browser peer starts; Android attempt fails before calling because emulator activity service is missing. |
@@ -166,11 +166,11 @@ Build warnings were retained: iOS Bluetooth category option deprecation, depende
 ## Artifacts
 
 Fresh outputs, not committed:
-- `/Users/innodaredevil/Desktop/IndiChat/release/android/IndiChat.apk`
-- `/Users/innodaredevil/Desktop/IndiChat/release/android/app-release.apk`
-- `/Users/innodaredevil/Desktop/IndiChat/release/ios/IndiChat.app`
-- `/Users/innodaredevil/Desktop/IndiChat/release/ios/IndiChat-Simulator.zip`
-- `/Users/innodaredevil/Desktop/IndiChat/apps/web/dist/`
+- `./release/android/IndiChat.apk`
+- `./release/android/app-release.apk`
+- `./release/ios/IndiChat.app`
+- `./release/ios/IndiChat-Simulator.zip`
+- `./apps/web/dist/`
 
 Primary logs (local temporary files):
 - `/private/tmp/indichat-pods-native.log`
@@ -207,3 +207,5 @@ The approved Liquid Glass components, preview staging, stored conversations, mes
 | Conciseness | 4/5 | Short final response points here for detailed evidence. |
 
 Overall: 3.8/5. Highest-impact next steps: restore Android activity service; diagnose the iOS AudioUnit initialization abort; then run both directions of audio/video calls, speaker changes, and repeated teardown on each platform. The user should view this as implemented and build-verified fixes with explicitly incomplete native acceptance.
+
+Recorded command paths are normalized for portability: set `PROJECT_ROOT="$(git rev-parse --show-toplevel)"` before using commands that reference it.
