@@ -2,6 +2,9 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const { collectArtifacts } = require('./desktop-build-artifacts.cjs');
+const { configureBuildEnvironment } = require('./setup-build-packages.js');
+const buildId = new Date().toISOString().replace(/[:.]/g, '-') + '-' + process.pid;
 
 // Define paths
 const rootDir = path.resolve(__dirname, '..');
@@ -9,9 +12,9 @@ const desktopDir = path.join(rootDir, 'apps', 'desktop');
 const webDir = path.join(rootDir, 'apps', 'web');
 const webDistDir = path.join(webDir, 'dist');
 const desktopDistWebDir = path.join(desktopDir, 'dist-web');
-const desktopDistBinDir = path.join(desktopDir, 'dist-bin');
+const desktopDistBinDir = path.join(desktopDir, 'dist-bin-linux', buildId);
 const releaseDir = path.join(rootDir, 'release');
-const releaseLinuxDir = path.join(releaseDir, 'linux');
+const releaseLinuxDir = path.join(releaseDir, 'linux', buildId);
 
 // Ensure standard release directory structure exists
 const releaseFolders = ['android', 'ios', 'windows', 'linux'];
@@ -21,6 +24,8 @@ for (const folder of releaseFolders) {
     fs.mkdirSync(dirPath, { recursive: true });
   }
 }
+
+fs.mkdirSync(releaseLinuxDir, { recursive: true });
 
 // Parse CLI flags
 const args = process.argv.slice(2);
@@ -54,10 +59,12 @@ console.log('====================================================\n');
 // Helper to run commands
 function runStep(cmd, cmdArgs, cwd, description) {
   console.log(`>>> ${description}...`);
+  const env = configureBuildEnvironment({ ...process.env });
+  delete env.ELECTRON_RUN_AS_NODE;
   const result = spawnSync(cmd, cmdArgs, {
     cwd,
     stdio: 'inherit',
-    env: process.env,
+    env,
     shell: true
   });
 
@@ -84,6 +91,10 @@ if (fs.existsSync(desktopDistWebDir)) {
 }
 fs.cpSync(webDistDir, desktopDistWebDir, { recursive: true });
 
+// 3.5. Ensure Linux Electron package in ./build_run_package/electron
+console.log('>>> Checking project package cache for Linux Electron runtime...');
+spawnSync(process.execPath, [path.join(rootDir, 'scripts', 'setup-build-packages.js'), '--ensure=linux'], { stdio: 'inherit' });
+
 // 4. Copy store and metadata assets to release/linux/
 console.log('>>> Synchronizing Linux Store & AppStream metadata...');
 const assetsToCopy = [
@@ -108,35 +119,14 @@ if (fs.existsSync(hicolorSrc)) {
 
 // 5. Run electron-builder for selected targets
 for (const target of targets) {
-  runStep('npx', ['electron-builder', '--linux', target], desktopDir, `Building Linux ${target} package`);
+  runStep('npx', ['electron-builder', '--linux', target, '--x64', `--config.directories.output=${desktopDistBinDir}`], desktopDir, `Building Linux ${target} package`);
 }
 
 // 6. Collect output binaries from desktop/dist-bin to release/linux
 console.log('\n>>> Collecting release artifacts into release/linux/...');
-if (fs.existsSync(desktopDistBinDir)) {
-  const files = fs.readdirSync(desktopDistBinDir);
-  for (const file of files) {
-    const ext = path.extname(file).toLowerCase();
-    const isReleaseBinary = ext === '.appimage' || ext === '.deb' || ext === '.snap' || file.endsWith('.tar.gz');
-
-    if (isReleaseBinary) {
-      const srcPath = path.join(desktopDistBinDir, file);
-      const destPath = path.join(releaseLinuxDir, file);
-      fs.copyFileSync(srcPath, destPath);
-
-      // Ensure AppImage is executable
-      if (ext === '.appimage') {
-        try {
-          fs.chmodSync(destPath, '755');
-        } catch (e) {}
-      }
-
-      const stats = fs.statSync(destPath);
-      const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
-      console.log(` ✔ Created: ${file} (${sizeMB} MB) -> ${destPath}`);
-    }
-  }
-}
+const artifacts = collectArtifacts(desktopDistBinDir, releaseLinuxDir, targets);
+fs.writeFileSync(path.join(releaseLinuxDir, 'manifest.json'), JSON.stringify({ platform: 'linux', arch: 'x64', pathBase: 'project-root', nativeRuntimeVerified: false, artifacts }, null, 2) + '\n');
+for (const artifact of artifacts) console.log(`Created: ${artifact.file} (${artifact.bytes} bytes, SHA-256 ${artifact.sha256})`);
 
 console.log('\n====================================================');
 console.log('  Linux Desktop Build Summary & Usage Instructions');

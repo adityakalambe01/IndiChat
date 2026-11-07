@@ -73,7 +73,7 @@ cd backend && mvn clean package -DskipTests
   ```
 * **Success Criteria**: Exit code 0, `dist/` directory generated containing optimized JavaScript and CSS bundles.
 
-### B. Mobile Frontend (React Native + Expo)
+### B. Mobile Frontend (React Native + Expo SDK 58)
 * **Configuration**: [apps/mobile/app.json](../../apps/mobile/app.json), [apps/mobile/tsconfig.json](../../apps/mobile/tsconfig.json)
 * **Type Validation**:
   ```bash
@@ -81,11 +81,14 @@ cd backend && mvn clean package -DskipTests
   ```
 * **Native Android Build Validation**:
   ```bash
-  # Validate debug APK compilation via Gradle engine
   npm run build:android:apk
   ```
+* **Native iOS Build Validation**:
+  ```bash
+  npm run build:ios:sim
+  ```
 
-### C. Backend (Java 21 + Spring Boot 3.3.5)
+### C. Backend (Java 21 + Spring Boot 3.3.5 / 3.4)
 * **Configuration**: [backend/pom.xml](../../backend/pom.xml)
 * **Build Command**:
   ```bash
@@ -97,15 +100,28 @@ cd backend && mvn clean package -DskipTests
   ```
 * **Success Criteria**: Exit code 0, `backend/target/chat-backend-1.0.0.jar` created.
 
-### D. Linux Desktop Client (Electron 33+)
+### D. Multi-Platform Desktop Client (Electron 33+)
 * **Configuration**: [apps/desktop/package.json](../../apps/desktop/package.json)
-* **Build Command**:
+* **Build Commands**:
   ```bash
-  npm run build:linux:appimage
-  # Or comprehensive multi-format build:
+  # macOS (DMG & ZIP):
+  npm run build:macos
+
+  # Windows (NSIS & Portable EXE):
+  npm run build:windows
+
+  # Linux (AppImage, DEB, Snap):
   npm run build:linux:all
   ```
-* **Success Criteria**: Executable `.AppImage`, `.deb`, `.snap` files in `dist/` or `release/linux/`.
+* **Packaged Smoke Test Validation**:
+  ```bash
+  npm run test:desktop:packaged
+  ```
+* **Toolchain Package Cache Status**:
+  ```bash
+  npm run packages:status
+  ```
+* **Success Criteria**: Executable artifacts in `release/macos/`, `release/windows/`, or `release/linux/` with passing smoke tests.
 
 ---
 

@@ -7,6 +7,7 @@ import {
   Settings as SettingsIcon,
   Archive,
   CircleDashed,
+  Star,
 } from 'lucide-react';
 import { User } from '@chat/shared-types';
 
@@ -16,6 +17,7 @@ export type RailTab =
   | 'status'
   | 'channels'
   | 'communities'
+  | 'starred'
   | 'meta_ai'
   | 'archived'
   | 'settings';
@@ -26,6 +28,8 @@ interface NavigationRailProps {
   currentUser: User | null;
   unreadCount?: number;
   hasUnreadStatus?: boolean;
+  theme?: 'dark' | 'light';
+  onToggleTheme?: () => void;
 }
 
 /**
@@ -66,126 +70,130 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
   currentUser,
   unreadCount = 0,
   hasUnreadStatus = true,
+  theme = 'dark',
+  onToggleTheme,
 }) => {
+  const initials = currentUser?.displayName
+    ? currentUser.displayName.slice(0, 2).toUpperCase()
+    : (currentUser?.username?.slice(0, 2).toUpperCase() || 'RK');
+
   return (
-    <nav className="wa-nav-rail" aria-label="Main Navigation">
-      {/* Top action tabs */}
-      <div className="wa-rail-top">
+    <nav className="app-nav-rail" aria-label="Primary navigation">
+      {/* IndiChat Logo */}
+      <div className="rail-logo" title="IndiChat">i</div>
+
+      {/* Primary Rail Items */}
+      <div className="rail-items">
         {/* Chats Tab */}
         <button
-          className={`wa-rail-btn ${activeTab === 'chats' ? 'active' : ''}`}
+          className={`rail-btn ${activeTab === 'chats' ? 'active' : ''}`}
           onClick={() => onSelectTab('chats')}
           title="Chats"
-          aria-label="Chats"
+          aria-label="Chats tab"
+          data-rail-tab="chats"
         >
-          <div className="wa-rail-icon-wrapper">
-            <MessageSquare size={22} />
-            {unreadCount > 0 && (
-              <span className="wa-rail-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
-            )}
-          </div>
-        </button>
-
-        {/* Calls Tab */}
-        <button
-          className={`wa-rail-btn ${activeTab === 'calls' ? 'active' : ''}`}
-          onClick={() => onSelectTab('calls')}
-          title="Calls"
-          aria-label="Calls"
-        >
-          <div className="wa-rail-icon-wrapper">
-            <Phone size={22} />
-          </div>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+          </svg>
+          {unreadCount > 0 && (
+            <span className="rail-badge" id="railChatsBadge">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
         </button>
 
         {/* Status Tab */}
         <button
-          className={`wa-rail-btn ${activeTab === 'status' ? 'active' : ''}`}
+          className={`rail-btn ${activeTab === 'status' ? 'active' : ''}`}
           onClick={() => onSelectTab('status')}
           title="Status"
-          aria-label="Status"
+          aria-label="Status updates"
+          data-rail-tab="status"
         >
-          <div className="wa-rail-icon-wrapper">
-            <CircleDashed size={22} />
-            {hasUnreadStatus && <span className="wa-rail-dot" />}
-          </div>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="4" />
+          </svg>
         </button>
 
-        {/* Channels Tab */}
+        {/* Calls Tab */}
         <button
-          className={`wa-rail-btn ${activeTab === 'channels' ? 'active' : ''}`}
-          onClick={() => onSelectTab('channels')}
-          title="Channels"
-          aria-label="Channels"
+          className={`rail-btn ${activeTab === 'calls' ? 'active' : ''}`}
+          onClick={() => onSelectTab('calls')}
+          title="Calls"
+          aria-label="Calls log"
+          data-rail-tab="calls"
         >
-          <div className="wa-rail-icon-wrapper">
-            <Radio size={22} />
-          </div>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+          </svg>
         </button>
 
         {/* Communities Tab */}
         <button
-          className={`wa-rail-btn ${activeTab === 'communities' ? 'active' : ''}`}
+          className={`rail-btn ${activeTab === 'communities' ? 'active' : ''}`}
           onClick={() => onSelectTab('communities')}
           title="Communities"
-          aria-label="Communities"
+          aria-label="Communities & Circles"
+          data-rail-tab="communities"
         >
-          <div className="wa-rail-icon-wrapper">
-            <Users size={22} />
-          </div>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
         </button>
 
-        {/* Meta AI Tab */}
+        {/* Starred Messages Tab */}
         <button
-          className={`wa-rail-btn wa-rail-ai ${activeTab === 'meta_ai' ? 'active' : ''}`}
-          onClick={() => onSelectTab('meta_ai')}
-          title="Ask Meta AI"
-          aria-label="Ask Meta AI"
+          className={`rail-btn ${activeTab === 'starred' ? 'active' : ''}`}
+          onClick={() => onSelectTab('starred')}
+          title="Starred"
+          aria-label="Starred messages"
+          data-rail-tab="starred"
         >
-          <div className="wa-rail-icon-wrapper">
-            <MetaAiSwirlIcon size={24} />
-          </div>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
         </button>
       </div>
 
-      {/* Bottom utility icons */}
-      <div className="wa-rail-bottom">
-        {/* Starred / Archived */}
+      {/* Rail Bottom */}
+      <div className="rail-bottom">
         <button
-          className={`wa-rail-btn ${activeTab === 'archived' ? 'active' : ''}`}
-          onClick={() => onSelectTab('archived')}
-          title="Archived"
-          aria-label="Archived"
+          className="rail-btn theme-toggle-btn"
+          id="railThemeToggleBtn"
+          aria-label="Toggle theme"
+          title="Toggle Light/Dark Theme"
+          onClick={onToggleTheme}
         >
-          <div className="wa-rail-icon-wrapper">
-            <Archive size={20} />
-          </div>
+          {theme === 'dark' ? '☀' : '🌙'}
         </button>
-
-        {/* Settings */}
         <button
-          className={`wa-rail-btn ${activeTab === 'settings' ? 'active' : ''}`}
-          onClick={() => onSelectTab('settings')}
+          className={`rail-btn ${activeTab === 'settings' ? 'active' : ''}`}
+          id="railSettingsBtn"
+          aria-label="Open settings"
           title="Settings"
-          aria-label="Settings"
-          id="rail-settings-btn"
-        >
-          <div className="wa-rail-icon-wrapper">
-            <SettingsIcon size={20} />
-          </div>
-        </button>
-
-        {/* User Profile Avatar */}
-        <button
-          className="wa-rail-avatar-btn"
+          data-rail-tab="settings"
           onClick={() => onSelectTab('settings')}
-          title={currentUser ? `${currentUser.displayName || currentUser.username} (Profile)` : 'Profile'}
-          aria-label="User Profile"
         >
-          <div className="avatar wa-rail-user-avatar">
-            {currentUser?.displayName ? currentUser.displayName.charAt(0).toUpperCase() : 'U'}
-          </div>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
         </button>
+        <div
+          className="rail-user-avatar"
+          id="railUserAvatarBtn"
+          title={currentUser ? `${currentUser.displayName || currentUser.username} (Profile)` : 'Profile'}
+          role="button"
+          tabIndex={0}
+          onClick={() => onSelectTab('settings')}
+        >
+          {initials}
+          <div className="rail-user-online-dot" />
+        </div>
       </div>
     </nav>
   );

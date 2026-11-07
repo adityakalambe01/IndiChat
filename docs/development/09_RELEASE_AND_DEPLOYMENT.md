@@ -7,45 +7,82 @@
 
 ## 1. Release Packaging & Multi-Platform Compilation
 
-IndiChat compiles production artifacts across Backend, Web, Mobile, and Desktop:
+IndiChat compiles production artifacts across Backend, Web, Mobile (Android & iOS), and Desktop (macOS, Windows, Linux):
 
 ```mermaid
 flowchart TD
-    ReleaseSource[Release Branch / Tag] --> BuildBE[Backend Docker Image / JAR]
-    ReleaseSource --> BuildWeb[Web Vite Production Dist]
-    ReleaseSource --> BuildAndroid[Android APK & AAB Engine]
-    ReleaseSource --> BuildLinux[Linux AppImage & DEB Engine]
+    ReleaseSource[Release Branch / Tag] --> UniversalRunner[Universal Runner: npm run release:all]
+    UniversalRunner --> BuildBE[Backend Docker Image / JAR]
+    UniversalRunner --> BuildWeb[Web Vite Production Dist]
+    UniversalRunner --> BuildAndroid[Android APK & AAB Engine]
+    UniversalRunner --> BuildIOS[iOS Simulator & Archive Engine]
+    UniversalRunner --> BuildMac[macOS DMG & ZIP Engine]
+    UniversalRunner --> BuildWin[Windows NSIS & Portable Engine]
+    UniversalRunner --> BuildLinux[Linux AppImage, DEB, Snap Engine]
     
     BuildBE --> Artifacts[(release/ & Container Registry)]
     BuildWeb --> Artifacts
     BuildAndroid --> Artifacts
+    BuildIOS --> Artifacts
+    BuildMac --> Artifacts
+    BuildWin --> Artifacts
     BuildLinux --> Artifacts
 ```
 
 ### Build Commands Reference:
-1. **Android Binaries** (via [scripts/build-android.js](../../scripts/build-android.js)):
+1. **Universal Multi-Platform Runner** (via [scripts/build-all-releases.cjs](../../scripts/build-all-releases.cjs)):
    ```bash
-   # Build Release APK
-   npm run build:android:apk
-   # Output: release/android/IndiChat.apk (and app-release.apk)
+   # Inspect build plan without building:
+   npm run release:plan
 
-   # Build Google Play App Bundle (.aab)
+   # Run complete multi-platform build:
+   npm run release:all
+   ```
+2. **Mobile Binaries**:
+   ```bash
+   # Android APK & Google Play App Bundle (scripts/build-android.js):
+   npm run build:android:apk
    npm run build:android:bundle
-   # Output: release/android/IndiChat.aab (and app-release.aab)
+   # Outputs: release/android/IndiChat.apk, release/android/IndiChat.aab
+
+   # iOS Simulator & Device Archive (scripts/build-ios.js):
+   npm run build:ios:sim
+   npm run build:ios:archive
+   # Outputs: release/ios/IndiChat.app, release/ios/IndiChat-Simulator.zip, release/ios/IndiChat.xcarchive
    ```
-2. **Linux Desktop Packages** (via [scripts/build-linux.js](../../scripts/build-linux.js)):
+3. **Desktop Packages**:
    ```bash
+   # macOS (scripts/build-macos.js):
+   npm run build:macos
+   # Outputs: release/macos/IndiChat-<version>-arm64.dmg, release/macos/IndiChat-<version>-mac.zip
+
+   # Windows (scripts/build-windows.js):
+   npm run build:windows
+   # Outputs: release/windows/IndiChat-Setup-<version>.exe, release/windows/IndiChat-<version>-portable.exe
+
+   # Linux (scripts/build-linux.js):
    npm run build:linux:all
-   # Output: AppImage, .deb, .snap in release/linux/
+   # Outputs: release/linux/IndiChat-<version>.AppImage, indichat_<version>_amd64.deb, snap, tar.gz
    ```
-3. **Backend Service Container**:
+4. **Backend Service Container & JAR**:
    ```bash
+   # Containerized build:
+   npm run backend:build
+   # Standalone Docker container image:
    docker build -t indichat/backend:latest ./backend
    ```
-4. **Web Frontend Distribution**:
+5. **Web Frontend Distribution**:
    ```bash
    npm run web:build
    # Output: apps/web/dist/
+   ```
+6. **Project-Local Toolchain Cache Manager** (via [scripts/setup-build-packages.js](../../scripts/setup-build-packages.js)):
+   ```bash
+   # Check local toolchain status in build_run_package/
+   npm run packages:status
+
+   # Download all packaging binaries locally
+   npm run packages:download
    ```
 
 ---

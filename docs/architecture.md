@@ -2,41 +2,43 @@
 
 ## 1. System Overview
 
-IndiChat is engineered as a high-performance, modular monolith supporting multi-platform real-time chat, rich media exchange, WebRTC audio/video call signaling, and multi-device session management across Web, Mobile, and Backend.
+IndiChat is engineered as a high-performance, modular monolith supporting multi-platform real-time chat, rich media exchange, WebRTC audio/video call signaling, and multi-device session management across Web, Mobile, Desktop, and Backend.
 
 ```
-+---------------------------------------------------------------------------------------+
-|                                    Client Tier                                        |
-|  +------------------------------------------+  +------------------------------------+ |
-|  |           React 19 Web Client            |  |     React Native / Expo Mobile     | |
-|  |  (Vite + TypeScript + Vanilla CSS)       |  |   (Expo Router v4 + Android APK)   | |
-|  +------------------------------------------+  +------------------------------------+ |
-+---------------------------------------------------------------------------------------+
-                 | REST APIs (HTTP/HTTPS)                   | WebSocket (WS/WSS)
-                 v                                          v
-+---------------------------------------------------------------------------------------+
-|                                Spring Boot 3.4 Gateway                                |
-|  - Security & Authentication (BCrypt, JWT Access/Refresh tokens)                      |
-|  - Users, Contacts & Social Graph                                                     |
-|  - Conversations & Keyset Pagination History                                          |
-|  - Real-Time WebSocket Engine (ChatWebSocketHandler)                                  |
-|  - Delivery & Read Receipts Engine (✓ / ✓✓ / ✓✓ blue)                                 |
-|  - MinIO S3 Storage Adapter (multipart upload, streaming downloads)                  |
-|  - WebRTC Call Signaling Relay (offers, answers, ICE candidates)                      |
-|  - Remote Device Revocation Engine (instant socket disconnect)                        |
-+---------------------------------------------------------------------------------------+
-         |                                   |                              |
-         v                                   v                              v
-+------------------+               +-------------------+          +-------------------+
-|  PostgreSQL 16   |               |      Redis 7      |          |    MinIO / S3     |
-| (Port: 5554)     |               | (Port: 6379)      |          | (Port: 9000/9001) |
-| - Users & Auth   |               | - Online Presence |          | - Photos & Media  |
-| - Conversations  |               | - Last Seen Cache |          | - Voice Notes     |
-| - Messages       |               | - Typing States   |          | - Documents       |
-| - Receipts       |               | - Pub/Sub Hub     |          | - Attachments     |
-| - Linked Devices |               | - Rate Limiting   |          |                   |
-| - User Settings  |               +-------------------+          +-------------------+
-+------------------+
++---------------------------------------------------------------------------------------------------------+
+|                                               Client Tier                                               |
+|  +---------------------------+  +-------------------------------------+  +----------------------------+ |
+|  |    React 18/19 Web Client |  |     React Native / Expo Mobile      |  | Electron 33+ Desktop Client| |
+|  |  (Vite + TS + CSS Tokens) |  |   (Expo Router v4, Android & iOS)   |  |   (macOS, Windows, Linux)  | |
+|  +---------------------------+  +-------------------------------------+  +----------------------------+ |
++---------------------------------------------------------------------------------------------------------+
+                    | REST APIs (HTTP/HTTPS)                          | WebSocket (WS/WSS)
+                    v                                                 v
++---------------------------------------------------------------------------------------------------------+
+|                                         Spring Boot 3.4 Gateway                                         |
+|  - Security & Authentication (BCrypt, JWT Access/Refresh token rotation, WebAuthn Passkeys)            |
+|  - Users, Contacts & Social Graph                                                                       |
+|  - Conversations & Keyset Pagination Message History                                                    |
+|  - Real-Time WebSocket Duplex Engine (ChatWebSocketHandler)                                             |
+|  - Delivery & Read Receipts Engine (✓ Sent, ✓✓ Delivered, ✓✓ Read Blue)                                  |
+|  - MinIO S3 Storage Adapter (multipart upload, streaming downloads, UUID hashing)                       |
+|  - WebRTC Call Signaling Relay (offers, answers, ICE candidates, glare resolution)                      |
+|  - Remote Device Revocation Engine (instant socket disconnect with code 4001)                           |
++---------------------------------------------------------------------------------------------------------+
+            |                                       |                                    |
+            v                                       v                                    v
++-----------------------+               +-----------------------+            +-----------------------+
+|     PostgreSQL 16     |               |        Redis 7        |            |      MinIO / S3       |
+|     (Port: 5554)      |               |     (Port: 6379)      |            |   (Port: 9000/9001)   |
+| - Users & Credentials |               | - Online Presence     |            | - Photos & Media      |
+| - Conversations       |               | - Last Seen Cache     |            | - Voice Notes         |
+| - Messages & Stars    |               | - Typing States       |            | - Documents & Files   |
+| - Delivery Receipts   |               | - Distributed Pub/Sub |            | - Attachments Bucket  |
+| - Linked Devices      |               | - Heartbeat Monitor   |            +-----------------------+
+| - Passkeys & 2FA      |               +-----------------------+
+| - Call Logs (V1-V10)  |
+| - Communities/Stories |
++-----------------------+
 ```
 
 ---
@@ -82,8 +84,9 @@ When a recipient is offline at the moment a message is sent:
 IndiChat supports images, videos, audio notes, stickers, and documents:
 
 1. **Upload Initiation**:
-   - **Web**: HTML file input attaches file to a standard `FormData` payload and posts to `/api/v1/files/upload`.
-   - **Mobile (React Native)**: Native file upload via `expo-file-system` (`uploadAsync` or `File`) avoids React Native's Android binary upload corruption (`Unsupported FormDataPart implementation`).
+   - **Web**: Standard HTML file input attaches file to a `FormData` payload and posts to `/api/v1/files/upload`.
+   - **Mobile (React Native)**: Native file upload via `expo-file-system` (`uploadAsync` or `ExpoFile`) avoids React Native Android binary upload corruption (`Unsupported FormDataPart implementation`).
+   - **Desktop (Electron)**: Direct upload via local renderer through the embedded proxy.
 2. **Storage Processing**:
    - Spring Boot receives multipart file.
    - Computes unique file UUID and stores binary into MinIO S3 bucket `chat-attachments`.
@@ -115,7 +118,7 @@ Users can link multiple browser instances, mobile phones, or desktop apps:
 
 ## 5. WebRTC Audio & Video Calling Architecture
 
-IndiChat supports cross-platform, peer-to-peer 1-to-1 audio and video calling between Web and Mobile clients:
+IndiChat supports cross-platform, peer-to-peer 1-to-1 audio and video calling across Web, Mobile, and Desktop clients:
 
 - **Signaling Coordination**: WebRTC peer connections exchange SDP offers, SDP answers, and trickle ICE candidates through the backend via WebSocket type `call.signal`.
 - **Session Correlation**: All signals carry a `callSessionId` preventing crosstalk across rapid consecutive calls, stale candidate injection, or race conditions.
@@ -136,16 +139,57 @@ IndiChat provides a local privacy-preserving backup mechanism:
 
 ---
 
-## 7. Android Build & Packaging Pipeline
+## 7. Multi-Platform Packaging & Build Engines
 
+IndiChat features a comprehensive, zero-configuration build engine architecture supporting all target operating systems:
+
+```mermaid
+flowchart TD
+    CLI[Release Orchestrator: npm run release:all]
+    CLI --> AndroidEngine[scripts/build-android.js]
+    CLI --> IOSEngine[scripts/build-ios.js]
+    CLI --> MacEngine[scripts/build-macos.js]
+    CLI --> WinEngine[scripts/build-windows.js]
+    CLI --> LinuxEngine[scripts/build-linux.js]
+
+    AndroidEngine --> RelAndroid[release/android/: APK & AAB]
+    IOSEngine --> RelIOS[release/ios/: Simulator .app/.zip & .xcarchive]
+    MacEngine --> RelMac[release/macos/: DMG & ZIP]
+    WinEngine --> RelWin[release/windows/: NSIS & Portable EXE]
+    LinuxEngine --> RelLinux[release/linux/: AppImage, DEB, Snap, tar.gz]
 ```
-[Developer / CI CLI]
-       |
-       |--- npm run build:android (scripts/build-android.js)
-       |
-       +---> Auto-detect ANDROID_HOME & Java 17/21
-       +---> Verify gradlew execution permissions
-       +---> Run Gradle :app:assembleRelease / :app:bundleRelease
-       +---> Collect output binaries from apps/mobile/android/app/build/outputs/
-       +---> Copy artifacts to release/android/IndiChat-release-<timestamp>.[apk|aab]
-```
+
+### A. Android Build Pipeline (`scripts/build-android.js`)
+- Auto-detects `ANDROID_HOME` & JDK 17/21.
+- Verifies and grants Gradle execution permissions.
+- Runs `:app:assembleRelease` or `:app:bundleRelease` with `--no-daemon`.
+- Collects outputs into `release/android/IndiChat.apk` and `IndiChat.aab`.
+
+### B. iOS Build Pipeline (`scripts/build-ios.js`)
+- Validates Xcode toolchain (`xcodebuild`) and CocoaPods environment.
+- Prebuilds native iOS workspace with React Native New Architecture.
+- Syncs high-resolution AppIcon assets (`logo/ios/AppIcon.appiconset`).
+- Compiles iOS Simulator `.app` & `.zip` bundles (no signing needed) or `.xcarchive` device builds into `release/ios/`.
+
+### C. Desktop Build Pipelines (macOS, Windows, Linux)
+- **macOS** (`scripts/build-macos.js`): Packages Electron app into native arm64/x64 DMG and ZIP distributions into `release/macos/`.
+- **Windows** (`scripts/build-windows.js`): Packages NSIS installer and standalone portable EXE into `release/windows/` with PE header integrity verification.
+- **Linux** (`scripts/build-linux.js`): Packages universal AppImage, Debian `.deb`, Canonical Snap, and portable `.tar.gz` into `release/linux/`, accompanied by Freedesktop `.desktop` and AppStream metadata.
+
+### D. Universal Release Runner (`scripts/build-all-releases.cjs`)
+- Executes all 5 platform pipelines sequentially.
+- Guarantees fresh artifact generation and emits a structured run manifest in `release/build-all/<run-id>/summary.json`.
+- Supports `--dry-run` (`npm run release:plan`) and selective platform targeting (`--platforms=macos,linux`).
+
+### E. Project-Local Build Toolchain Caching (`build_run_package/`)
+- Toolchain binaries, Wine runners, and Electron packaging runtimes are cached in `build_run_package/` via `scripts/setup-build-packages.js`.
+- Enables reproducible packaging without relying on ad-hoc global caches or network latency during builds.
+
+---
+
+## 8. Interactive Design Previews & Visual Verification (`preview/`)
+
+IndiChat includes an interactive design preview engine (`preview/`) for automated visual verification and cross-platform fidelity checking:
+- **Zero-Dependency Preview Server**: Serves design tokens, smartphone chrome frames, and responsive chat layouts.
+- **Viewport Emulation**: Automated verification of mobile (iOS & Android aspect ratios), tablet, and desktop viewports.
+- **Visual Regression Defense**: Automated CDP capture scripts (`scripts/capture_preview_cdp.mjs`, `scripts/capture-parity-comparisons.cjs`) generate pixel-exact comparisons ensuring no layout or contrast regressions occur during development.

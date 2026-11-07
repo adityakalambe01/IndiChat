@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('indichatDesktop', {
+const desktopApi = {
   isDesktop: true,
   platform: process.platform,
   version: '1.0.0',
@@ -10,4 +10,7 @@ contextBridge.exposeInMainWorld('indichatDesktop', {
   openExternal: (url) => ipcRenderer.send('open-external', url),
   getServerUrl: () => ipcRenderer.invoke('get-server-url'),
   setServerUrl: (url) => ipcRenderer.invoke('set-server-url', url)
-});
+};
+
+contextBridge.exposeInMainWorld('indichatDesktop', desktopApi);
+contextBridge.exposeInMainWorld('electronAPI', desktopApi);

@@ -11,4 +11,5 @@ import java.util.UUID;
 @Repository
 public interface ContactRepository extends JpaRepository<Contact, ContactId> {
     List<Contact> findByIdUserId(UUID userId);
+    boolean existsByIdUserIdAndIdContactUserId(UUID userId, UUID contactUserId);
 }

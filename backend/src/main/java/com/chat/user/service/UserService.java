@@ -1,5 +1,9 @@
 package com.chat.user.service;
 
+import com.chat.auth.dto.PasskeyCredentialDto;
+import com.chat.auth.dto.RegisterPasskeyRequest;
+import com.chat.auth.entity.UserPasskeyCredential;
+import com.chat.auth.repository.UserPasskeyCredentialRepository;
 import com.chat.presence.PresenceService;
 import com.chat.settings.entity.UserSettings;
 import com.chat.settings.repository.UserSettingsRepository;
@@ -25,17 +29,20 @@ public class UserService {
     private final PresenceService presenceService;
     private final PasswordEncoder passwordEncoder;
     private final UserSettingsRepository settingsRepository;
+    private final UserPasskeyCredentialRepository passkeyRepository;
 
     public UserService(
         UserRepository userRepository,
         PresenceService presenceService,
         @Lazy PasswordEncoder passwordEncoder,
-        UserSettingsRepository settingsRepository
+        UserSettingsRepository settingsRepository,
+        UserPasskeyCredentialRepository passkeyRepository
     ) {
         this.userRepository = userRepository;
         this.presenceService = presenceService;
         this.passwordEncoder = passwordEncoder;
         this.settingsRepository = settingsRepository;
+        this.passkeyRepository = passkeyRepository;
     }
 
     @Transactional(readOnly = true)
@@ -140,6 +147,34 @@ public class UserService {
         }
         s.setUpdatedAt(Instant.now());
         settingsRepository.save(s);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PasskeyCredentialDto> getUserPasskeys(UUID userId) {
+        return passkeyRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+            .map(PasskeyCredentialDto::fromEntity)
+            .toList();
+    }
+
+    @Transactional
+    public PasskeyCredentialDto registerPasskey(UUID userId, RegisterPasskeyRequest req) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        UserPasskeyCredential cred = new UserPasskeyCredential(user, req.credentialId(), req.publicKey(), req.nickname());
+        cred = passkeyRepository.save(cred);
+
+        updatePasskey(userId, true);
+        return PasskeyCredentialDto.fromEntity(cred);
+    }
+
+    @Transactional
+    public void removePasskey(UUID userId, String credentialId) {
+        passkeyRepository.deleteByUserIdAndCredentialId(userId, credentialId);
+        int remaining = passkeyRepository.countByUserId(userId);
+        if (remaining == 0) {
+            updatePasskey(userId, false);
+        }
     }
 
     @Transactional(readOnly = true)

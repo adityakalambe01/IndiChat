@@ -1,0 +1,17 @@
+{
+  "platform": "linux",
+  "arch": "x64",
+  "app": "/opt/IndiChat/indichat",
+  "backend": "in-process mock HTTP service",
+  "passed": 0,
+  "total": 1,
+  "exitCode": 1,
+  "osSandboxVerified": false,
+  "checks": [
+    {
+      "name": "Runtime suite completed without exception",
+      "passed": false,
+      "details": "Failed to connect to CDP on port 9445 after 240 attempts: WebSocket is not a constructor"
+    }
+  ]
+}

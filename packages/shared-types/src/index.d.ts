@@ -58,7 +58,20 @@ export interface MessageReceipt {
     deliveredAt?: string;
     readAt?: string;
 }
-export type MessageType = 'TEXT' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'DOCUMENT' | 'STICKER' | 'CALL';
+export type MessageType = 'TEXT' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'DOCUMENT' | 'STICKER' | 'CALL' | 'PAYMENT';
+export interface MessageReaction {
+    id?: UUID;
+    messageId: UUID;
+    userId: UUID;
+    emoji: string;
+    createdAt?: string;
+    user?: User;
+}
+export interface ReactionSummary {
+    emoji: string;
+    count: number;
+    userIds: UUID[];
+}
 export interface Message {
     id: UUID;
     conversationId: UUID;
@@ -78,6 +91,9 @@ export interface Message {
     deletedAt?: string;
     sender?: User;
     receipts?: MessageReceipt[];
+    reactions?: MessageReaction[];
+    reactionSummaries?: ReactionSummary[];
+    isStarred?: boolean;
     status?: 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
 }
 export interface FileAttachmentInfo {
@@ -118,14 +134,128 @@ export interface MessageHistoryResponse {
     hasMore: boolean;
     nextCursor?: string;
 }
-export type WebSocketClientAction = 'message.send' | 'message.delivered' | 'message.read' | 'typing.start' | 'typing.stop' | 'presence.subscribe' | 'call.signal';
-export type WebSocketServerAction = 'message.created' | 'message.receipt.updated' | 'typing.updated' | 'presence.updated' | 'call.signal' | 'DEVICE_REMOVED' | 'error';
+export type WebSocketClientAction = 'message.send' | 'message.delivered' | 'message.read'
+/**
+ * @deprecated Reactions are mutated via REST (POST /api/v1/messages/{id}/reactions, DELETE /api/v1/messages/{id}/reactions).
+ * WebSocket is used for real-time distribution ('message.reaction.updated').
+ * Inbound WS action is retained with conversation membership authorization for backward compatibility.
+ */
+ | 'message.reaction' | 'typing.start' | 'typing.stop' | 'presence.subscribe' | 'call.signal';
+export type WebSocketServerAction = 'message.created' | 'message.receipt.updated' | 'message.reaction.updated' | 'typing.updated' | 'presence.updated' | 'call.signal' | 'DEVICE_REMOVED' | 'error';
 export interface SendMessagePayload {
     conversationId: UUID;
     clientMessageId: UUID;
     messageType: MessageType;
     content: string;
     replyToId?: UUID | null;
+}
+export interface ReactionEventPayload {
+    messageId: UUID;
+    conversationId: UUID;
+    userId: UUID;
+    emoji: string;
+    action: 'add' | 'remove';
+    reactions?: MessageReaction[];
+    summaries?: ReactionSummary[];
+}
+export interface StarMessageRequest {
+    messageId: UUID;
+    conversationId: UUID;
+    isStarred: boolean;
+}
+export interface CommunityChannel {
+    id: UUID;
+    communityId: UUID;
+    conversationId: UUID;
+    name: string;
+    isAnnouncement: boolean;
+    createdAt: string;
+}
+export interface Community {
+    id: UUID;
+    name: string;
+    description?: string;
+    avatarKey?: string;
+    createdBy: UUID;
+    createdAt: string;
+    updatedAt: string;
+    channels: CommunityChannel[];
+    memberCount?: number;
+}
+export interface CreateCommunityRequest {
+    name: string;
+    description?: string;
+    channelNames?: string[];
+}
+export interface AddSubGroupRequest {
+    communityId: UUID;
+    name: string;
+    isAnnouncement?: boolean;
+}
+export interface StatusStory {
+    id: UUID;
+    userId: UUID;
+    mediaUrl: string;
+    mediaType: 'text' | 'image' | 'video';
+    caption?: string;
+    createdAt: string;
+    expiresAt: string;
+    user?: User;
+}
+export interface CreateStatusStoryRequest {
+    mediaUrl: string;
+    mediaType: 'text' | 'image' | 'video';
+    caption?: string;
+}
+export type CallDirection = 'outgoing' | 'incoming' | 'missed';
+export type CallType = 'voice' | 'video';
+export type CallStatus = 'completed' | 'connected' | 'missed' | 'rejected' | 'busy' | 'no_answer';
+/**
+ * CallLog represents a personal, client-reported call journal entry.
+ * Note: These records reflect client-reported session outcomes upon call termination,
+ * not server-verified WebRTC signaling transcripts or cryptographic proof.
+ */
+export interface CallLog {
+    id: UUID;
+    userId: UUID;
+    callerId: UUID;
+    receiverId: UUID;
+    peerId?: UUID;
+    direction: CallDirection;
+    callType: CallType;
+    status: CallStatus;
+    durationSeconds: number;
+    conversationId?: UUID;
+    createdAt: string;
+    user?: User;
+    caller?: User;
+    receiver?: User;
+    peer?: User;
+}
+export interface CreateCallLogRequest {
+    peerUserId?: UUID;
+    callerId?: UUID;
+    receiverId?: UUID;
+    direction?: CallDirection | string;
+    callType?: CallType | string;
+    type?: CallType | string;
+    status?: CallStatus | string;
+    durationSeconds: number;
+    conversationId?: UUID;
+}
+export interface PasskeyCredentialDto {
+    id: string;
+    nickname: string;
+    createdAt: string;
+    lastUsedAt?: string;
+}
+export interface PaymentMessagePayload {
+    transactionId: string;
+    amount: number;
+    currency: string;
+    note?: string;
+    status: 'SUCCESS' | 'PENDING' | 'FAILED';
+    timestamp: string;
 }
 export interface WebSocketMessage<T = unknown> {
     type: WebSocketClientAction | WebSocketServerAction;

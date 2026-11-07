@@ -1,14 +1,15 @@
 # IndiChat Linux Desktop & Store Distribution Guide
 
-> **IndiChat** for Linux is a high-performance desktop application built with Electron, React 19, and native Linux desktop integration. It supports direct execution, system tray presence, hardware-accelerated audio/video WebRTC calling, and packaging for all major Linux distribution channels and software stores.
+> **IndiChat for Linux** is an enterprise-grade desktop application built with Electron 33+, React 19, and native Linux desktop integration. It supports direct execution, system tray presence, hardware-accelerated audio/video WebRTC calling, and packaging for all major Linux distribution channels and software stores.
 
 ---
 
 ## 1. Architecture & Linux Integration Overview
 
-The desktop client lives under [`apps/desktop`](../apps/desktop) in the monorepo and integrates seamlessly with [`apps/web`](../apps/web):
+The desktop client lives under [`apps/desktop`](../apps/desktop) in the monorepo and shares the cross-platform desktop foundation with macOS and Windows:
 
-- **Embedded Local Proxy Engine**: Bundled with a lightweight, zero-dependency Node HTTP/WebSocket proxy server (`src/server.cjs`) that serves static React web assets and seamlessly proxies `/api` and `/ws` to the backend (default `http://localhost:8080`).
+- **Renderer Sandboxing**: The renderer process runs in strict sandboxed mode (`sandbox: true`, `contextIsolation: true`, `nodeIntegration: false`), communicating exclusively via typed preload `contextBridge` APIs.
+- **Embedded Local Proxy Engine**: Bundled with a lightweight, zero-dependency Node HTTP/WebSocket proxy server (`src/server.cjs`) that binds strictly to `127.0.0.1`, serving static React web assets and seamlessly proxying `/api` and `/ws` to the backend.
 - **Native Wayland & X11 Support**: Runs natively under modern Wayland display servers as well as X11 desktop environments (GNOME, KDE Plasma, XFCE, Cinnamon).
 - **System Tray Integration**: Background tray icon with one-click window toggle and quit controls.
 - **Media & Hardware Permissions**: Automatically requests and handles microphone, camera, and notification permissions for instant messaging and audio/video calls.
@@ -50,8 +51,20 @@ npm run build:linux:deb
 # 4. Build Snap package only:
 npm run build:linux:snap
 
-# 5. Clean caches and build all packages:
+# 5. Build portable tarball only:
+npm run build:linux:tar
+
+# 6. Build all Linux formats:
+npm run build:linux:all
+
+# 7. Clean caches and build all packages:
 node scripts/build-linux.js --clean
+```
+
+### Containerized Linux Builds (Docker)
+For reproducible Linux packaging on non-Linux hosts (e.g. macOS):
+```bash
+bash scripts/build-linux-container.sh
 ```
 
 ---
@@ -188,3 +201,12 @@ If running on pure Wayland without XWayland, or for low-power GPU decoding:
 # Hardware video acceleration:
 ./release/linux/IndiChat-1.0.0.AppImage --enable-features=VaapiVideoDecoder
 ```
+
+---
+
+## 7. Cross-Platform Desktop Family
+
+While this guide focuses on Linux distribution, the desktop codebase also powers:
+- **macOS Desktop**: Compiled via `npm run build:macos` (`release/macos/IndiChat-1.0.0-arm64.dmg`, `.zip`).
+- **Windows Desktop**: Compiled via `npm run build:windows` (`release/windows/IndiChat-Setup-1.0.0.exe`, portable `.exe`).
+- **Universal Multi-Platform Build**: Run all 5 targets (Windows, macOS, Linux, iOS, Android) via `npm run release:all`.

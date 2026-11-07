@@ -53,6 +53,32 @@ public class UserController {
         return ResponseEntity.ok(Map.of("message", "Passkey status updated"));
     }
 
+    @GetMapping("/me/passkeys")
+    public ResponseEntity<List<com.chat.auth.dto.PasskeyCredentialDto>> getPasskeys(
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        List<com.chat.auth.dto.PasskeyCredentialDto> list = userService.getUserPasskeys(userDetails.getId());
+        return ResponseEntity.ok(list);
+    }
+
+    @PostMapping("/me/passkeys")
+    public ResponseEntity<com.chat.auth.dto.PasskeyCredentialDto> registerPasskey(
+        @RequestBody com.chat.auth.dto.RegisterPasskeyRequest request,
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        com.chat.auth.dto.PasskeyCredentialDto dto = userService.registerPasskey(userDetails.getId(), request);
+        return ResponseEntity.ok(dto);
+    }
+
+    @DeleteMapping("/me/passkeys/{credentialId}")
+    public ResponseEntity<Map<String, String>> deletePasskey(
+        @PathVariable("credentialId") String credentialId,
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        userService.removePasskey(userDetails.getId(), credentialId);
+        return ResponseEntity.ok(Map.of("message", "Passkey removed successfully"));
+    }
+
     @PostMapping("/me/2fa")
     public ResponseEntity<Map<String, String>> updateTwoFactor(
         @RequestBody TwoFactorRequest request,

@@ -36,6 +36,7 @@ interface ChatSidebarProps {
   onClearAllMessages?: () => void;
   onDeleteAllChats?: () => void;
   onOpenArchived?: () => void;
+  onOpenStarred?: () => void;
   onOpenCommunities?: () => void;
   onOpenSettings?: () => void;
   typingUsers?: Record<string, boolean>;
@@ -56,6 +57,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onClearAllMessages,
   onDeleteAllChats,
   onOpenArchived,
+  onOpenStarred,
   onOpenCommunities,
   onOpenSettings,
   typingUsers = {},
@@ -144,16 +146,16 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   function renderReceipt(lastMsg: Conversation['lastMessage']) {
     if (!lastMsg || lastMsg.senderId !== currentUser.id) return null;
-    const isRead = lastMsg.receipts?.some((r) => r.readAt != null);
-    const isDelivered = lastMsg.receipts?.some((r) => r.deliveredAt != null);
+    const isRead = lastMsg.receipts?.some((r) => r.readAt != null) || lastMsg.status === 'read';
+    const isDelivered = lastMsg.receipts?.some((r) => r.deliveredAt != null) || lastMsg.status === 'delivered';
 
     if (isRead) {
-      return <CheckCheck size={15} className="receipt-icon read" />;
+      return <span className="read-tick cyan" title="Read" style={{ marginRight: '4px' }}>✓✓</span>;
     }
     if (isDelivered) {
-      return <CheckCheck size={15} className="receipt-icon delivered" />;
+      return <span className="read-tick" title="Delivered" style={{ marginRight: '4px' }}>✓✓</span>;
     }
-    return <Check size={15} className="receipt-icon sent" />;
+    return <span className="read-tick" title="Sent" style={{ marginRight: '4px' }}>✓</span>;
   }
 
   function renderMessageSnippet(msg: Conversation['lastMessage']): string {
@@ -185,7 +187,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   if (isSettingsOpen) {
     return (
-      <aside className={`sidebar ${!isMobileOpen ? 'collapsed' : ''}`}>
+      <aside className={`app-sidebar ${!isMobileOpen ? 'collapsed' : ''}`}>
         <SettingsView
           currentUser={currentUser}
           conversations={conversations}
@@ -202,263 +204,219 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   }
 
   return (
-    <aside className={`sidebar ${!isMobileOpen ? 'collapsed' : ''}`}>
-      {/* WhatsApp Header matching Screenshot 1 */}
-      <div className="wa-sidebar-header">
-        <h1 className="wa-header-title">WhatsApp</h1>
+    <aside className={`app-sidebar ${!isMobileOpen ? 'collapsed' : ''}`} aria-label="Conversations and views list">
+      <div className="sidebar-view active" id="sidebarView-chats">
+        {/* Chats Header matching Approved Preview */}
+        <div className="sidebar-header">
+          <h1>Chats</h1>
 
-        <div className="wa-header-actions">
-          {/* 3-dots Menu */}
-          <div style={{ position: 'relative' }}>
+          <div className="sidebar-actions">
+            <button
+              className="icon-btn"
+              onClick={onOpenNewChat}
+              title="New Chat"
+              aria-label="New chat"
+              id="btnNewChatHeader"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+
             <button
               className="icon-btn"
               onClick={() => setShowMoreMenu((prev) => !prev)}
-              title="More options"
-              aria-label="More options"
+              title="Menu"
+              aria-label="Menu"
+              id="btnSidebarMenu"
             >
-              <MoreVertical size={20} />
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="12" cy="5" r="1" />
+                <circle cx="12" cy="19" r="1" />
+              </svg>
             </button>
 
             {showMoreMenu && (
-              <div className="wa-dropdown-menu">
+              <div className="sidebar-dropdown-menu" id="sidebarDropdownMenu" style={{ display: 'flex' }} role="menu">
                 <button
-                  className="wa-dropdown-item"
+                  className="menu-item-row"
+                  id="menuActionNewGroup"
+                  role="menuitem"
                   onClick={() => {
                     setShowMoreMenu(false);
                     onOpenNewChat();
                   }}
                 >
-                  <span>New group</span>
+                  👥 New Group
                 </button>
                 <button
-                  className="wa-dropdown-item"
+                  className="menu-item-row"
+                  id="menuActionStarred"
+                  role="menuitem"
                   onClick={() => {
                     setShowMoreMenu(false);
-                    onOpenCommunities?.();
+                    onOpenStarred?.();
                   }}
                 >
-                  <span>New community</span>
+                  ★ Starred Messages
                 </button>
                 <button
-                  className="wa-dropdown-item"
+                  className="menu-item-row"
+                  id="menuActionMarkAllRead"
+                  role="menuitem"
                   onClick={() => {
                     setShowMoreMenu(false);
-                    onOpenArchived?.();
+                    onClearAllMessages?.();
                   }}
                 >
-                  <span>Starred messages</span>
+                  ✓ Mark All as Read
                 </button>
                 <button
-                  className="wa-dropdown-item"
+                  className="menu-item-row"
+                  id="menuActionSettings"
+                  role="menuitem"
                   onClick={() => {
                     setShowMoreMenu(false);
                     onOpenSettings ? onOpenSettings() : setIsSettingsOpen(true);
                   }}
                 >
-                  <SettingsIcon size={16} />
-                  <span>Settings</span>
+                  ⚙ Settings
                 </button>
                 <button
-                  className="wa-dropdown-item"
+                  className="menu-item-row"
+                  id="menuActionTheme"
+                  role="menuitem"
                   onClick={() => {
                     setShowMoreMenu(false);
                     onToggleTheme();
                   }}
                 >
-                  <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+                  {theme === 'dark' ? '☀ Light Mode' : '🌙 Dark Mode'}
                 </button>
                 <button
-                  className="wa-dropdown-item"
+                  className="menu-item-row"
+                  id="menuActionLogout"
+                  role="menuitem"
+                  style={{ color: 'var(--accent-danger, #ef4444)' }}
                   onClick={() => {
                     setShowMoreMenu(false);
                     onLogout();
                   }}
-                  style={{ color: '#ef4444' }}
                 >
-                  <LogOut size={16} />
-                  <span>Log out</span>
+                  🚪 Log Out
                 </button>
               </div>
             )}
           </div>
+        </div>
 
-          {/* Green circular '+' button */}
+        {/* Search Bar matching Preview */}
+        <div className="sidebar-search-box">
+          <div className="search-input-wrap">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--text-muted)' }}>
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              id="sidebarSearchInput"
+              placeholder="Search or start new chat"
+              aria-label="Search chats"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Filter Chips Bar */}
+        <div className="filter-chips-bar" role="tablist" aria-label="Chat filters">
           <button
-            className="wa-header-green-btn"
-            onClick={onOpenNewChat}
-            title="New chat"
-            aria-label="New chat"
-            id="btn-whatsapp-new-chat"
+            className={`filter-chip ${activeFilter === 'all' ? 'active' : ''}`}
+            data-filter="all"
+            role="tab"
+            aria-selected={activeFilter === 'all'}
+            onClick={() => setActiveFilter('all')}
           >
-            <Plus size={20} strokeWidth={2.6} />
+            All
+          </button>
+          <button
+            className={`filter-chip ${activeFilter === 'unread' ? 'active' : ''}`}
+            data-filter="unread"
+            role="tab"
+            aria-selected={activeFilter === 'unread'}
+            onClick={() => setActiveFilter('unread')}
+          >
+            Unread
+          </button>
+          <button
+            className={`filter-chip ${activeFilter === 'groups' ? 'active' : ''}`}
+            data-filter="groups"
+            role="tab"
+            aria-selected={activeFilter === 'groups'}
+            onClick={() => setActiveFilter('groups')}
+          >
+            Groups
           </button>
         </div>
-      </div>
 
-      {/* Search Input */}
-      <div className="sidebar-search">
-        <div className="search-input-wrapper">
-          <Search size={18} color="var(--text-muted)" />
-          <input
-            type="text"
-            placeholder="Search or start a new chat"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
+        {/* Conversations Scroll List */}
+        <div className="conversations-scroll" id="conversationList" role="region" aria-label="Chat conversations">
+          {filteredConversations.length === 0 ? (
+            <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+              {searchQuery ? 'No chats found matching your search.' : 'No conversations yet.'}
+            </div>
+          ) : (
+            filteredConversations.map((conv) => {
+              const title = getConversationTitle(conv, currentUser.id);
+              const other = getOtherMember(conv, currentUser.id);
+              const isOnline = other?.user?.isOnline || (other ? typingUsers[other.userId] : false);
+              const isActive = conv.id === activeConversationId;
+              const unread = conv.unreadCount || 0;
+              const isContactTyping = other ? Boolean(typingUsers[other.userId]) : false;
+              const avatarInitials = conv.type === 'GROUP' ? 'GP' : title.slice(0, 2).toUpperCase();
+              const avatarBg = conv.type === 'GROUP' ? 'var(--brand-teal)' : '#005c4b';
 
-      {/* Filter Chips Pills Row matching Screenshot 1 */}
-      <div className="wa-filter-chips-row">
-        <button
-          className={`wa-filter-chip ${activeFilter === 'all' ? 'active' : ''}`}
-          onClick={() => setActiveFilter('all')}
-        >
-          All
-        </button>
-
-        <button
-          className={`wa-filter-chip ${activeFilter === 'unread' ? 'active' : ''}`}
-          onClick={() => setActiveFilter('unread')}
-        >
-          <span>Unread</span>
-          {totalUnreadCount > 0 && (
-            <span className="wa-chip-badge">{totalUnreadCount}</span>
-          )}
-        </button>
-
-        <button
-          className={`wa-filter-chip ${activeFilter === 'favourites' ? 'active' : ''}`}
-          onClick={() => setActiveFilter('favourites')}
-        >
-          Favourites
-        </button>
-
-        <button
-          className={`wa-filter-chip ${activeFilter === 'groups' ? 'active' : ''}`}
-          onClick={() => setActiveFilter('groups')}
-        >
-          Groups
-        </button>
-
-        <button
-          className="wa-filter-chip wa-filter-add"
-          onClick={() => {
-            alert('Custom label filters: You can organize your chats with custom tags and labels.');
-          }}
-          title="Add custom filter"
-        >
-          <Plus size={14} />
-        </button>
-      </div>
-
-      {/* Notification Banner matching Screenshot 1 */}
-      {!isBannerDismissed && notificationStatus !== 'granted' && (
-        <div className="sidebar-notification-banner" onClick={handleToggleNotifications}>
-          <div className="sidebar-notification-banner-icon">
-            <BellOff size={18} color="#00a884" />
-          </div>
-          <div className="sidebar-notification-banner-content">
-            <span className="sidebar-notification-banner-title">
-              Message and call notifications are off.{' '}
-              <span className="sidebar-notification-banner-link">Turn on</span>
-            </span>
-          </div>
-          <button
-            className="sidebar-notification-banner-close"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsBannerDismissed(true);
-              notificationService.setDismissed(true);
-            }}
-            aria-label="Dismiss banner"
-          >
-            <X size={16} />
-          </button>
-        </div>
-      )}
-
-      {/* Archived Row matching Screenshot 1 */}
-      <div
-        className="wa-archived-row"
-        onClick={() => (onOpenArchived ? onOpenArchived() : setActiveFilter('all'))}
-        role="button"
-        tabIndex={0}
-      >
-        <div className="wa-archived-left">
-          <Archive size={19} className="wa-archived-icon" />
-          <span className="wa-archived-title">Archived</span>
-        </div>
-        <span className="wa-archived-count">18</span>
-      </div>
-
-      {/* Conversation List */}
-      <div className="conversation-list">
-        {filteredConversations.length === 0 ? (
-          <div className="wa-empty-list-notice">
-            {searchQuery ? 'No chats found matching your search.' : (
-              <div>
-                <p>No conversations in this filter.</p>
-                <button
-                  className="btn-primary"
-                  style={{ marginTop: '12px', padding: '8px 16px', fontSize: '0.85rem' }}
-                  onClick={onOpenNewChat}
+              return (
+                <div
+                  key={conv.id}
+                  className={`conversation-item ${isActive ? 'active' : ''}`}
+                  onClick={() => onSelectConversation(conv.id)}
+                  role="button"
+                  tabIndex={0}
                 >
-                  Start a Chat
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (
-          filteredConversations.map((conv) => {
-            const title = getConversationTitle(conv, currentUser.id);
-            const other = getOtherMember(conv, currentUser.id);
-            const isOnline = other?.user?.isOnline;
-            const isActive = conv.id === activeConversationId;
-            const unread = conv.unreadCount || 0;
-            const isContactTyping = other ? Boolean(typingUsers[other.userId]) : false;
-
-            return (
-              <div
-                key={conv.id}
-                className={`conversation-item ${isActive ? 'active' : ''}`}
-                onClick={() => onSelectConversation(conv.id)}
-              >
-                <div className={`avatar ${isOnline ? 'online' : ''}`}>
-                  {conv.type === 'GROUP' ? <Users size={20} /> : title.charAt(0).toUpperCase()}
-                </div>
-
-                <div className="conversation-content">
-                  <div className="conversation-row">
-                    <span className="conversation-title">{title}</span>
-                    <span
-                      className="conversation-time"
-                      style={unread > 0 ? { color: '#25d366', fontWeight: 600 } : undefined}
-                    >
-                      {formatTime(conv.lastMessage?.createdAt || conv.updatedAt)}
-                    </span>
+                  <div className="convo-avatar" style={{ background: avatarBg }}>
+                    {avatarInitials}
+                    {isOnline && <div className="online-indicator" />}
                   </div>
 
-                  <div className="conversation-subtitle">
-                    <div className="last-message-snippet">
-                      {!isContactTyping && renderReceipt(conv.lastMessage)}
-
-                      {isContactTyping ? (
-                        <span className="wa-typing-snippet">typing...</span>
-                      ) : (
-                        <span>{renderMessageSnippet(conv.lastMessage)}</span>
-                      )}
+                  <div className="convo-body">
+                    <div className="convo-top">
+                      <span className="convo-name">{title}</span>
+                      <span className="convo-time">
+                        {formatTime(conv.lastMessage?.createdAt || conv.updatedAt)}
+                      </span>
                     </div>
 
-                    {unread > 0 && (
-                      <span className="badge-unread">{unread}</span>
-                    )}
+                    <div className="convo-bottom">
+                      <span className="convo-snippet">
+                        {renderReceipt(conv.lastMessage)}
+                        <span>
+                          {isContactTyping ? 'typing...' : renderMessageSnippet(conv.lastMessage)}
+                        </span>
+                      </span>
+
+                      {unread > 0 && (
+                        <span className="unread-pill">{unread}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })
-        )}
+              );
+            })
+          )}
+        </div>
       </div>
     </aside>
   );

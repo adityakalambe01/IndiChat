@@ -1,0 +1,12 @@
+{
+  "environment": "disposable Linux x64 container under macOS Docker/Rosetta",
+  "packageName": "indichat-desktop",
+  "debInstall": true,
+  "executableAndBundlePresent": true,
+  "appImageSquashfsExtraction": true,
+  "appImageLauncherVerified": false,
+  "sameAsarInBothPackages": true,
+  "debUninstall": true,
+  "userDataMarkerRetained": true,
+  "graphicalRuntimeVerified": false
+}

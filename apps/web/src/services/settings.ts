@@ -247,15 +247,18 @@ class SettingsService {
     return this.getSettings();
   }
 
-  public update(partial: Partial<AppSettings>): AppSettings {
+  public async update(partial: Partial<AppSettings>): Promise<AppSettings> {
     this.updateLocal(partial);
 
     // Sync to backend asynchronously
     const token = localStorage.getItem('chat_access_token');
     if (token) {
-      api.updateUserSettings(partial).catch((err) => {
+      try {
+        await api.updateUserSettings(partial);
+      } catch (err) {
         console.warn('Failed to persist settings to backend:', err);
-      });
+        throw err;
+      }
     }
 
     return this.getSettings();

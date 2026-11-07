@@ -163,6 +163,101 @@ User configuration, privacy policies, 2FA, and passkey flags.
 
 ---
 
+### 10. `message_reactions` (Migration: `V5`)
+Emoji reactions pinned to individual messages.
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | UUID | PRIMARY KEY, DEFAULT `gen_random_uuid()` | Reaction identifier |
+| `message_id` | UUID | NOT NULL, REFERENCES `messages(id)` ON DELETE CASCADE | Target message |
+| `user_id` | UUID | NOT NULL, REFERENCES `users(id)` ON DELETE CASCADE | User who reacted |
+| `emoji` | VARCHAR(16) | NOT NULL | Emoji character/glyph |
+| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT `now()` | Timestamp |
+
+**Unique Constraint**: `(message_id, user_id, emoji)`
+
+---
+
+### 11. `user_starred_messages` (Migration: `V5`)
+User-specific bookmarked/starred messages.
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | UUID | PRIMARY KEY, DEFAULT `gen_random_uuid()` | Star identifier |
+| `user_id` | UUID | NOT NULL, REFERENCES `users(id)` ON DELETE CASCADE | User who starred |
+| `message_id` | UUID | NOT NULL, REFERENCES `messages(id)` ON DELETE CASCADE | Target message |
+| `starred_at` | TIMESTAMPTZ | NOT NULL, DEFAULT `now()` | Timestamp |
+
+**Unique Constraint**: `(user_id, message_id)`
+
+---
+
+### 12. `communities` & `community_channels` (Migration: `V6`)
+Hierarchical communities containing announcement channels and discussion sub-groups.
+| Table | Key Columns | Description |
+|---|---|---|
+| `communities` | `id`, `name`, `description`, `icon_url`, `created_by` | Community root workspace |
+| `community_channels` | `id`, `community_id`, `name`, `type` (`ANNOUNCEMENT`/`GENERAL`), `conversation_id` | Sub-channels |
+| `community_members` | `community_id`, `user_id`, `role` (`ADMIN`/`MEMBER`) | Membership mapping |
+
+---
+
+### 13. `call_logs` & `user_status_stories` (Migrations: `V7`, `V9`, `V10`)
+
+Personal call history journal entries and 24-hour expiring status stories.
+
+> **Client-Reported Semantics Notice**: `call_logs` entries represent personal, client-reported call journal entries recorded upon call termination. They are not server-verified WebRTC signaling transcripts or cryptographic proof.
+
+#### `call_logs` Schema (Updated in `V9` & `V10`)
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | UUID | PRIMARY KEY, DEFAULT `gen_random_uuid()` | Record ID |
+| `user_id` | UUID | NOT NULL, REFERENCES `users(id)` ON DELETE CASCADE | Record owner (journal owner) |
+| `caller_id` | UUID | NOT NULL, REFERENCES `users(id)` ON DELETE CASCADE | True call initiator |
+| `receiver_id` | UUID | NOT NULL, REFERENCES `users(id)` ON DELETE CASCADE | True call recipient |
+| `conversation_id` | UUID | REFERENCES `conversations(id)` ON DELETE SET NULL | Associated chat thread (optional) |
+| `direction` | VARCHAR(20) | NOT NULL, DEFAULT `'outgoing'` | Call direction (`outgoing`, `incoming`, `missed`) |
+| `call_type` | VARCHAR(20) | NOT NULL, DEFAULT `'voice'` | Media type (`voice`, `video`) |
+| `status` | VARCHAR(30) | NOT NULL, DEFAULT `'completed'` | Status (`completed`, `connected`, `missed`, `rejected`, `busy`, `no_answer`) |
+| `duration_seconds` | INT | NOT NULL, DEFAULT `0` | Call duration in seconds (0 for missed/unanswered) |
+| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT `now()` | Timestamp |
+
+#### Database Constraints (Migrations `V9` & `V10`)
+1. `chk_call_logs_duration`: `duration_seconds >= 0` (`V9`)
+2. `chk_call_logs_distinct_participants`: `caller_id <> receiver_id` (no self-calls, `V9`)
+3. `chk_call_logs_owner_is_participant`: `user_id = caller_id OR user_id = receiver_id` (`V9`)
+4. `chk_call_logs_direction`: `LOWER(direction) IN ('outgoing', 'incoming', 'missed')` (`V9`)
+5. `chk_call_logs_direction_owner`: `(LOWER(direction) = 'outgoing' AND user_id = caller_id) OR (LOWER(direction) IN ('incoming', 'missed') AND user_id = receiver_id)` (`V9`)
+6. `chk_call_logs_call_type`: `LOWER(call_type) IN ('voice', 'video')` (`V9`)
+7. `chk_call_logs_status`: `LOWER(status) IN ('completed', 'connected', 'missed', 'rejected', 'busy', 'no_answer')` (`V9`)
+8. `chk_call_logs_missed_duration`: `LOWER(direction) <> 'missed' OR duration_seconds = 0` (`V9`)
+9. `chk_call_logs_status_missed_duration`: `LOWER(status) <> 'missed' OR duration_seconds = 0` (`V10`)
+10. `chk_call_logs_missed_direction_status`: `LOWER(direction) <> 'missed' OR LOWER(status) = 'missed'` (`V10`)
+11. `chk_call_logs_outgoing_not_missed`: `LOWER(direction) <> 'outgoing' OR LOWER(status) <> 'missed'` (`V10`)
+
+#### Legacy Migration Backfill & Normalization (`V9`, `V10`)
+* **V9 Ownership Backfill**: Existing rows created under `V7` lacked `user_id` and `direction`. Migration `V9` explicitly sets `user_id = caller_id` and `direction = 'outgoing'`.
+* **Recipient Record Limitation**: Historical ownership is bound strictly to the known submitter (`caller_id`). It cannot retroactively reconstruct the recipient's independent incoming or missed call records, as those were never generated or submitted by the recipient's client. IndiChat does not fabricate artificial recipient records.
+* **V10 Status Normalization**: In V7, callers recorded unanswered outgoing calls as `status: 'missed'`. In the personal journal model, the caller's perspective of an unanswered call is `'no_answer'` (whereas `'missed'` is the recipient's perspective). `V10` deterministically normalizes legacy `(direction = 'outgoing', status = 'missed', duration = 0)` to `status = 'no_answer'`, preserving historical meaning without data loss. If any record has `status = 'missed'` with `duration > 0`, `V10` aborts with an actionable diagnostic.
+
+#### `user_status_stories` Table
+| Table | Key Columns | Description |
+|---|---|---|
+| `user_status_stories` | `id`, `user_id`, `media_type`, `caption`, `media_url`, `created_at`, `expires_at` (24h default) | Ephemeral status |
+
+---
+
+### 14. `user_passkey_credentials` (Migration: `V8`)
+FIDO2 / WebAuthn passkey credentials for biometrics / security keys.
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | UUID | PRIMARY KEY, DEFAULT `gen_random_uuid()` | Passkey record ID |
+| `user_id` | UUID | NOT NULL, REFERENCES `users(id)` ON DELETE CASCADE | Credential owner |
+| `credential_id` | VARCHAR(255) | UNIQUE, NOT NULL | WebAuthn raw credential ID |
+| `public_key` | TEXT | NOT NULL | Base64-encoded public key |
+| `device_name` | VARCHAR(100) | NOT NULL, DEFAULT `'Passkey'` | Human-friendly device name |
+| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT `now()` | Registration timestamp |
+
+---
+
 ## 3. Database Indexes
 
 To maintain sub-millisecond query performance across large chat volumes:
@@ -171,3 +266,7 @@ To maintain sub-millisecond query performance across large chat volumes:
 - `idx_receipts_by_user`: `(user_id, message_id)` — Rapid lookup of delivered/read receipts for incoming batches.
 - `idx_device_tokens_user_id`: `(user_id)` — Fast push notification subscriber lookup.
 - `idx_linked_devices_user_id`: `(user_id)` — Fast session management and remote revocation queries.
+- `idx_msg_reactions_lookup`: `(message_id)` — Fast reaction aggregation per message.
+- `idx_starred_user`: `(user_id, starred_at DESC)` — Rapid listing of bookmarked messages.
+- `idx_status_active`: `(user_id, expires_at)` — Efficient 24h active status queries.
+- `idx_calls_user`: `(user_id, started_at DESC)` — Chronological call history retrieval.

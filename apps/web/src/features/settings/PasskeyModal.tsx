@@ -55,7 +55,10 @@ export const PasskeyModal: React.FC<PasskeyModalProps> = ({
             <div className="settings-icon-badge badge-blue">
               <Fingerprint size={20} />
             </div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Passkeys</h3>
+            <div>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Passkeys</h3>
+              <span style={{ fontSize: '10px', color: '#eab308', fontWeight: 600 }}>Preview Demonstration</span>
+            </div>
           </div>
           <button className="icon-btn" onClick={onClose} aria-label="Close">
             <X size={20} />
@@ -63,6 +66,20 @@ export const PasskeyModal: React.FC<PasskeyModalProps> = ({
         </div>
 
         <div className="modal-body" style={{ padding: '24px 20px', textAlign: 'center' }}>
+          <div style={{
+            background: 'rgba(234, 179, 8, 0.12)',
+            border: '1px solid rgba(234, 179, 8, 0.3)',
+            borderRadius: '8px',
+            padding: '10px 12px',
+            fontSize: '12px',
+            color: '#eab308',
+            marginBottom: '16px',
+            textAlign: 'left',
+            lineHeight: '1.4'
+          }}>
+            ⚠️ <strong>Demonstration Only</strong>: WebAuthn FIDO2 biometric authentication is pending backend challenge-response attestation. This modal demonstrates the preview interface without registering real biometric keys.
+          </div>
+
           {success ? (
             <div style={{ padding: '20px 0' }}>
               <div
@@ -70,8 +87,8 @@ export const PasskeyModal: React.FC<PasskeyModalProps> = ({
                   width: '60px',
                   height: '60px',
                   borderRadius: '50%',
-                  background: 'rgba(0, 168, 132, 0.15)',
-                  color: 'var(--accent-primary)',
+                  background: 'rgba(234, 179, 8, 0.15)',
+                  color: '#eab308',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -80,9 +97,9 @@ export const PasskeyModal: React.FC<PasskeyModalProps> = ({
               >
                 <Check size={32} />
               </div>
-              <h4 style={{ fontSize: '1.1rem', marginBottom: '6px' }}>Passkey Created!</h4>
+              <h4 style={{ fontSize: '1.1rem', marginBottom: '6px' }}>Simulated Passkey Created!</h4>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                You can now log in securely with your screen lock or fingerprint.
+                Demonstration passkey saved in preview state. Live WebAuthn credential attestation is in development.
               </p>
             </div>
           ) : (
@@ -104,12 +121,12 @@ export const PasskeyModal: React.FC<PasskeyModalProps> = ({
               </div>
 
               <h4 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '8px' }}>
-                {passkeyEnabled ? 'Passkey is active' : 'Simple, secure login with passkeys'}
+                {passkeyEnabled ? 'Passkey is active (Preview)' : 'Simple, secure login with passkeys'}
               </h4>
 
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '20px' }}>
                 {passkeyEnabled
-                  ? `Your biometric screen lock or security key is enabled for fast, passwordless login to your ${APP_NAME} account.`
+                  ? `Your biometric screen lock or security key is enabled in preview state for fast, passwordless login to your ${APP_NAME} account.`
                   : `Log in to ${APP_NAME} using your face, fingerprint, or device screen lock. Passkeys are securely stored in your password manager.`}
               </p>
 
@@ -125,8 +142,8 @@ export const PasskeyModal: React.FC<PasskeyModalProps> = ({
                   marginBottom: '20px',
                 }}
               >
-                <ShieldCheck size={16} color="#00a884" />
-                <span>Protected by WebAuthn FIDO2 Standard</span>
+                <ShieldCheck size={16} color="#eab308" />
+                <span>WebAuthn FIDO2 Standard (Integration In Development)</span>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
@@ -155,7 +172,7 @@ export const PasskeyModal: React.FC<PasskeyModalProps> = ({
                       onClick={handleCreatePasskey}
                       disabled={loading}
                     >
-                      {loading ? 'Creating Passkey...' : 'Create Passkey'}
+                      {loading ? 'Creating Passkey (Demo)...' : 'Simulate Create Passkey (Demo)'}
                     </button>
                   </>
                 )}
