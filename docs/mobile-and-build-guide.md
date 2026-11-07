@@ -1,16 +1,18 @@
-# Mobile Development & Android Build Automation Guide
+# Mobile Development & Multi-Platform Mobile Build Guide
 
-This guide covers the architecture, development workflow, and automated build pipelines for the **IndiChat Mobile Application** (`apps/mobile`).
+This guide covers the architecture, development workflow, and automated build pipelines for the **IndiChat Mobile Application** (`apps/mobile`), supporting both Android and iOS.
 
 ---
 
 ## 1. Mobile Technology Stack
 
-- **Framework**: React Native `0.86.3` + Expo `57.0.x` (SDK 52/57)
+- **Framework**: React Native `0.88` + Expo SDK `58` (with Expo Router v4)
+- **Language**: TypeScript 5.6+ with React 19
 - **Routing**: Expo Router v4 (`expo-router/entry`) with file-based routing in `apps/mobile/app/`
 - **Architecture**: React Native New Architecture enabled (`"newArchEnabled": true`)
+- **WebRTC**: `react-native-webrtc` (v155.0.1) with in-tree native Android audio routing (`AudioRouteModule.kt`) and iOS AudioSession management
 - **UI Components**: Native WhatsApp/Telegram styling, custom SVG/PNG stickers (`StickerView`), vector icons (`@expo/vector-icons`), safe area insets (`react-native-safe-area-context`)
-- **Networking**: Native `WebSocket` with automatic reconnection, `expo-file-system` for native multipart file uploads, and Axios-like fetch API wrapper
+- **Networking**: Resilient native `WebSocket` with automatic reconnect backoff and jitter, `expo-file-system` for native multipart file uploads, and fetch API wrapper
 - **State & Storage**: `@react-native-async-storage/async-storage` for tokens, active server URL, device fingerprint, and local call logs
 
 ---
@@ -19,7 +21,7 @@ This guide covers the architecture, development workflow, and automated build pi
 
 ```
 apps/mobile/
-├── app.json                     # Expo configuration (package: com.indichat.app, newArchEnabled)
+├── app.json                     # Expo configuration (package: com.indichat.app, newArchEnabled: true)
 ├── babel.config.js              # Babel presets
 ├── metro.config.js              # Metro bundler configuration with monorepo resolution
 ├── package.json                 # Mobile dependencies and run scripts
@@ -31,6 +33,7 @@ apps/mobile/
 │   └── chat/
 │       └── [id].tsx             # Active Chat Room (bubbles, ticks, media picker, call launcher)
 ├── components/
+│   ├── CallOverlay.tsx          # Real-time WebRTC audio/video call UI with camera/mic controls
 │   └── StickerView.tsx          # Multi-CDN SVG/PNG sticker component with fallbacks
 ├── data/
 │   ├── emojiData.ts             # Emojis categorized by type
@@ -39,6 +42,8 @@ apps/mobile/
 ├── services/
 │   ├── api.ts                   # REST client with automatic LAN IP deduction
 │   ├── callHistory.ts           # Local call logging service with human-friendly timestamps
+│   ├── callService.ts           # WebRTC session management, signaling, and track handling
+│   ├── nativeWebRTC.ts          # Cross-platform WebRTC bridge adapter
 │   ├── settings.ts              # Settings synchronization with backend
 │   ├── storage.ts               # AsyncStorage utility
 │   └── websocket.ts             # Resilient WebSocket client
@@ -47,14 +52,15 @@ apps/mobile/
 │   ├── i18n.ts                  # Localization strings (EN, ES, HI, FR, etc.)
 │   ├── timeAgo.ts               # WhatsApp-style tiered relative time formatting
 │   └── uuid.ts                  # Client-side UUID generator
-└── android/                     # Prebuilt native Android project (Gradle, Manifest)
+├── android/                     # Prebuilt native Android project (Gradle wrapper, Manifest, AudioRouteModule)
+└── ios/                         # Prebuilt native iOS workspace (CocoaPods, xcworkspace, AppIcon assets)
 ```
 
 ---
 
 ## 3. Local Development & Network Routing
 
-When developing on mobile, communication between the mobile device and the backend API server (`localhost:8080`) requires special consideration.
+When developing on mobile, communication between the mobile device and the backend API server (`localhost:8080`) requires network address translation:
 
 ### Automatic Host Deduction
 In `apps/mobile/services/api.ts`, the app inspects `Constants.expoConfig?.hostUri`:
@@ -97,11 +103,12 @@ Messages render visual status indicators based on receipt timestamps:
 - **Transparent Borderless Display**: Stickers and GIFs render seamlessly on the chat background without card borders or white backgrounds.
 
 ### C. Native Multipart File Upload
-Standard React Native `FormData` can trigger an `Unsupported FormDataPart implementation` error on Android when uploading binary files. IndiChat resolves this by using `expo-file-system` (`uploadAsync` / `ExpoFile`) in `apps/mobile/services/api.ts` to transmit image and audio payloads reliably to `POST /api/v1/files/upload`.
+Standard React Native `FormData` triggers an `Unsupported FormDataPart implementation` error on Android when uploading binary files. IndiChat resolves this by using `expo-file-system` (`uploadAsync` / `ExpoFile`) in `apps/mobile/services/api.ts` to transmit image and audio payloads reliably to `POST /api/v1/files/upload`.
 
-### D. In-Chat Call Logging & Status Bubbles
-- Call events (voice & video) are logged locally in `services/callHistory.ts`.
-- Calls are rendered as status bubbles directly inside the conversation thread (Incoming, Outgoing, Missed) with duration and timestamps formatted via `utils/timeAgo.ts`.
+### D. WebRTC Audio & Video Calling with Native Audio Routing
+- **Native Android Routing (`AudioRouteModule.kt`)**: Coordinates Android `AudioManager`, sets `MODE_IN_COMMUNICATION`, requests `AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE` with `USAGE_VOICE_COMMUNICATION`, handles earpiece/speakerphone toggling via modern `setCommunicationDevice()` (API 31+) with fallback to `setSpeakerphoneOn()`, and cleanly restores audio focus upon call teardown.
+- **In-Chat Call Bubbles**: Renders outgoing, incoming, and missed call bubbles directly inside the conversation thread with human-friendly duration and timestamps.
+- **Persistent Call Log Storage**: Call history is saved locally in `services/callHistory.ts` and optionally synchronized with backend call journal endpoints.
 
 ---
 
@@ -119,7 +126,7 @@ IndiChat provides an automated, zero-config build engine for producing Android A
    - Runs `:app:assembleDebug`, `:app:assembleRelease`, or `:app:bundleRelease` with `--no-daemon`.
 4. **Artifact Management**:
    - Gathers generated binaries from `apps/mobile/android/app/build/outputs/`.
-   - Copies artifacts to `release/android/` with human-readable timestamps.
+   - Copies artifacts to `release/android/` with human-readable timestamps and git hashes.
 
 ### Build Commands:
 ```bash
@@ -134,9 +141,9 @@ node scripts/build-android.js --clean
 ```
 
 ### Artifact Outputs (`release/android/`):
-- `IndiChat-release-YYYY-MM-DD_HH-mm-ss.apk` — Standalone production APK ready for sideloading.
+- `IndiChat.apk` / `IndiChat-release-YYYY-MM-DD_HH-mm-ss.apk` — Standalone production APK ready for sideloading.
 - `IndiChat-debug-YYYY-MM-DD_HH-mm-ss.apk` — Development APK with React Native debugging support.
-- `IndiChat-release-YYYY-MM-DD_HH-mm-ss.aab` — Google Play Store distribution bundle.
+- `IndiChat.aab` / `IndiChat-release-YYYY-MM-DD_HH-mm-ss.aab` — Google Play Store distribution bundle.
 
 ---
 
@@ -144,7 +151,7 @@ node scripts/build-android.js --clean
 
 IndiChat includes automated iOS build automation for macOS environments:
 1. **Toolchain Verification**: Checks Xcode `xcodebuild`, macOS SDK, and CocoaPods.
-2. **Native iOS Project Prebuild**: Automatically executes `expo prebuild --platform ios` and `pod install` with New Architecture and React Native 0.88 prebuilt artifacts.
+2. **Native iOS Project Prebuild**: Automatically executes `expo prebuild --platform ios` and `pod install` with New Architecture.
 3. **AppIcon Branding Synchronization**: Automatically syncs all official multi-resolution icon assets from `logo/ios/AppIcon.appiconset` to `apps/mobile/ios/IndiChat/Images.xcassets/AppIcon.appiconset`.
 4. **Simulator & Device Compilations**:
    - Compiles iOS Simulator `.app` bundles (zero code signing certificates required for local testing).
@@ -168,11 +175,26 @@ node scripts/build-ios.js --clean
 ### Artifact Outputs (`release/ios/`):
 - `release/ios/IndiChat.app` — Standalone compiled iOS application bundle.
 - `release/ios/IndiChat-Simulator.zip` — Compressed bundle ready for drag-and-drop onto iOS Simulator.
+- `release/ios/IndiChat.xcarchive` — Device build for App Store distribution.
 - `release/ios/icon.png` — High-resolution App Store icon (1024x1024).
 
 ---
 
-## 7. Troubleshooting Mobile Issues
+## 7. Project-Local Build Toolchain Caching (`build_run_package/`)
+
+To support offline packaging and fast CI builds, mobile and desktop toolchains can be pre-cached:
+
+```bash
+# Check toolchain status
+npm run packages:status
+
+# Pre-download packaging binaries into build_run_package/
+npm run packages:download
+```
+
+---
+
+## 8. Troubleshooting Mobile Issues
 
 | Symptom | Cause | Solution |
 |---|---|---|
@@ -182,3 +204,4 @@ node scripts/build-ios.js --clean
 | Gradle build fails: `Java version mismatch` | Older JDK active | Ensure JDK 17 or 21 is installed and set `JAVA_HOME`. |
 | Image upload fails on Android | Binary serialization bug | Ensure `expo-file-system` is used for file uploads instead of standard `FormData`. |
 | iOS build requires CocoaPods | Missing `pod` binary | Install via Homebrew: `brew install cocoapods`. |
+| Audio echoes or earpiece silent during call | Audio routing not initialized | Verify `AudioRouteModule.kt` is registered and initialized when call connects. |

@@ -10,7 +10,7 @@
 - **Primary Domain**: Production-grade real-time messaging platform (WhatsApp / Telegram class)
 - **Architecture**: Monorepo managed with npm workspaces
 - **Primary Languages**: TypeScript 5.6, Java 21, SQL (PostgreSQL dialect)
-- **Primary Frameworks**: React 18.3 (Web), Expo 57 / React Native 0.86 (Mobile), Electron 33+ (Desktop), Spring Boot 3.3.5 (Backend)
+- **Primary Frameworks**: React 18/19 (Web), Expo SDK 58 / React Native 0.88 (Mobile), Electron 33+ (Desktop), Spring Boot 3.3.5 / 3.4 (Backend)
 
 ---
 
@@ -40,27 +40,38 @@ npm run web:build
 # 3. Validate Mobile TypeScript compilation
 cd apps/mobile && npx tsc --noEmit
 
-# 4. Build Spring Boot Backend JAR (Uses Docker container or local Maven)
+# 4. Build Spring Boot Backend JAR (Uses containerized Maven wrapper or local Maven)
 npm run backend:build
 # Or directly if Java 21 / Maven is installed locally:
 cd backend && mvn clean package -DskipTests
 
-# 5. Build Desktop Linux AppImage / Deb (Packages via electron-builder)
-npm run build:linux:appimage
+# 5. Build Desktop Distribution Packages
+# macOS (DMG & ZIP):
+npm run build:macos
+# Windows (NSIS & Portable EXE):
+npm run build:windows
+# Linux (AppImage, DEB, Snap):
+npm run build:linux
 ```
 
 ### Testing & Verification
 ```bash
-# Backend Unit & Integration Tests (Uses Docker container or local Maven)
+# Backend Unit & Integration Tests (Containerized Maven)
 npm run backend:test
 # Or directly if Java 21 / Maven is installed locally:
 cd backend && mvn test
 
-# Web Frontend Tests (Runs if test runner configured in workspace)
+# Web Frontend Tests
 npm --workspace=apps/web run test --if-present
 
-# Real-time WebSocket Protocol Verification (Integration Test - Requires running backend on port 8080)
-node scripts/verify_ws.js
+# Real-time WebSocket Protocol Verification (Requires running backend on port 8080)
+npm run verify:ws
+
+# Desktop Packaged App Native Smoke Tests
+npm run test:desktop:packaged
+
+# Toolchain Package Caching Status
+npm run packages:status
 ```
 
 ### Local Development Runtime
@@ -78,17 +89,26 @@ npm run web:dev
 
 # Start Mobile Expo bundler
 npm run mobile:start
+
+# Start Desktop client
+npm run desktop:linux
 ```
 
-### Android APK & App Bundle Compilation
+### Multi-Platform Packaging & Release Orchestration
 ```bash
-# Compile Release & Debug APKs (Requires Android SDK & JDK 17/21)
-npm run build:android:apk
-# Output: release/android/IndiChat.apk (and app-release.apk)
+# Preview complete multi-platform release plan (dry-run):
+npm run release:plan
 
-# Compile Google Play App Bundle (.aab) (Requires Android SDK & JDK 17/21)
+# Execute release build across all 5 target platforms:
+npm run release:all
+
+# Mobile Android: Compile Release APK and Google Play Bundle (.aab)
+npm run build:android:apk
 npm run build:android:bundle
-# Output: release/android/IndiChat.aab (and app-release.aab)
+
+# Mobile iOS: Compile Simulator Bundle and Device Archive (.xcarchive)
+npm run build:ios:sim
+npm run build:ios:archive
 ```
 
 ---
@@ -96,10 +116,10 @@ npm run build:android:bundle
 ## 4. Fundamental Repository Invariants
 
 1. **Database Migrations are Append-Only**:
-   - Never modify existing Flyway migrations in [backend/src/main/resources/db/migration/](../../backend/src/main/resources/db/migration/).
+   - Never modify existing Flyway migrations in [backend/src/main/resources/db/migration/](../../backend/src/main/resources/db/migration/) (V1 through V10).
    - Always create a new sequence `V<N>__<name>.sql` using PostgreSQL dialect with `TIMESTAMPTZ` and `gen_random_uuid()`.
-   - **Flyway Version & Concurrent Indexing Support**: The backend uses Flyway Community Edition 10.x (managed by Spring Boot 3.3.5 `org.flywaydb:flyway-core`). Per-migration script configuration files (`V<N>__<name>.sql.conf`) containing `executeInTransaction=false` are supported in Flyway Community Edition. When applied, Flyway disables transaction wrapping for that script, allowing PostgreSQL to execute `CREATE INDEX CONCURRENTLY`.
-   - **Concurrent Index Failure Caveat**: Because execution occurs outside a transaction, if concurrent index creation fails (e.g. timeout or syntax error), PostgreSQL leaves an `INVALID` index on disk. The engineer must manually drop the invalid index (`DROP INDEX CONCURRENTLY IF EXISTS <name>;`) and repair the Flyway history table before retrying (note that bare `mvn flyway:repair` fails in this project because datasource properties reside in `application.yml`; run with verified connection flags for local development: `mvn flyway:repair -Dflyway.url=jdbc:postgresql://localhost:5554/chat_platform -Dflyway.user=postgres -Dflyway.password=postgres`; in staging and production environments, substitute the target environment's actual database URL and inject credentials securely via environment variables or secret stores rather than default development values). Do not manually clear or delete records from `flyway_schema_history` as a routine procedure. Standard transactional `CREATE INDEX` remains the default for all regular migrations unless concurrent indexing is explicitly justified.
+   - **Flyway Version & Concurrent Indexing Support**: The backend uses Flyway Community Edition 10.x (managed by Spring Boot `org.flywaydb:flyway-core`). Per-migration script configuration files (`V<N>__<name>.sql.conf`) containing `executeInTransaction=false` are supported. When applied, Flyway disables transaction wrapping for that script, allowing PostgreSQL to execute `CREATE INDEX CONCURRENTLY`.
+   - **Concurrent Index Failure Caveat**: Because execution occurs outside a transaction, if concurrent index creation fails, PostgreSQL leaves an `INVALID` index on disk. The engineer must manually drop the invalid index (`DROP INDEX CONCURRENTLY IF EXISTS <name>;`) and repair the Flyway history table before retrying (`mvn flyway:repair -Dflyway.url=jdbc:postgresql://localhost:5554/chat_platform -Dflyway.user=postgres -Dflyway.password=postgres`). Standard transactional `CREATE INDEX` remains the default for all regular migrations unless concurrent indexing is explicitly justified.
 2. **Shared Types are Single Source of Truth**:
    - All cross-platform contracts, DTOs, and WebSocket event payloads must be defined in [packages/shared-types/src/index.ts](../../packages/shared-types/src/index.ts).
 3. **Mobile Network & Localhost Routing**:
@@ -108,8 +128,7 @@ npm run build:android:bundle
    - Physical devices connect via host machine LAN IP (e.g., `http://192.168.x.x:8080`).
    - Keep dynamic host deduction intact in `apps/mobile/services/api.ts`.
 4. **WebSocket Authentication & Log Redaction**:
-   - While `ChatWebSocketHandler` accepts connection authentication via `token` query parameters or handshake headers (`Authorization: Bearer <token>`), URL query parameters risk token leakage in HTTP access logs, proxy traces, and browser history.
-   - Native Mobile/Desktop clients should supply `Authorization` handshake headers where supported; web clients should transition toward short-lived, single-use ticket exchange (Redis-backed, 30s TTL) or HTTP-only cookies.
+   - Native Mobile/Desktop clients should supply `Authorization` handshake headers where supported.
    - Any reverse proxies or web server access logs in production must explicitly redact query parameter values for `token`.
 5. **Delivery Receipts & Read Ticks**:
    - Sent (`sent`): 1 grey checkmark `✓`
@@ -117,3 +136,6 @@ npm run build:android:bundle
    - Read (`read`): 2 cyan/blue checkmarks `✓✓` (`#53bdeb`).
 6. **Multipart Uploads in React Native**:
    - Do NOT use standard browser `FormData` in React Native Expo Android. Use `expo-file-system` (`uploadAsync` or `ExpoFile`) to prevent binary corruption crashes.
+7. **Desktop Renderer Sandboxing**:
+   - Electron windows must enforce `sandbox: true`, `contextIsolation: true`, and `nodeIntegration: false`. Preload scripts expose strictly whitelisted APIs via `contextBridge`.
+   - Embedded proxy (`src/server.cjs`) binds exclusively to loopback `127.0.0.1`.

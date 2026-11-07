@@ -13,10 +13,10 @@
 1. **Backend**: Java 21 & Spring Boot 3.4 modular service (REST APIs + native WebSocket server).
 2. **Web Frontend**: React 19 + TypeScript powered by Vite and Vanilla CSS design tokens.
 3. **Mobile Frontend**: React Native (0.86+) + Expo (52+) using Expo Router v4 with Android native prebuild and APK/AAB build automation.
-4. **Desktop Frontend**: Electron 33+ native Linux client with system tray, embedded proxy, and AppImage/deb/snap distribution.
+4. **Desktop Frontend**: Electron 33+ multi-platform client (macOS, Windows, Linux) with system tray, embedded proxy, renderer sandboxing, and native store distributions.
 5. **Shared Types**: `@chat/shared-types` TypeScript package containing cross-platform contracts, DTOs, and WebSocket event payloads.
 6. **Infrastructure**: Docker Compose stack containing PostgreSQL 16 (port `5554`), Redis 7 (`6379`), and MinIO S3-compatible Object Storage (`9000`/`9001`).
-7. **Release Artifacts**: Automated build scripts that compile and store production release artifacts (`release/android/`, `release/linux/`, etc.).
+7. **Release Artifacts**: Automated multi-platform build engines that compile and store production release artifacts (`release/android/`, `release/ios/`, `release/macos/`, `release/windows/`, `release/linux/`, `release/build-all/`).
 
 ---
 
@@ -30,14 +30,26 @@
 ├── .env.example                         # Environment configuration template
 ├── package.json                         # Monorepo root workspace definitions & orchestration scripts
 ├── scripts/
+│   ├── build-all-releases.cjs           # Universal release orchestrator (all 5 platforms)
 │   ├── build-android.js                 # Automated cross-platform Android APK & AAB build engine
+│   ├── build-ios.js                     # Automated iOS simulator and device build engine
+│   ├── build-macos.js                   # Automated macOS DMG & ZIP build engine
+│   ├── build-windows.js                 # Automated Windows NSIS & Portable build engine
+│   ├── build-linux.js                   # Automated Linux AppImage, DEB, Snap build engine
+│   ├── setup-build-packages.js          # Project-local build package cache manager (build_run_package/)
+│   ├── test-packaged-macos-native.cjs   # Native packaged desktop smoke test harness
 │   └── verify_ws.js                     # WebSocket protocol verification script
 ├── docs/
 │   ├── api-contracts.md                 # Complete REST & WebSocket protocol specifications
 │   ├── architecture.md                  # High-level architecture, realtime flow & media pipeline
-│   ├── database-schema.md               # PostgreSQL schema & Flyway migrations documentation
-│   ├── security.md                      # Security model, Passkeys, 2FA, session revocation
-│   └── mobile-and-build-guide.md        # Comprehensive Mobile & Android build handbook
+│   ├── database-schema.md               # PostgreSQL schema & Flyway migrations documentation (V1-V10)
+│   ├── security.md                      # Security model, Passkeys, 2FA, session revocation, desktop sandboxing
+│   ├── mobile-and-build-guide.md        # Comprehensive Mobile & Android/iOS build handbook
+│   ├── linux-desktop-and-store-guide.md # Linux desktop packaging & app store guide
+│   ├── development/                     # Reusable engineering playbook & lifecycle
+│   └── testing/                         # Verification logs and release runner test suites
+├── build_run_package/                   # Project-local cached toolchains and packaging runtimes
+├── preview/                             # Interactive design preview & visual regression test frames
 ├── backend/                             # Spring Boot 3.4 Application
 │   ├── pom.xml                          # Maven build definition (Java 21)
 │   ├── Dockerfile                       # Multi-stage container build
@@ -60,9 +72,9 @@
 │       │   │   └── websocket/           # Native TextWebSocketHandler, real-time routing
 │       │   └── resources/
 │       │       ├── application.yml      # Spring configuration (ports, data sources, JWT)
-│       │       └── db/migration/        # Flyway SQL migrations (V1 through V4+)
+│       │       └── db/migration/        # Flyway SQL migrations (V1 through V10)
 ├── apps/
-│   ├── web/                             # React 19 + TypeScript Web Client
+│   ├── web/                             # React 18/19 + TypeScript Web Client
 │   │   ├── package.json
 │   │   ├── vite.config.ts               # Vite configuration (port 5174/5173, aliases)
 │   │   ├── index.html                   # Entry HTML with meta & styling tokens
@@ -83,33 +95,42 @@
 │   │       │   └── settings.ts          # Settings persistence
 │   │       └── utils/i18n.ts            # Internationalization dictionaries
 │   │
-│   └── mobile/                          # React Native 0.86+ / Expo 52+ Mobile Client
+│   ├── mobile/                          # React Native 0.88 / Expo SDK 58 Mobile Client
+│   │   ├── package.json
+│   │   ├── app.json                     # Expo config (newArchEnabled, android package com.indichat.app)
+│   │   ├── app/                         # Expo Router v4 routes
+│   │   │   ├── _layout.tsx              # Root Stack navigation & theme provider
+│   │   │   ├── index.tsx                # Auth Screen (Login / Register / Passkeys)
+│   │   │   ├── chats.tsx                # Conversations list, Status tab, Calls tab
+│   │   │   ├── settings.tsx             # Full settings screen (Profile, 2FA, Linked Devices)
+│   │   │   └── chat/
+│   │   │       └── [id].tsx             # Full chat room, message bubbles, ticks, media picker
+│   │   ├── components/
+│   │   │   └── StickerView.tsx          # Multi-CDN SVG/PNG sticker component with fallbacks
+│   │   ├── data/
+│   │   │   ├── emojiData.ts             # Emoji categorizations
+│   │   │   ├── gifData.ts               # Dynamic Google Tenor & GIPHY search service
+│   │   │   └── stickerData.ts           # Sticker collection definitions
+│   │   ├── services/
+│   │   │   ├── api.ts                   # REST client + automatic LAN IP deduction
+│   │   │   ├── callHistory.ts           # Local persistent call log storage
+│   │   │   ├── settings.ts              # Mobile user settings synchronization
+│   │   │   ├── storage.ts               # AsyncStorage wrapper
+│   │   │   └── websocket.ts             # Native WebSocket client with auto-reconnect
+│   │   ├── utils/
+│   │   │   ├── device.ts                # Device UUID and platform fingerprinting
+│   │   │   ├── i18n.ts                  # Multi-language translations
+│   │   │   └── timeAgo.ts               # Tiered human-friendly date/time formatting
+│   │   ├── android/                     # Prebuilt native Android project (Gradle wrapper, Manifest, AudioRouteModule)
+│   │   └── ios/                         # Prebuilt native iOS workspace (CocoaPods, Assets)
+│   │
+│   └── desktop/                         # Electron 33+ Native Desktop Client (macOS, Windows, Linux)
 │       ├── package.json
-│       ├── app.json                     # Expo config (newArchEnabled, android package com.indichat.app)
-│       ├── app/                         # Expo Router v4 routes
-│       │   ├── _layout.tsx              # Root Stack navigation & theme provider
-│       │   ├── index.tsx                # Auth Screen (Login / Register / Passkeys)
-│       │   ├── chats.tsx                # Conversations list, Status tab, Calls tab
-│       │   ├── settings.tsx             # Full settings screen (Profile, 2FA, Linked Devices)
-│       │   └── chat/
-│       │       └── [id].tsx             # Full chat room, message bubbles, ticks, media picker
-│       ├── components/
-│       │   └── StickerView.tsx          # Multi-CDN SVG/PNG sticker component with fallbacks
-│       ├── data/
-│       │   ├── emojiData.ts             # Emoji categorizations
-│       │   ├── gifData.ts               # Dynamic Google Tenor & GIPHY search service
-│       │   └── stickerData.ts           # Sticker collection definitions
-│       ├── services/
-│       │   ├── api.ts                   # REST client + automatic LAN IP deduction
-│       │   ├── callHistory.ts           # Local persistent call log storage
-│       │   ├── settings.ts              # Mobile user settings synchronization
-│       │   ├── storage.ts               # AsyncStorage wrapper
-│       │   └── websocket.ts             # Native WebSocket client with auto-reconnect
-│       ├── utils/
-│       │   ├── device.ts                # Device UUID and platform fingerprinting
-│       │   ├── i18n.ts                  # Multi-language translations
-│       │   └── timeAgo.ts               # Tiered human-friendly date/time formatting
-│       └── android/                     # Prebuilt native Android project (Gradle wrapper, Manifest, ProGuard)
+│       ├── src/
+│       │   ├── main.cjs                 # Main process, window lifecycle, sandbox & system tray
+│       │   ├── preload.cjs              # Secure contextBridge preload script
+│       │   └── server.cjs               # Zero-dependency loopback proxy server (127.0.0.1)
+│       └── resources/                   # Desktop icons and packaging metadata
 │
 ├── packages/
 │   └── shared-types/                    # Core TypeScript Contracts & Payloads
@@ -119,9 +140,11 @@
 │
 └── release/                             # Compiled distribution builds
     ├── android/                         # Debug & Release APKs (.apk) and App Bundles (.aab)
-    ├── ios/                             # iOS archive placeholders
-    ├── windows/                         # Desktop release placeholders
-    └── linux/                           # Desktop release placeholders
+    ├── ios/                             # iOS Simulator bundles and .xcarchive
+    ├── macos/                           # macOS DMG and ZIP distributions
+    ├── windows/                         # Windows NSIS installers and Portable EXEs
+    ├── linux/                           # Linux AppImage, DEB, Snap, tar.gz distributions
+    └── build-all/                       # Multi-platform release run manifests
 ```
 
 ---
@@ -281,7 +304,45 @@ node scripts/build-ios.js --clean
 Output files appear in:
 `release/ios/IndiChat.app` — Standalone compiled iOS application bundle  
 `release/ios/IndiChat-Simulator.zip` — Compressed bundle ready for iOS Simulator  
+`release/ios/IndiChat.xcarchive` — Signed/unsigned iOS device archive
 `release/ios/icon.png` — 1024x1024 App Store icon
+
+### 7. Automated Desktop Packaging (macOS, Windows, Linux)
+The desktop packaging scripts build Electron bundles across platforms:
+
+```bash
+# macOS (DMG & ZIP):
+npm run build:macos
+npm run build:macos:dmg
+npm run build:macos:zip
+
+# Windows (NSIS Installer & Portable EXE):
+npm run build:windows
+npm run build:windows:nsis
+npm run build:windows:portable
+
+# Linux (AppImage, DEB, Snap, tar.gz):
+npm run build:linux
+npm run build:linux:appimage
+npm run build:linux:deb
+npm run build:linux:snap
+```
+Output files appear in `release/macos/`, `release/windows/`, and `release/linux/`.
+
+### 8. Universal Multi-Platform Release Runner
+Orchestrate builds across all five supported operating systems in sequence:
+
+```bash
+# Dry run: preview planned targets without modifying files:
+npm run release:plan
+
+# Execute release builds for all five platforms:
+npm run release:all
+
+# Target specific platforms only:
+npm run release:all -- --platforms=macos,linux
+```
+A structured summary manifest is emitted at `release/build-all/<run-id>/summary.json`.
 
 ---
 
