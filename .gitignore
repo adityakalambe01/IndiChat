@@ -61,3 +61,8 @@ backend/mvnw
 # Per-run desktop packaging outputs and Windows installers
 apps/desktop/dist-bin-*/
 release/**/*.exe
+
+# Local build package cache (Electron binaries, builder tools)
+build_run_package/*
+!build_run_package/.gitkeep
+!build_run_package/README.md

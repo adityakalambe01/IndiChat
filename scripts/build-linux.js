@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const { collectArtifacts } = require('./desktop-build-artifacts.cjs');
+const { configureBuildEnvironment } = require('./setup-build-packages.js');
 const buildId = new Date().toISOString().replace(/[:.]/g, '-') + '-' + process.pid;
 
 // Define paths
@@ -58,7 +59,7 @@ console.log('====================================================\n');
 // Helper to run commands
 function runStep(cmd, cmdArgs, cwd, description) {
   console.log(`>>> ${description}...`);
-  const env = { ...process.env };
+  const env = configureBuildEnvironment({ ...process.env });
   delete env.ELECTRON_RUN_AS_NODE;
   const result = spawnSync(cmd, cmdArgs, {
     cwd,

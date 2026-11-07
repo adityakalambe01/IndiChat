@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const { configureBuildEnvironment } = require('./setup-build-packages.js');
 
 const rootDir = path.resolve(__dirname, '..');
 const desktopDir = path.join(rootDir, 'apps', 'desktop');
@@ -46,7 +47,7 @@ console.log('====================================================\n');
 
 function runStep(cmd, cmdArgs, cwd, description) {
   console.log(`>>> ${description}...`);
-  const env = { ...process.env };
+  const env = configureBuildEnvironment({ ...process.env });
   delete env.ELECTRON_RUN_AS_NODE;
   env.CSC_IDENTITY_AUTO_DISCOVERY = 'false';
 
