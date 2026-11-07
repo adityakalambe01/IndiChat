@@ -1,0 +1,12 @@
+{
+  "kind": "static Windows package verification; not native execution",
+  "artifactHashesMatch": true,
+  "distinctMZWrappers": true,
+  "brandingAndVersion": true,
+  "oneApplicationIconGroup": true,
+  "asarIntegrityHashMatches": true,
+  "bundledWebAssetsPresent": true,
+  "productionSandboxConfigurationPreserved": true,
+  "nativeRuntimeVerified": false,
+  "signed": false
+}

@@ -1,0 +1,11 @@
+{
+  "platform": "linux",
+  "arch": "x64",
+  "app": "/opt/IndiChat/indichat",
+  "backend": "in-process mock HTTP service",
+  "passed": 0,
+  "total": 0,
+  "exitCode": 1,
+  "osSandboxVerified": false,
+  "checks": []
+}

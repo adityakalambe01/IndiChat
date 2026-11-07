@@ -57,3 +57,7 @@ apps/desktop/dist-bin-sandboxed/
 tmp-*-userdata/
 screenshot-*.png
 backend/mvnw
+
+# Per-run desktop packaging outputs and Windows installers
+apps/desktop/dist-bin-*/
+release/**/*.exe

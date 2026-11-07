@@ -2,7 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const { collectArtifacts } = require('./desktop-build-artifacts.cjs');
+const { collectArtifacts, verifyElectronDist } = require('./desktop-build-artifacts.cjs');
 const buildId = new Date().toISOString().replace(/[:.]/g, '-') + '-' + process.pid;
 
 const rootDir = path.resolve(__dirname, '..');
@@ -79,12 +79,19 @@ fs.cpSync(webDistDir, desktopDistWebDir, { recursive: true });
 
 // 4. Run electron-builder for selected Windows targets
 const builderArgs = ['electron-builder', '--win', ...targets, '--x64', `--config.directories.output=${desktopDistBinDir}`];
+if (process.env.INDICHAT_ELECTRON_DIST) {
+  const dist = verifyElectronDist(process.env.INDICHAT_ELECTRON_DIST, 'win32');
+  builderArgs.push(`--config.electronDist=${dist}`);
+}
+if (args.includes('--unsigned-js-resources')) {
+  builderArgs.push('--config.win.signAndEditExecutable=false', `--config.afterPack=${path.join(rootDir, 'scripts', 'edit-windows-resources.cjs')}`);
+}
 runStep('npx', builderArgs, desktopDir, `Building Windows targets (${targets.join(', ')})`);
 
 // 5. Collect release artifacts into release/windows/
 console.log('\n>>> Collecting release artifacts into release/windows/...');
 const artifacts = collectArtifacts(desktopDistBinDir, releaseWinDir, targets);
-fs.writeFileSync(path.join(releaseWinDir, 'manifest.json'), JSON.stringify({ platform: 'windows', arch: 'x64', nativeRuntimeVerified: false, artifacts }, null, 2) + '\n');
+fs.writeFileSync(path.join(releaseWinDir, 'manifest.json'), JSON.stringify({ platform: 'windows', arch: 'x64', pathBase: 'project-root', nativeRuntimeVerified: false, unsignedJsResources: args.includes('--unsigned-js-resources'), artifacts }, null, 2) + '\n');
 for (const artifact of artifacts) console.log(`Created: ${artifact.file} (${artifact.bytes} bytes, SHA-256 ${artifact.sha256})`);
 
 console.log('\n====================================================');

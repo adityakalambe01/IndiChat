@@ -164,7 +164,7 @@ flowchart TD
    * `release/macos/IndiChat-1.0.0-arm64.zip`
 3. **Installer Volume & Runtime Verification**:
    * Attach DMG via `hdiutil attach`, verify APFS volume integrity and drag-and-drop symlink.
-   * Execute [`scripts/test-packaged-macos-native.cjs`](file:///Users/innodaredevil/Desktop/IndiChat/scripts/test-packaged-macos-native.cjs) against the standalone `.app` bundle (17/17 checks).
+   * Execute [`scripts/test-packaged-macos-native.cjs`](../../scripts/test-packaged-macos-native.cjs) against the standalone `.app` bundle (17/17 checks).
 4. **Signing & Notarization Audit**:
    * Check signature with `codesign -dvvv`.
    * Check Gatekeeper acceptance with `spctl --assess --type execute`.
@@ -195,12 +195,16 @@ this local plan until explicitly authorized.
 
 ## 4. Summary of Verification Gates & Status
 
-| Platform | Build Gate | Packaging Gate | Native Runtime Gate | Signing / Notarization Gate | Overall Status |
-|---|---|---|---|---|---|
-| **macOS (arm64)** | **PASSED** (React + Vite) | **PASSED** (DMG & ZIP) | **PASSED** (17/17 tests against `indichat.app`) | **PENDING** (Ad-hoc local signature; Developer ID pending) | **Provisionally Verified** (within documented limits) |
-| **Windows (x64)** | **UNVERIFIED** (Scripts authored) | **PENDING** (Blocked: no Windows host / `makensis`) | **PENDING** (Blocked: requires Windows runtime) | **PENDING** (Authenticode cert required) | **PENDING** (Awaiting Windows host / CI runner) |
-| **Linux (x64)** | **UNVERIFIED** (Scripts authored) | **PENDING** (Blocked: no Linux host / `dpkg-deb`) | **PENDING** (Blocked: requires Linux FUSE runtime) | **N/A** (GPG repo signing optional) | **PENDING** (Awaiting Linux host / CI runner) |
+Current evidence: [Phase 3 local verification](phase-3-local-verification.md).
 
+| Platform | Packaging | Local runtime evidence | External gates |
+|---|---|---|---|
+| macOS ARM64 | Prior sandboxed DMG/ZIP preserved | Previous macOS native verification reused | Distribution signing/notarization |
+| Windows x64 | Unsigned NSIS and portable built; static/payload checks passed | Native Windows execution unavailable | Native install/runtime/uninstall and signing |
+| Linux x64 | AppImage and Debian built; install/uninstall/content checks passed | 19/19 GUI smoke checks in Docker/Rosetta/Xvfb | Physical Linux/tray and direct AppImage/FUSE verification |
+
+The user confirmed no native test hosts or signing credentials are available and
+requested that external blockers be reported after local work is finished.
 
 ## Local container build alternative
 
@@ -211,3 +215,11 @@ and writes only to a new build directory. It packages AppImage and Debian output
 and publishes a local manifest only after both are present. This is cross-platform
 packaging under emulation on Apple Silicon, not native Linux desktop verification.
 The container does not start or alter review databases or application services.
+
+Windows unsigned cross-builds are available through
+`bash scripts/build-windows-container.sh`. Optional `INDICHAT_ELECTRON_DIST`
+selects a cached runtime directory; archives are verified against the installed
+Electron release manifest. Optional `INDICHAT_BUILDER_CACHE` provides read-only
+cached NSIS tools, copied into the container to avoid repeated downloads.
+The Windows compatibility path is explicitly unsigned and guarded to
+`electron-builder` 25.1.8; see the current report before upgrading dependencies.

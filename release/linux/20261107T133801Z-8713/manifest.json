@@ -1,0 +1,18 @@
+{
+  "platform": "linux",
+  "arch": "x64",
+  "nativeRuntimeVerified": false,
+  "artifacts": [
+    {
+      "file": "./release/linux/20261107T133801Z-8713/IndiChat-1.0.0.AppImage",
+      "bytes": 181723743,
+      "sha256": "8f2422aa9c7d0d78a822dd913a392721c359520e1b6290925c4772fe23d6942c"
+    },
+    {
+      "file": "./release/linux/20261107T133801Z-8713/indichat_1.0.0_amd64.deb",
+      "bytes": 127485942,
+      "sha256": "836bf4df2b4079e4bf16382075ff74a3a6d2a3cb4435863626ff4555aaa634b3"
+    }
+  ],
+  "pathBase": "project-root"
+}
