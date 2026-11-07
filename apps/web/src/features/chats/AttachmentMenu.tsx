@@ -87,6 +87,7 @@ export const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
         {/* 1. Document (Any file) */}
         <button
           type="button"
+          id="attachOptionDoc"
           className="attachment-menu-item"
           onClick={() => documentInputRef.current?.click()}
           title="Document (Send any file)"
@@ -100,6 +101,7 @@ export const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
         {/* 2. Photos & Videos */}
         <button
           type="button"
+          id="attachOptionPhotos"
           className="attachment-menu-item"
           onClick={() => mediaInputRef.current?.click()}
           title="Photos & Videos"
@@ -113,6 +115,7 @@ export const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
         {/* 3. Camera */}
         <button
           type="button"
+          id="attachOptionCamera"
           className="attachment-menu-item"
           onClick={() => {
             onClose();
@@ -124,6 +127,24 @@ export const AttachmentMenu: React.FC<AttachmentMenuProps> = ({
             <Camera size={24} color="#ffffff" />
           </div>
           <span className="attachment-item-label">Camera</span>
+        </button>
+
+        {/* 4. Poll */}
+        <button
+          type="button"
+          id="attachOptionPoll"
+          className="attachment-menu-item"
+          onClick={() => {
+            onClose();
+            const pollFile = new File([JSON.stringify({ question: 'Which design do you prefer?', options: ['Obsidian Dark', 'Daylight Light', 'Liquid Glass'] })], 'poll.json', { type: 'application/json' });
+            onSelectFiles([pollFile]);
+          }}
+          title="Poll (Create poll)"
+        >
+          <div className="attachment-icon-btn poll" style={{ background: '#f59e0b' }}>
+            <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff' }}>📊</span>
+          </div>
+          <span className="attachment-item-label">Poll</span>
         </button>
       </div>
     </>

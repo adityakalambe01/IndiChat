@@ -27,6 +27,10 @@ import { NewChatModal } from './features/chats/NewChatModal';
 import { CallModal } from './features/calls/CallModal';
 import { NotificationModal } from './features/notifications/NotificationModal';
 import { SettingsView } from './features/settings/SettingsView';
+import { FullSettingsModal } from './features/settings/FullSettingsModal';
+import { StarredSidebar } from './features/chats/StarredSidebar';
+import { ContactDetailsPanel } from './features/chats/ContactDetailsPanel';
+import { DesktopWindowChrome } from './components/DesktopWindowChrome';
 import { generateUUID } from './utils/uuid';
 import { resetDeviceId } from './utils/device';
 import { settingsService } from './services/settings';
@@ -44,7 +48,13 @@ export const App: React.FC = () => {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window !== 'undefined') {
+      const param = new URLSearchParams(window.location.search).get('theme');
+      if (param === 'light' || param === 'dark') return param;
+    }
+    return 'dark';
+  });
   const [isMobileOpen, setIsMobileOpen] = useState(true);
   const [sessionRevokedReason, setSessionRevokedReason] = useState<string | null>(null);
   const isLoggingOutRef = useRef(false);
@@ -72,6 +82,10 @@ export const App: React.FC = () => {
   // Modals
   const [showNewChatModal, setShowNewChatModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showFullSettingsModal, setShowFullSettingsModal] = useState(false);
+  const [showDetailsPanel, setShowDetailsPanel] = useState<boolean>(
+    () => typeof window !== 'undefined' && window.innerWidth >= 1200
+  );
 
   // Theme & Document Title
   useEffect(() => {
@@ -130,6 +144,9 @@ export const App: React.FC = () => {
     try {
       const list = await api.getConversations();
       setConversations(list);
+      if (list.length > 0 && typeof window !== 'undefined' && window.innerWidth >= 768) {
+        setActiveConversationId((current) => current || list[0].id);
+      }
     } catch (e) {
       console.error('Failed to load backend conversations:', e);
       setConversations([]);
@@ -277,9 +294,25 @@ export const App: React.FC = () => {
       }
     });
 
+    const unsubReaction = wsClient.onReactionUpdated((event) => {
+      setMessages((prev) =>
+        prev.map((m) => {
+          if (m.id === event.messageId) {
+            return {
+              ...m,
+              reactions: event.reactions || m.reactions,
+              reactionSummaries: event.summaries || m.reactionSummaries,
+            };
+          }
+          return m;
+        })
+      );
+    });
+
     return () => {
       unsubMsg();
       unsubReceipt();
+      unsubReaction();
       unsubTyping();
       unsubPresence();
       unsubCall();
@@ -466,21 +499,37 @@ export const App: React.FC = () => {
     );
   }
 
+  const isDesktop = typeof window !== 'undefined' && Boolean(
+    window.indichatDesktop ||
+    window.electronAPI ||
+    new URLSearchParams(window.location.search).has('platform') ||
+    new URLSearchParams(window.location.search).has('desktop')
+  );
+
   return (
-    <div className="app-container">
-      {/* 1. Leftmost Navigation Rail matching WhatsApp Web */}
-      <NavigationRail
-        activeTab={activeTab}
-        onSelectTab={(tab) => {
-          setActiveTab(tab);
-          if (tab !== 'chats') {
-            setActiveConversationId(null);
-          }
-        }}
-        currentUser={currentUser}
-        unreadCount={totalUnreads}
-        hasUnreadStatus={true}
-      />
+    <div className="app-container" style={isDesktop ? { flexDirection: 'column' } : undefined}>
+      {isDesktop && <DesktopWindowChrome onOpenSettings={() => setShowFullSettingsModal(true)} />}
+
+      <div className="app-workspace">
+        {/* 1. Zone 1: Navigation Rail (68px) */}
+        <NavigationRail
+          activeTab={activeTab}
+          onSelectTab={(tab) => {
+            if (tab === 'settings') {
+              setShowFullSettingsModal(true);
+              return;
+            }
+            setActiveTab(tab);
+            if (tab !== 'chats' && tab !== 'starred') {
+              setActiveConversationId(null);
+            }
+          }}
+          currentUser={currentUser}
+          unreadCount={totalUnreads}
+          hasUnreadStatus={true}
+          theme={theme}
+          onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        />
 
       {/* 2. Sidebar based on active navigation tab */}
       {(activeTab === 'chats' || activeTab === 'archived') && (
@@ -506,9 +555,21 @@ export const App: React.FC = () => {
             setMessages([]);
           }}
           onOpenArchived={() => setActiveTab('archived')}
+          onOpenStarred={() => setActiveTab('starred')}
           onOpenCommunities={() => setActiveTab('communities')}
-          onOpenSettings={() => setActiveTab('settings')}
+          onOpenSettings={() => setShowFullSettingsModal(true)}
           typingUsers={typingUsers}
+        />
+      )}
+
+      {activeTab === 'starred' && (
+        <StarredSidebar
+          currentUser={currentUser}
+          onSelectConversation={(convId) => {
+            setActiveConversationId(convId);
+            setActiveTab('chats');
+            setIsMobileOpen(false);
+          }}
         />
       )}
 
@@ -574,7 +635,7 @@ export const App: React.FC = () => {
       )}
 
       {/* 3. Main Content Panel */}
-      {activeTab === 'chats' && (
+      {(activeTab === 'chats' || activeTab === 'archived' || activeTab === 'starred') && (
         <ChatWindow
           currentUser={currentUser}
           conversation={activeConversation}
@@ -592,27 +653,17 @@ export const App: React.FC = () => {
           }}
           onNewCall={() => setActiveTab('calls')}
           onAskMetaAi={() => setActiveTab('meta_ai')}
+          onToggleDetails={() => setShowDetailsPanel((prev) => !prev)}
         />
       )}
 
-      {activeTab === 'archived' && (
-        <ChatWindow
-          currentUser={currentUser}
+      {/* 4. Collapsible Details Panel (Zone 4) */}
+      {showDetailsPanel && activeConversation && (activeTab === 'chats' || activeTab === 'archived' || activeTab === 'starred') && (
+        <ContactDetailsPanel
           conversation={activeConversation}
-          messages={messages}
-          onSendMessage={handleSendMessage}
-          onBackToSidebar={() => setIsMobileOpen(true)}
-          typingUsers={typingUsers}
+          currentUser={currentUser}
+          onClose={() => setShowDetailsPanel(false)}
           onStartCall={handleStartCall}
-          onGoToCalls={() => setActiveTab('calls')}
-          onSendDocument={() => setShowNewChatModal(true)}
-          onAddContact={() => setShowNewChatModal(true)}
-          onInviteFriend={() => {
-            navigator.clipboard?.writeText(window.location.origin);
-            alert('WhatsApp invite link copied to clipboard!');
-          }}
-          onNewCall={() => setActiveTab('calls')}
-          onAskMetaAi={() => setActiveTab('meta_ai')}
         />
       )}
 
@@ -697,6 +748,7 @@ export const App: React.FC = () => {
           />
         </main>
       )}
+      </div>
 
       {/* 4. Modals */}
       {showNewChatModal && (
@@ -780,6 +832,16 @@ export const App: React.FC = () => {
           notificationService.syncDeviceToken();
         }}
       />
+
+      {/* Full 14-tab Desktop Settings Modal */}
+      {showFullSettingsModal && (
+        <FullSettingsModal
+          currentUser={currentUser}
+          onClose={() => setShowFullSettingsModal(false)}
+          onUpdateUser={(updated) => setCurrentUser((prev) => (prev ? { ...prev, ...updated } : prev))}
+          onLogout={handleLogout}
+        />
+      )}
     </div>
   );
 };

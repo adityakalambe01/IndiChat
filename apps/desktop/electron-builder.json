@@ -43,9 +43,27 @@
     "license": "../../LICENSE",
     "artifactName": "IndiChat-${version}.${ext}"
   },
+  "mac": {
+    "icon": "assets/icon.png",
+    "category": "public.app-category.social-networking",
+    "target": [
+      { "target": "dmg", "arch": ["x64", "arm64"] },
+      { "target": "zip", "arch": ["x64", "arm64"] }
+    ],
+    "artifactName": "IndiChat-${version}-${arch}.${ext}",
+    "hardenedRuntime": true,
+    "gatekeeperAssess": false
+  },
   "win": {
     "icon": "assets/icon.ico",
-    "target": ["nsis", "portable"],
+    "target": ["nsis", "portable"]
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
     "artifactName": "IndiChat-Setup-${version}.${ext}"
+  },
+  "portable": {
+    "artifactName": "IndiChat-Portable-${version}.${ext}"
   }
 }

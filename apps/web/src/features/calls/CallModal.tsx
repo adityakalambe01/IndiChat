@@ -398,204 +398,317 @@ export const CallModal: React.FC<CallModalProps> = ({
     return `${mins}:${remaining < 10 ? '0' : ''}${remaining}`;
   };
 
+  // Derive avatar initials and color
+  const avatarInitials =
+    targetName
+      .split(' ')
+      .filter(Boolean)
+      .map((w) => w[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || targetName.slice(0, 2).toUpperCase();
+
+  const avatarColor = '#10b981';
+
   return (
-    <div className="modal-overlay" style={{ backdropFilter: 'blur(8px)', zIndex: 9999 }}>
+    <div
+      className="call-simulation-overlay"
+      id="callOverlay"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        width: '100vw',
+        height: '100vh',
+        background: 'radial-gradient(circle at 50% 30%, #0d2822 0%, #060e12 100%)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '40px 24px',
+        zIndex: 99999,
+        color: '#ffffff',
+        animation: 'fadeInModal 0.25s ease-out',
+      }}
+      role="dialog"
+      aria-label={`${isVideo ? 'Video' : 'Audio'} Call with ${targetName}`}
+    >
       {/* Hidden audio element for remote stream in voice calls */}
       <audio ref={remoteAudioRef} autoPlay style={{ display: 'none' }} />
 
-      {/* VIDEO CALL LAYOUT */}
-      {isVideo && (connected || !isIncoming) ? (
-        <div className="call-dialog-video">
-          {/* Main Remote Video Screen */}
-          <div className="call-remote-video-wrap">
+      {/* VIDEO CALL REMOTE SCREEN & PIP */}
+      {isVideo && (
+        <>
+          <video
+            ref={remoteVideoRef}
+            autoPlay
+            playsInline
+            style={{
+              display: connected ? 'block' : 'none',
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              zIndex: 1,
+            }}
+          />
+          <div
+            style={{
+              display: connected ? 'block' : 'none',
+              position: 'absolute',
+              bottom: '120px',
+              right: '28px',
+              width: '160px',
+              height: '120px',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+              border: '2px solid rgba(255,255,255,0.3)',
+              zIndex: 2,
+            }}
+          >
             <video
-              ref={remoteVideoRef}
+              ref={localVideoRef}
               autoPlay
               playsInline
               muted
-              className="call-remote-video"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
             />
-            {/* Overlay if remote video hasn't arrived or is off */}
-            <div className="call-video-placeholder-overlay">
-              <div className="call-pulse-ring" style={{ width: '100px', height: '100px' }}>
-                <div className="avatar" style={{ width: '80px', height: '80px', fontSize: '2rem' }}>
-                  {targetName.charAt(0).toUpperCase()}
-                </div>
-              </div>
-              <h3 style={{ marginTop: '16px', color: '#fff', fontSize: '1.25rem', fontWeight: 600 }}>
-                {targetName}
-              </h3>
-              <p style={{ color: '#8696a0', fontSize: '0.9rem', marginTop: '4px' }}>
-                {connected ? `Video Call • ${formatDuration(duration)}` : 'Calling...'}
-              </p>
-            </div>
-
-            {/* Local PiP Video Preview */}
-            <div className="call-local-pip">
-              <video
-                ref={localVideoRef}
-                autoPlay
-                playsInline
-                muted
-                className="call-local-video"
-              />
-              <span className="call-pip-label">You</span>
-            </div>
           </div>
-
-          {/* Top Banner with security badge & media warnings */}
-          <div className="call-video-topbar">
-            <div className="call-encryption-pill">
-              <ShieldCheck size={14} color="#25D366" />
-              <span>End-to-end encrypted</span>
-            </div>
-            {mediaWarning && (
-              <div className="call-warning-pill">
-                <AlertCircle size={14} color="#f59e0b" />
-                <span>{mediaWarning}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Floating Controls Bar */}
-          <div className="call-video-controls">
-            <button
-              className="call-ctrl-btn"
-              style={{
-                backgroundColor: isMuted ? 'var(--accent-danger)' : 'rgba(255,255,255,0.18)',
-                color: '#fff',
-              }}
-              onClick={toggleMute}
-              title={isMuted ? 'Unmute microphone' : 'Mute microphone'}
-            >
-              {isMuted ? <MicOff size={22} /> : <Mic size={22} />}
-            </button>
-
-            <button
-              className="call-ctrl-btn"
-              style={{
-                backgroundColor: isVideo ? 'var(--accent-primary)' : 'rgba(255,255,255,0.18)',
-                color: isVideo ? '#111b21' : '#fff',
-              }}
-              onClick={toggleVideo}
-              title={isVideo ? 'Turn off camera' : 'Turn on camera'}
-            >
-              {isVideo ? <Video size={22} /> : <VideoOff size={22} />}
-            </button>
-
-            <button
-              className="btn-hangup"
-              style={{ width: '56px', height: '56px' }}
-              onClick={() => endCall(true)}
-              title="End Call"
-            >
-              <PhoneOff size={26} />
-            </button>
-          </div>
-        </div>
-      ) : (
-        /* VOICE CALL / INCOMING DIALOG */
-        <div className="call-dialog call-dialog-voice">
-          <div className="call-encryption-pill" style={{ marginBottom: '8px' }}>
-            <ShieldCheck size={14} color="#25D366" />
-            <span>End-to-end encrypted</span>
-          </div>
-
-          <div className="call-pulse-ring">
-            <div className="avatar" style={{ width: '72px', height: '72px', fontSize: '1.75rem' }}>
-              {targetName.charAt(0).toUpperCase()}
-            </div>
-          </div>
-
-          <div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-              {targetName}
-            </h3>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-              {isIncoming && !connected
-                ? `Incoming ${isVideo ? 'Video' : 'Voice'} Call...`
-                : connected
-                ? `${isVideo ? 'Video Call' : 'Voice Call'} • ${formatDuration(duration)}`
-                : 'Calling...'}
-            </p>
-            {mediaWarning && (
-              <p style={{ fontSize: '0.78rem', color: '#f59e0b', marginTop: '6px' }}>
-                {mediaWarning}
-              </p>
-            )}
-          </div>
-
-          {connected || !isIncoming ? (
-            <div style={{ display: 'flex', gap: '18px', marginTop: '16px', alignItems: 'center' }}>
-              <button
-                className="icon-btn"
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  backgroundColor: isMuted ? 'var(--accent-danger)' : 'var(--bg-active)',
-                  color: '#fff',
-                  borderRadius: '50%',
-                }}
-                onClick={toggleMute}
-                title={isMuted ? 'Unmute microphone' : 'Mute microphone'}
-              >
-                {isMuted ? <MicOff size={22} /> : <Mic size={22} />}
-              </button>
-
-              <button
-                className="icon-btn"
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  backgroundColor: isVideo ? 'var(--accent-primary)' : 'var(--bg-active)',
-                  color: isVideo ? '#111b21' : '#fff',
-                  borderRadius: '50%',
-                }}
-                onClick={toggleVideo}
-                title={isVideo ? 'Turn off video' : 'Switch to video call'}
-              >
-                {isVideo ? <Video size={22} /> : <VideoOff size={22} />}
-              </button>
-
-              <button
-                className="btn-hangup"
-                style={{ width: '52px', height: '52px' }}
-                onClick={() => endCall(true)}
-                title="End Call"
-              >
-                <PhoneOff size={24} />
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', gap: '28px', marginTop: '20px', alignItems: 'center' }}>
-              <button
-                className="btn-hangup"
-                style={{ width: '56px', height: '56px' }}
-                onClick={() => endCall(true)}
-                title="Decline"
-              >
-                <PhoneOff size={26} />
-              </button>
-
-              <button
-                className="icon-btn"
-                style={{
-                  width: '56px',
-                  height: '56px',
-                  backgroundColor: 'var(--accent-primary)',
-                  color: '#111b21',
-                  borderRadius: '50%',
-                  boxShadow: '0 4px 15px rgba(37, 211, 102, 0.4)',
-                }}
-                onClick={handleAcceptCall}
-                title="Answer Call"
-              >
-                <Phone size={26} />
-              </button>
-            </div>
-          )}
-        </div>
+        </>
       )}
+
+      {/* 1. Top Status Pill */}
+      <div style={{ textAlign: 'center', marginTop: '10px', zIndex: 3 }}>
+        <span
+          className="platform-pill"
+          style={{
+            color: 'var(--brand-emerald, #10b981)',
+            background: 'rgba(16, 185, 129, 0.15)',
+            border: '1px solid rgba(16, 185, 129, 0.25)',
+            padding: '5px 14px',
+            borderRadius: '20px',
+            fontSize: '12.5px',
+            fontWeight: 600,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          {isIncoming && !connected
+            ? `Incoming ${isVideo ? 'Video' : 'Voice'} Call`
+            : connected
+            ? `End-to-End Encrypted · ${isVideo ? 'Video' : 'Voice'} Call`
+            : `Connecting ${isVideo ? 'Video' : 'Voice'} Call...`}
+        </span>
+      </div>
+
+      {/* 2. Middle Hero: Avatar, Name, Timer */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+          zIndex: 3,
+        }}
+      >
+        <div
+          className="call-hero-avatar"
+          style={{
+            width: '96px',
+            height: '96px',
+            borderRadius: '32px',
+            fontSize: '32px',
+            fontWeight: 800,
+            display: 'grid',
+            placeItems: 'center',
+            background: avatarColor,
+            color: '#ffffff',
+            boxShadow: '0 8px 32px rgba(16, 185, 129, 0.3)',
+            marginBottom: '16px',
+          }}
+        >
+          {avatarInitials}
+        </div>
+        <h2 style={{ fontSize: '24px', fontWeight: 750, margin: 0, color: '#ffffff' }}>
+          {targetName}
+        </h2>
+        <div
+          className="call-timer"
+          id="callTimerLabel"
+          style={{
+            fontFamily: 'var(--font-mono, monospace)',
+            fontSize: '14px',
+            color: 'var(--brand-emerald, #10b981)',
+            marginTop: '6px',
+          }}
+        >
+          {isIncoming && !connected
+            ? 'Incoming call...'
+            : connected
+            ? formatDuration(duration)
+            : 'Connecting...'}
+        </div>
+        {mediaWarning && (
+          <div
+            style={{
+              fontSize: '12px',
+              color: '#f59e0b',
+              marginTop: '10px',
+              background: 'rgba(245, 158, 11, 0.12)',
+              border: '1px solid rgba(245, 158, 11, 0.3)',
+              padding: '4px 12px',
+              borderRadius: '8px',
+            }}
+          >
+            ⚠️ {mediaWarning}
+          </div>
+        )}
+      </div>
+
+      {/* 3. Call Controls Bar */}
+      <div
+        className="call-controls-bar"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '20px',
+          zIndex: 3,
+        }}
+      >
+        {isIncoming && !connected ? (
+          <>
+            <button
+              type="button"
+              className="call-ctrl-btn end-call"
+              id="endCallBtn"
+              aria-label="Decline call"
+              title="Decline"
+              onClick={() => endCall(true)}
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '50%',
+                background: '#ea4335',
+                color: '#ffffff',
+                display: 'grid',
+                placeItems: 'center',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '22px',
+                fontWeight: 'bold',
+                boxShadow: '0 4px 16px rgba(234, 67, 53, 0.4)',
+              }}
+            >
+              ✕
+            </button>
+            <button
+              type="button"
+              className="call-ctrl-btn"
+              id="btnAcceptCall"
+              aria-label="Answer call"
+              title="Answer Call"
+              onClick={handleAcceptCall}
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '50%',
+                background: 'var(--brand-emerald, #10b981)',
+                color: '#05080b',
+                display: 'grid',
+                placeItems: 'center',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '22px',
+                boxShadow: '0 4px 16px rgba(16, 185, 129, 0.4)',
+              }}
+            >
+              📞
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              className={`call-ctrl-btn ${isMuted ? 'active' : ''}`}
+              id="callMuteBtn"
+              aria-label={isMuted ? 'Unmute microphone' : 'Mute microphone'}
+              title={isMuted ? 'Unmute' : 'Mute'}
+              onClick={toggleMute}
+              style={{
+                width: '52px',
+                height: '52px',
+                borderRadius: '50%',
+                background: isMuted ? 'var(--brand-emerald, #10b981)' : 'rgba(255, 255, 255, 0.15)',
+                color: isMuted ? '#05080b' : '#ffffff',
+                display: 'grid',
+                placeItems: 'center',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '20px',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {isMuted ? '🔇' : '🎤'}
+            </button>
+
+            <button
+              type="button"
+              className={`call-ctrl-btn ${!isVideo ? 'active' : ''}`}
+              id="callVideoBtn"
+              aria-label={isVideo ? 'Turn off camera' : 'Turn on camera'}
+              title={isVideo ? 'Camera off' : 'Camera on'}
+              onClick={toggleVideo}
+              style={{
+                width: '52px',
+                height: '52px',
+                borderRadius: '50%',
+                background: !isVideo ? 'var(--brand-emerald, #10b981)' : 'rgba(255, 255, 255, 0.15)',
+                color: !isVideo ? '#05080b' : '#ffffff',
+                display: 'grid',
+                placeItems: 'center',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '20px',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              📹
+            </button>
+
+            <button
+              type="button"
+              className="call-ctrl-btn end-call"
+              id="endCallBtn"
+              aria-label="End call"
+              title="End Call"
+              onClick={() => endCall(true)}
+              style={{
+                width: '52px',
+                height: '52px',
+                borderRadius: '50%',
+                background: '#ea4335',
+                color: '#ffffff',
+                display: 'grid',
+                placeItems: 'center',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '20px',
+                fontWeight: 'bold',
+                transition: 'all 0.15s ease',
+                boxShadow: '0 4px 16px rgba(234, 67, 53, 0.4)',
+              }}
+            >
+              ✕
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 };

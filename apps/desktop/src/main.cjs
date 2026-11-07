@@ -1,4 +1,11 @@
-const { app, BrowserWindow, Menu, Tray, nativeImage, shell, ipcMain } = require('electron');
+const electron = require('electron');
+const app = electron && typeof electron === 'object' ? electron.app : undefined;
+const BrowserWindow = electron && typeof electron === 'object' ? electron.BrowserWindow : undefined;
+const Menu = electron && typeof electron === 'object' ? electron.Menu : undefined;
+const Tray = electron && typeof electron === 'object' ? electron.Tray : undefined;
+const nativeImage = electron && typeof electron === 'object' ? electron.nativeImage : undefined;
+const shell = electron && typeof electron === 'object' ? electron.shell : undefined;
+const ipcMain = electron && typeof electron === 'object' ? electron.ipcMain : undefined;
 const path = require('path');
 const fs = require('fs');
 const { startServer } = require('./server.cjs');
@@ -7,21 +14,122 @@ let mainWindow = null;
 let tray = null;
 let embeddedServer = null;
 
-const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'development';
-const gotTheLock = app.requestSingleInstanceLock();
-
-if (!gotTheLock) {
-  app.quit();
-} else {
-  app.on('second-instance', () => {
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.show();
-      mainWindow.focus();
+// Configuration Persistence & Server URL Validation
+function getConfigPath() {
+  try {
+    if (app && typeof app.getPath === 'function') {
+      return path.join(app.getPath('userData'), 'desktop-config.json');
     }
-  });
+  } catch (_) {}
+  return path.join(process.cwd(), 'desktop-config.json');
+}
 
-  app.whenReady().then(async () => {
+function sanitizeServerUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== 'string') {
+    throw new Error('Server URL must be a non-empty string');
+  }
+
+  const trimmed = rawUrl.trim();
+  if (trimmed.length === 0) {
+    throw new Error('Server URL must be a non-empty string');
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(trimmed);
+  } catch (err) {
+    throw new Error('Invalid URL format: unable to parse');
+  }
+
+  // Accept only valid HTTP/HTTPS URLs (retain local development HTTP support)
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new Error(`Invalid protocol '${parsed.protocol}'. Only HTTP and HTTPS are permitted.`);
+  }
+
+  // Reject embedded credentials
+  if (parsed.username || parsed.password) {
+    throw new Error('Embedded credentials (username/password) are not permitted in server URL');
+  }
+
+  // Validate hostname
+  if (!parsed.hostname || parsed.hostname.length === 0) {
+    throw new Error('Server URL must include a valid hostname');
+  }
+
+  // Return normalized origin (preserves protocol, host, and port without trailing slash)
+  return parsed.origin;
+}
+
+function loadPersistedServerUrl(customConfigPath) {
+  try {
+    const filePath = customConfigPath || getConfigPath();
+    if (fs.existsSync(filePath)) {
+      const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      if (data && data.serverUrl) {
+        return sanitizeServerUrl(data.serverUrl);
+      }
+    }
+  } catch (err) {
+    console.warn('[Desktop Config] Failed to read desktop-config.json:', err.message);
+  }
+  return process.env.BACKEND_URL || 'http://localhost:8080';
+}
+
+function savePersistedServerUrl(newUrl, customConfigPath) {
+  const sanitized = sanitizeServerUrl(newUrl);
+  try {
+    const filePath = customConfigPath || getConfigPath();
+    const configDir = path.dirname(filePath);
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, { recursive: true });
+    }
+    let data = {};
+    if (fs.existsSync(filePath)) {
+      try {
+        data = JSON.parse(fs.readFileSync(filePath, 'utf8')) || {};
+      } catch (_) {}
+    }
+    data.serverUrl = sanitized;
+    data.updatedAt = new Date().toISOString();
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+  } catch (err) {
+    console.error('[Desktop Config] Failed to write desktop-config.json:', err.message);
+    throw new Error('Failed to persist server URL: ' + err.message);
+  }
+  return sanitized;
+}
+
+function validateIpcSender(event, targetWindow) {
+  if (!targetWindow || !targetWindow.webContents) {
+    throw new Error('Main window is not initialized');
+  }
+  if (!event || !event.sender || event.sender !== targetWindow.webContents) {
+    throw new Error('Unauthorized IPC sender: caller does not match main window');
+  }
+  if (event.senderFrame && event.senderFrame.parent !== null) {
+    throw new Error('Unauthorized IPC sender: sub-frames are not permitted');
+  }
+}
+
+let targetBackend = loadPersistedServerUrl();
+
+const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'development';
+
+if (app) {
+  const gotTheLock = typeof app.requestSingleInstanceLock === 'function' ? app.requestSingleInstanceLock() : false;
+
+  if (!gotTheLock) {
+    app.quit();
+  } else {
+    app.on('second-instance', () => {
+      if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    });
+
+    app.whenReady().then(async () => {
     // 1. Set Linux App User Model ID
     if (process.platform === 'linux') {
       app.setAppUserModelId('org.indichat.IndiChat');
@@ -37,7 +145,7 @@ if (!gotTheLock) {
       }
     }
 
-    let targetBackend = process.env.BACKEND_URL || 'http://localhost:8080';
+    targetBackend = loadPersistedServerUrl();
 
     // 3. Start local embedded proxy server for production/packaged execution
     let startUrl = '';
@@ -59,6 +167,9 @@ if (!gotTheLock) {
 
     // 4. Create Main Application Window
     const iconPath = path.join(__dirname, '..', 'assets', 'icon.png');
+    const isMac = process.platform === 'darwin';
+    const isWin = process.platform === 'win32';
+
     mainWindow = new BrowserWindow({
       width: 1240,
       height: 840,
@@ -68,11 +179,13 @@ if (!gotTheLock) {
       icon: iconPath,
       backgroundColor: '#111b21',
       show: false,
+      titleBarStyle: isMac ? 'hiddenInset' : (isWin ? 'hidden' : 'default'),
+      trafficLightPosition: isMac ? { x: 14, y: 14 } : undefined,
       webPreferences: {
         preload: path.join(__dirname, 'preload.cjs'),
         contextIsolation: true,
         nodeIntegration: false,
-        sandbox: false
+        sandbox: true
       }
     });
 
@@ -138,31 +251,46 @@ if (!gotTheLock) {
     }
   });
 }
+}
 
 // IPC Handlers
-ipcMain.on('open-external', (_event, url) => {
-  if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
-    shell.openExternal(url);
-  }
-});
-
-ipcMain.on('window-minimize', () => {
-  if (mainWindow) mainWindow.minimize();
-});
-
-ipcMain.on('window-maximize', () => {
-  if (mainWindow) {
-    if (mainWindow.isMaximized()) {
-      mainWindow.unmaximize();
-    } else {
-      mainWindow.maximize();
+if (ipcMain) {
+  ipcMain.on('open-external', (_event, url) => {
+    if (url && (url.startsWith('http://') || url.startsWith('https://')) && shell) {
+      shell.openExternal(url);
     }
-  }
-});
+  });
 
-ipcMain.on('window-close', () => {
-  if (mainWindow) mainWindow.close();
-});
+  ipcMain.on('window-minimize', () => {
+    if (mainWindow) mainWindow.minimize();
+  });
+
+  ipcMain.on('window-maximize', () => {
+    if (mainWindow) {
+      if (mainWindow.isMaximized()) {
+        mainWindow.unmaximize();
+      } else {
+        mainWindow.maximize();
+      }
+    }
+  });
+
+  ipcMain.on('window-close', () => {
+    if (mainWindow) mainWindow.close();
+  });
+
+  ipcMain.handle('get-server-url', (event) => {
+    validateIpcSender(event, mainWindow);
+    return targetBackend;
+  });
+
+  ipcMain.handle('set-server-url', async (event, url) => {
+    validateIpcSender(event, mainWindow);
+    const sanitized = savePersistedServerUrl(url);
+    targetBackend = sanitized;
+    return { success: true, serverUrl: sanitized };
+  });
+}
 
 function createSystemTray(iconPath) {
   try {
@@ -277,3 +405,11 @@ function createApplicationMenu() {
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 }
+
+module.exports = {
+  sanitizeServerUrl,
+  validateIpcSender,
+  getConfigPath,
+  loadPersistedServerUrl,
+  savePersistedServerUrl
+};

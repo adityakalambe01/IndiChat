@@ -42,6 +42,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final PushNotificationService pushNotificationService;
     private final ObjectMapper objectMapper;
     private final com.chat.device.repository.UserLinkedDeviceRepository deviceRepository;
+    private final com.chat.message.service.MessageReactionService reactionService;
 
     // Active session mappings
     private final Map<UUID, Set<WebSocketSession>> userSessions = new ConcurrentHashMap<>();
@@ -57,7 +58,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         PresenceService presenceService,
         PushNotificationService pushNotificationService,
         ObjectMapper objectMapper,
-        com.chat.device.repository.UserLinkedDeviceRepository deviceRepository
+        com.chat.device.repository.UserLinkedDeviceRepository deviceRepository,
+        @org.springframework.context.annotation.Lazy com.chat.message.service.MessageReactionService reactionService
     ) {
         this.tokenProvider = tokenProvider;
         this.messageService = messageService;
@@ -68,6 +70,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         this.pushNotificationService = pushNotificationService;
         this.objectMapper = objectMapper;
         this.deviceRepository = deviceRepository;
+        this.reactionService = reactionService;
     }
 
     @Override
@@ -158,6 +161,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 case "message.send" -> handleSendMessage(userId, requestId, payload);
                 case "message.delivered" -> handleMessageDelivered(userId, payload);
                 case "message.read" -> handleMessageRead(userId, payload);
+                case "message.reaction" -> handleMessageReaction(session, userId, payload);
                 case "typing.start" -> handleTyping(userId, payload, true);
                 case "typing.stop" -> handleTyping(userId, payload, false);
                 case "presence.subscribe" -> handlePresenceSubscribe(session, payload);
@@ -234,6 +238,79 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             for (ConversationMember member : members) {
                 sendToUser(member.getUser().getId(), event);
             }
+        }
+    }
+
+    private void handleMessageReaction(WebSocketSession session, UUID userId, JsonNode payload) {
+        if (reactionService == null) {
+            log.warn("MessageReactionService is not available");
+            return;
+        }
+        try {
+            UUID messageId = UUID.fromString(payload.path("messageId").asText());
+            String emoji = payload.path("emoji").asText();
+            String action = payload.path("action").asText("add");
+
+            if (emoji == null || emoji.isBlank()) {
+                sendToSession(session, Map.of(
+                    "type", "error",
+                    "payload", Map.of("message", "Emoji cannot be blank")
+                ));
+                return;
+            }
+
+            var reactions = "remove".equalsIgnoreCase(action)
+                ? reactionService.removeReaction(messageId, userId, emoji)
+                : reactionService.addReaction(messageId, userId, emoji);
+
+            var summaries = reactionService.summarizeReactions(reactions);
+            broadcastReactionUpdated(messageId, userId, emoji, action, reactions, summaries);
+        } catch (org.springframework.web.server.ResponseStatusException rse) {
+            log.warn("Reaction denied via WebSocket for user {}: {}", userId, rse.getReason());
+            sendToSession(session, Map.of(
+                "type", "error",
+                "payload", Map.of("message", rse.getReason() != null ? rse.getReason() : "Action not permitted")
+            ));
+        } catch (Exception e) {
+            log.error("Failed to handle reaction socket action for user {}", userId, e);
+            sendToSession(session, Map.of(
+                "type", "error",
+                "payload", Map.of("message", "Invalid reaction payload")
+            ));
+        }
+    }
+
+    public void broadcastReactionUpdated(
+        UUID messageId,
+        UUID userId,
+        String emoji,
+        String action,
+        Object reactions,
+        Object summaries
+    ) {
+        UUID conversationId = messageRepository.findById(messageId)
+            .map(m -> m.getConversation().getId())
+            .orElse(null);
+
+        if (conversationId == null) return;
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("messageId", messageId.toString());
+        payload.put("conversationId", conversationId.toString());
+        payload.put("userId", userId.toString());
+        payload.put("emoji", emoji);
+        payload.put("action", action);
+        if (reactions != null) payload.put("reactions", reactions);
+        if (summaries != null) payload.put("summaries", summaries);
+
+        Map<String, Object> event = Map.of(
+            "type", "message.reaction.updated",
+            "payload", payload
+        );
+
+        List<ConversationMember> members = memberRepository.findByIdConversationId(conversationId);
+        for (ConversationMember member : members) {
+            sendToUser(member.getUser().getId(), event);
         }
     }
 

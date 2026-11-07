@@ -128,6 +128,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onAuthenticated }) => {
         onAuthenticated(res);
       }
     } catch (err: unknown) {
+      // If login fails (user does not exist yet), attempt to auto-register
+      try {
+        const regRes = await api.register({
+          username: uname,
+          password: 'Password123!',
+          displayName: name,
+        });
+        if (regRes.tokens) {
+          localStorage.setItem('chat_access_token', regRes.tokens.accessToken);
+          localStorage.setItem('chat_refresh_token', regRes.tokens.refreshToken);
+          onAuthenticated(regRes);
+          return;
+        }
+      } catch {
+        // fallback to original error
+      }
       if (err instanceof Error) {
         setError(err.message);
       } else {
@@ -166,15 +182,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onAuthenticated }) => {
               <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', marginTop: '6px', maxWidth: '320px', margin: '6px auto 0' }}>
                 Account <strong style={{ color: 'var(--accent-primary)' }}>@{username}</strong> has two-step verification enabled. Enter your 6-digit PIN to complete sign in.
               </p>
-              {username === 'alice' && (
+              {import.meta.env.DEV && username === 'alice' && (
                 <div style={{ marginTop: '10px' }}>
                   <button
                     type="button"
                     className="btn-secondary"
-                    style={{ fontSize: '0.78rem', padding: '3px 10px', borderRadius: '12px' }}
+                    style={{ fontSize: '0.78rem', padding: '3px 10px', borderRadius: '12px', color: '#eab308' }}
                     onClick={() => setTwoFactorPin('112233')}
                   >
-                    💡 Fill Demo PIN: 112233
+                    🛠 [DEV ONLY] Fill Test PIN: 112233
                   </button>
                 </div>
               )}
@@ -254,74 +270,76 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onAuthenticated }) => {
               </button>
 
               {/* Quick switch account from 2FA screen */}
-              <div style={{
-                marginTop: '16px',
-                paddingTop: '12px',
-                borderTop: '1px dashed var(--border-color)',
-                textAlign: 'center',
-              }}>
-                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600 }}>
-                  SWITCH TEST ACCOUNT:
+              {import.meta.env.DEV && (
+                <div style={{
+                  marginTop: '16px',
+                  paddingTop: '12px',
+                  borderTop: '1px dashed var(--border-color)',
+                  textAlign: 'center',
+                }}>
+                  <div style={{ fontSize: '0.74rem', color: '#eab308', marginBottom: '8px', fontWeight: 600 }}>
+                    🛠 [DEV ONLY] SWITCH TEST ACCOUNT:
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                      onClick={() => handleQuickLogin('alice', 'Alice')}
+                    >
+                      🔒 Alice (2FA: 112233)
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                      onClick={() => handleQuickLogin('bob', 'Bob')}
+                    >
+                      Bob
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                      onClick={() => handleQuickLogin('charlie', 'Charlie')}
+                    >
+                      Charlie
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                      onClick={() => handleQuickLogin('david', 'David Miller')}
+                    >
+                      David
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                      onClick={() => handleQuickLogin('emma', 'Emma Watson')}
+                    >
+                      Emma
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                      onClick={() => handleQuickLogin('frank', 'Frank Castle')}
+                    >
+                      Frank
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                      onClick={() => handleQuickLogin('grace', 'Grace Hopper')}
+                    >
+                      Grace
+                    </button>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                    onClick={() => handleQuickLogin('alice', 'Alice')}
-                  >
-                    🔒 Alice (2FA: 112233)
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                    onClick={() => handleQuickLogin('bob', 'Bob')}
-                  >
-                    Bob
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                    onClick={() => handleQuickLogin('charlie', 'Charlie')}
-                  >
-                    Charlie
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                    onClick={() => handleQuickLogin('david', 'David Miller')}
-                  >
-                    David
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                    onClick={() => handleQuickLogin('emma', 'Emma Watson')}
-                  >
-                    Emma
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                    onClick={() => handleQuickLogin('frank', 'Frank Castle')}
-                  >
-                    Frank
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                    onClick={() => handleQuickLogin('grace', 'Grace Hopper')}
-                  >
-                    Grace
-                  </button>
-                </div>
-              </div>
+              )}
             </form>
           </div>
         ) : (
@@ -431,76 +449,88 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onAuthenticated }) => {
                 {loading ? 'Please wait...' : (isRegister ? 'Create Account' : 'Sign In')}
               </button>
 
-              {/* Demo helper */}
-              <div style={{
-                background: 'var(--bg-chat-header)',
-                borderRadius: '8px',
-                padding: '10px 12px',
-                marginTop: '4px',
-                border: '1px dashed var(--border-color)'
-              }}>
-                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: 600 }}>
-                  QUICK TEST PROFILES (Click to sign in):
+              {/* Demo helper (Development Only) */}
+              {import.meta.env.DEV && (
+                <div style={{
+                  background: 'var(--bg-chat-header)',
+                  borderRadius: '8px',
+                  padding: '10px 12px',
+                  marginTop: '4px',
+                  border: '1px dashed var(--border-color)'
+                }}>
+                  <div style={{ fontSize: '0.74rem', color: '#eab308', marginBottom: '6px', fontWeight: 600 }}>
+                    🛠 [DEV ONLY] QUICK TEST PROFILES:
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      id="btnLoginAsAlice"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                      onClick={() => handleQuickLogin('alice', 'Alice')}
+                    >
+                      🔒 Alice (2FA: 112233)
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      id="btnLoginAsAarav"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                      onClick={() => handleQuickLogin('aarav', 'Aarav Sharma')}
+                    >
+                      ⚡ Aarav
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                      onClick={() => handleQuickLogin('bob', 'Bob')}
+                    >
+                      Bob
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                      onClick={() => handleQuickLogin('charlie', 'Charlie')}
+                    >
+                      Charlie
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                      onClick={() => handleQuickLogin('david', 'David Miller')}
+                    >
+                      David
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                      onClick={() => handleQuickLogin('emma', 'Emma Watson')}
+                    >
+                      Emma
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                      onClick={() => handleQuickLogin('frank', 'Frank Castle')}
+                    >
+                      Frank
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                      onClick={() => handleQuickLogin('grace', 'Grace Hopper')}
+                    >
+                      Grace
+                    </button>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                    onClick={() => handleQuickLogin('alice', 'Alice')}
-                  >
-                    🔒 Alice (2FA: 112233)
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                    onClick={() => handleQuickLogin('bob', 'Bob')}
-                  >
-                    Bob
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                    onClick={() => handleQuickLogin('charlie', 'Charlie')}
-                  >
-                    Charlie
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                    onClick={() => handleQuickLogin('david', 'David Miller')}
-                  >
-                    David
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                    onClick={() => handleQuickLogin('emma', 'Emma Watson')}
-                  >
-                    Emma
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                    onClick={() => handleQuickLogin('frank', 'Frank Castle')}
-                  >
-                    Frank
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                    onClick={() => handleQuickLogin('grace', 'Grace Hopper')}
-                  >
-                    Grace
-                  </button>
-                </div>
-              </div>
+              )}
 
               <div style={{ textAlign: 'center', marginTop: '6px' }}>
                 <button

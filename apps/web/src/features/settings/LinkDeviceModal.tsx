@@ -72,7 +72,10 @@ export const LinkDeviceModal: React.FC<LinkDeviceModalProps> = ({ isOpen, onClos
             <div className="settings-icon-badge badge-green">
               <QrCode size={20} />
             </div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Link a device</h3>
+            <div>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Link a device</h3>
+              <span style={{ fontSize: '10px', color: '#eab308', fontWeight: 600 }}>Preview Demonstration</span>
+            </div>
           </div>
           <button className="icon-btn" onClick={onClose} aria-label="Close">
             <X size={20} />
@@ -87,8 +90,8 @@ export const LinkDeviceModal: React.FC<LinkDeviceModalProps> = ({ isOpen, onClos
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  background: 'rgba(0, 168, 132, 0.15)',
-                  color: 'var(--accent-primary)',
+                  background: 'rgba(234, 179, 8, 0.15)',
+                  color: '#eab308',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -97,14 +100,25 @@ export const LinkDeviceModal: React.FC<LinkDeviceModalProps> = ({ isOpen, onClos
               >
                 <Check size={36} strokeWidth={2.5} />
               </div>
-              <h4 style={{ fontSize: '1.15rem', marginBottom: '8px' }}>Device Linked!</h4>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                Your new device is now securely connected to this {APP_NAME} account.
+              <h4 style={{ fontSize: '1.15rem', marginBottom: '8px' }}>Simulated Device Added!</h4>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.5' }}>
+                A demonstration session was added to local state. Note that real multi-device cryptographic network pairing was not executed.
               </p>
-
             </div>
           ) : (
             <>
+              <div style={{
+                background: 'rgba(234, 179, 8, 0.12)',
+                border: '1px solid rgba(234, 179, 8, 0.3)',
+                borderRadius: '8px',
+                padding: '10px 12px',
+                fontSize: '12px',
+                color: '#eab308',
+                lineHeight: '1.4'
+              }}>
+                ⚠️ <strong>Demonstration Only</strong>: Device linking via QR code or phone code is a preview simulation. A mock session is created in local state; actual multi-device network pairing is pending.
+              </div>
+
               {/* Tabs */}
               <div className="settings-tab-bar">
                 <button
@@ -202,11 +216,11 @@ export const LinkDeviceModal: React.FC<LinkDeviceModalProps> = ({ isOpen, onClos
                   >
                     {isLinking ? (
                       <>
-                        <RefreshCw size={18} className="spin" /> Scanning & Linking...
+                        <RefreshCw size={18} className="spin" /> Simulating Scan...
                       </>
                     ) : (
                       <>
-                        <Smartphone size={18} /> Simulate Mobile QR Scan
+                        <Smartphone size={18} /> Simulate Mobile QR Scan (Demo)
                       </>
                     )}
                   </button>
@@ -237,11 +251,11 @@ export const LinkDeviceModal: React.FC<LinkDeviceModalProps> = ({ isOpen, onClos
                   >
                     {isLinking ? (
                       <>
-                        <RefreshCw size={18} className="spin" /> Verifying Code...
+                        <RefreshCw size={18} className="spin" /> Verifying Code (Demo)...
                       </>
                     ) : (
                       <>
-                        <Check size={18} /> Confirm Code on Phone
+                        <Check size={18} /> Confirm Code on Phone (Demo)
                       </>
                     )}
                   </button>
@@ -259,8 +273,8 @@ export const LinkDeviceModal: React.FC<LinkDeviceModalProps> = ({ isOpen, onClos
                   marginTop: '4px',
                 }}
               >
-                <ShieldCheck size={15} color="#00a884" />
-                <span>Your personal messages are end-to-end encrypted across all linked devices</span>
+                <ShieldCheck size={15} color="#eab308" />
+                <span>Device pairing preview · Real multi-device synchronization is pending</span>
               </div>
             </>
           )}

@@ -11,6 +11,9 @@ import { getGiphyFallbacks } from './gifData';
 import { settingsService } from '../../services/settings';
 import { APP_NAME } from '../../config/appConfig';
 
+import { api } from '../../services/api';
+import { ContactDetailsPanel } from './ContactDetailsPanel';
+
 import {
   Send,
   Paperclip,
@@ -27,7 +30,19 @@ import {
   Download,
   Upload,
   ArrowDownLeft,
-  ArrowUpRight
+  ArrowUpRight,
+  Search,
+  IndianRupee,
+  CornerUpLeft,
+  Star,
+  Copy,
+  Trash2,
+  Play,
+  Pause,
+  Info,
+  X,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import { ChatEmptyState } from './ChatEmptyState';
 
@@ -45,6 +60,7 @@ interface ChatWindowProps {
   onInviteFriend?: () => void;
   onNewCall?: () => void;
   onAskMetaAi?: () => void;
+  onToggleDetails?: () => void;
 }
 
 interface ParsedAttachment {
@@ -186,6 +202,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onInviteFriend,
   onNewCall,
   onAskMetaAi,
+  onToggleDetails,
 }) => {
   const [inputText, setInputText] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
@@ -207,9 +224,56 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     timestamp?: string;
   } | null>(null);
 
+  // New parity states: Details panel, in-chat search, quoted reply, reactions, payments
+  const [showDetails, setShowDetails] = useState(false);
+  const [showInChatSearch, setShowInChatSearch] = useState(false);
+  const [inChatSearchQuery, setInChatSearchQuery] = useState('');
+  const [inChatMatchIndex, setInChatMatchIndex] = useState(0);
+  const [quotedReplyMessage, setQuotedReplyMessage] = useState<Message | null>(null);
+  const [activeReactionMessageId, setActiveReactionMessageId] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState('500');
+  const [paymentNote, setPaymentNote] = useState('');
+  const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  const [localReactions, setLocalReactions] = useState<Record<string, { reactions: any[]; summaries: any[] }>>({});
+  const [localStarred, setLocalStarred] = useState<Record<string, boolean>>({});
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<number | null>(null);
   const dragCounterRef = useRef<number>(0);
+
+  // In-chat search matching
+  const matchingMessageIds = useMemo(() => {
+    if (!inChatSearchQuery.trim()) return [];
+    const q = inChatSearchQuery.toLowerCase();
+    return messages
+      .filter((m) => m.content && m.content.toLowerCase().includes(q))
+      .map((m) => m.id);
+  }, [messages, inChatSearchQuery]);
+
+  useEffect(() => {
+    setInChatMatchIndex(0);
+    if (matchingMessageIds.length > 0) {
+      const el = document.getElementById(`msg-${matchingMessageIds[0]}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [inChatSearchQuery, matchingMessageIds]);
+
+  const handleNextMatch = () => {
+    if (matchingMessageIds.length === 0) return;
+    const nextIdx = (inChatMatchIndex + 1) % matchingMessageIds.length;
+    setInChatMatchIndex(nextIdx);
+    const el = document.getElementById(`msg-${matchingMessageIds[nextIdx]}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  const handlePrevMatch = () => {
+    if (matchingMessageIds.length === 0) return;
+    const prevIdx = (inChatMatchIndex - 1 + matchingMessageIds.length) % matchingMessageIds.length;
+    setInChatMatchIndex(prevIdx);
+    const el = document.getElementById(`msg-${matchingMessageIds[prevIdx]}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -278,7 +342,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const isOtherOnline = otherMember?.user?.isOnline;
   const isTyping = otherMember ? typingUsers[otherMember.userId] : false;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setInputText(e.target.value);
 
     // Typing debounce
@@ -292,7 +356,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }, 2000);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const enterIsSend = settingsService.getSettings().enterIsSend;
     if (enterIsSend) {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -312,11 +376,56 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     onSendMessage(inputText.trim(), 'TEXT');
     soundEffects.playOutgoingSent();
     setInputText('');
+    setQuotedReplyMessage(null);
     wsClient.sendTyping(conversation.id, false);
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = null;
     }
+  };
+
+  const handleReactionPick = (msgId: string, emoji: string) => {
+    setActiveReactionMessageId(null);
+    api.addReaction(msgId, emoji)
+      .then((res) => {
+        setLocalReactions((prev) => ({
+          ...prev,
+          [msgId]: { reactions: res.reactions, summaries: res.summaries },
+        }));
+      })
+      .catch(console.warn);
+  };
+
+  const handleToggleStar = (msgId: string) => {
+    api.toggleStarMessage(msgId)
+      .then((res) => {
+        setLocalStarred((prev) => ({
+          ...prev,
+          [msgId]: res.isStarred,
+        }));
+      })
+      .catch(console.warn);
+  };
+
+  const handleCopyMessage = (text: string) => {
+    navigator.clipboard?.writeText(text);
+    alert('Message copied to clipboard');
+  };
+
+  const handleConfirmFastPayment = () => {
+    const amt = parseFloat(paymentAmount) || 500;
+    const payload = JSON.stringify({
+      transactionId: `UPI${Date.now()}`,
+      amount: amt,
+      currency: 'INR',
+      note: paymentNote || 'Fast Payment',
+      status: 'SUCCESS',
+      timestamp: new Date().toISOString(),
+    });
+    onSendMessage(payload, 'PAYMENT');
+    soundEffects.playOutgoingSent();
+    setShowPaymentModal(false);
+    setPaymentNote('');
   };
 
   const handleEmojiClick = (emoji: string) => {
@@ -428,27 +537,21 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }
 
     const userReadReceiptsEnabled = settingsService.getSettings().readReceipts;
-    const isRead = userReadReceiptsEnabled && msg.receipts?.some((r) => r.readAt != null);
-    const isDelivered = msg.receipts?.some((r) => r.deliveredAt != null);
+    const isRead = (userReadReceiptsEnabled && msg.receipts?.some((r) => r.readAt != null)) || msg.status === 'read';
+    const isDelivered = msg.receipts?.some((r) => r.deliveredAt != null) || msg.status === 'delivered';
 
     if (isRead) {
       return (
-        <span title="Read">
-          <CheckCheck size={14} className="receipt-icon read" />
-        </span>
+        <span className="read-tick cyan" title="Read">✓✓</span>
       );
     }
     if (isDelivered) {
       return (
-        <span title="Delivered">
-          <CheckCheck size={14} className="receipt-icon delivered" />
-        </span>
+        <span className="read-tick" title="Delivered">✓✓</span>
       );
     }
     return (
-      <span title="Sent">
-        <Check size={14} className="receipt-icon sent" />
-      </span>
+      <span className="read-tick" title="Sent">✓</span>
     );
   }
 
@@ -640,13 +743,41 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       );
     }
 
+    if (msg.type === 'PAYMENT' || (typeof msg.content === 'string' && msg.content.includes('"type":"PAYMENT"'))) {
+      let paymentData: any = null;
+      try {
+        paymentData = JSON.parse(msg.content);
+      } catch (_) {}
+      return (
+        <div className="web-payment-bubble" style={{ padding: '8px 12px', background: 'rgba(0, 168, 132, 0.1)', border: '1px solid rgba(0, 168, 132, 0.25)', borderRadius: '8px', minWidth: '180px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px', gap: '8px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--brand-teal)' }}>UPI Payment</span>
+            <span style={{ fontSize: '9px', padding: '1px 5px', background: 'rgba(234, 179, 8, 0.2)', color: '#eab308', borderRadius: '3px', fontWeight: 600 }}>Simulation (Demo)</span>
+          </div>
+          <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-main)' }}>
+            ₹{paymentData?.amount || 500}
+          </div>
+          {paymentData?.note && (
+            <div style={{ fontSize: '12px', color: 'var(--text-sec)', marginTop: '2px' }}>
+              {paymentData.note}
+            </div>
+          )}
+          <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>
+            Demo card · No actual money transferred
+          </div>
+        </div>
+      );
+    }
+
     // Default TEXT message
     return <span className="message-text">{msg.content}</span>;
   };
 
   return (
-    <main
-      className="chat-area"
+    <section
+      className="app-chat-window"
+      id="appChatWindow"
+      aria-label="Active conversation view"
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -665,60 +796,137 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
       {/* Chat Header */}
       <header className="chat-header">
-        <div className="chat-header-info">
-          <button className="icon-btn" onClick={onBackToSidebar} style={{ marginRight: '-4px' }} aria-label="Back">
-            <ChevronLeft size={22} />
-          </button>
-          <div className={`avatar ${isOtherOnline ? 'online' : ''}`}>
-            {conversation.type === 'GROUP' ? <Users size={20} /> : chatTitle.charAt(0).toUpperCase()}
+        <div
+          className="chat-header-contact"
+          id="chatHeaderContact"
+          role="button"
+          tabIndex={0}
+          aria-label="View contact info"
+          onClick={() => {
+            setShowDetails((prev) => !prev);
+            onToggleDetails?.();
+          }}
+          style={{ cursor: 'pointer' }}
+        >
+          <div
+            className="chat-header-avatar"
+            id="chatHeaderAvatar"
+            style={{ background: conversation.type === 'GROUP' ? 'var(--brand-teal)' : '#005c4b' }}
+          >
+            {conversation.type === 'GROUP' ? <Users size={20} /> : chatTitle.slice(0, 2).toUpperCase()}
           </div>
-          <div className="chat-header-details">
-            <h2 className="chat-header-name" style={{ margin: 0, fontSize: '1rem' }}>{chatTitle}</h2>
-            {isTyping ? (
-              <span className="chat-header-status typing">
-                typing
-                <span className="typing-dots">
-                  <span className="typing-dot" />
-                  <span className="typing-dot" />
-                  <span className="typing-dot" />
-                </span>
-              </span>
-            ) : (
-              <span className={`chat-header-status ${isOtherOnline ? 'online' : ''}`}>
-                {conversation.type === 'GROUP'
-                  ? `${conversation.members.length} participants`
-                  : (isOtherOnline ? 'online' : 'offline')}
-              </span>
-            )}
+          <div className="chat-header-info">
+            <div className="chat-header-name" id="chatHeaderName">{chatTitle}</div>
+            <div className={`chat-header-status ${isOtherOnline ? '' : 'offline'}`} id="chatHeaderStatus">
+              {isTyping ? 'typing...' : (isOtherOnline ? 'Online' : 'Offline')}
+            </div>
           </div>
         </div>
 
-        <div className="sidebar-actions">
+        <div className="chat-header-actions">
           {otherMember && (
             <>
               <button
                 className="icon-btn"
+                id="btnAudioCall"
                 onClick={() => onStartCall(otherMember.userId, false)}
                 title="Audio Call"
-                aria-label="Audio Call"
+                aria-label="Audio call"
               >
-                <Phone size={19} />
+                <Phone size={18} />
               </button>
               <button
                 className="icon-btn"
+                id="btnVideoCall"
                 onClick={() => onStartCall(otherMember.userId, true)}
                 title="Video Call"
-                aria-label="Video Call"
+                aria-label="Video call"
               >
-                <Video size={20} />
+                <Video size={18} />
               </button>
             </>
           )}
+          <button
+            className="icon-btn"
+            id="btnToggleInChatSearch"
+            onClick={() => setShowInChatSearch((prev) => !prev)}
+            title="Search in chat"
+            aria-label="Search inside chat"
+          >
+            <Search size={18} />
+          </button>
+          <button
+            className="icon-btn"
+            id="btnToggleDetails"
+            onClick={() => {
+              setShowDetails((prev) => !prev);
+              onToggleDetails?.();
+            }}
+            title="Contact Details"
+            aria-label="Toggle contact details"
+          >
+            <Info size={18} />
+          </button>
         </div>
       </header>
 
-      {/* Messages Scroll Area */}
-      <div className="messages-container">
+      {/* In-Chat Search Bar (Collapsible) */}
+      <div className="inchat-search-bar in-chat-search-bar" id="inChatSearchBar" style={{ display: showInChatSearch ? 'flex' : 'none' }}>
+        <Search size={16} color="var(--text-sec)" />
+        <input
+          id="inChatSearchInput"
+          className="inchat-search-input"
+          type="text"
+          placeholder="Search in this chat..."
+          aria-label="Search messages in active chat"
+          value={inChatSearchQuery}
+          onChange={(e) => setInChatSearchQuery(e.target.value)}
+        />
+        <span className="inchat-matches-count in-chat-matches-count" id="inChatMatchesCount">
+          {matchingMessageIds.length === 0
+            ? (inChatSearchQuery ? 'No matches' : '')
+            : `${inChatMatchIndex + 1} of ${matchingMessageIds.length}`}
+        </span>
+        <button
+          type="button"
+          className="icon-btn"
+          id="btnInChatPrev"
+          onClick={handlePrevMatch}
+          disabled={matchingMessageIds.length === 0}
+          title="Previous match"
+        >
+          ▲
+        </button>
+        <button
+          type="button"
+          className="icon-btn"
+          id="btnInChatNext"
+          onClick={handleNextMatch}
+          disabled={matchingMessageIds.length === 0}
+          title="Next match"
+        >
+          ▼
+        </button>
+        <button
+          type="button"
+          className="icon-btn"
+          id="btnCloseInChatSearch"
+          onClick={() => {
+            setShowInChatSearch(false);
+            setInChatSearchQuery('');
+          }}
+          title="Close search"
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* Messages Stream */}
+      <div className="messages-stream" id="messagesStream" role="log" aria-live="polite" aria-label="Message stream">
+        <div className="encryption-notice">
+          🔒 Messages and calls are end-to-end encrypted. No one outside of this chat, not even IndiChat, can read or listen to them.
+        </div>
+
         {messages.map((msg, index) => {
           const isOutgoing = msg.senderId === currentUser.id;
           const isMedia = msg.type === 'IMAGE' || msg.type === 'VIDEO';
@@ -740,41 +948,117 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             currentDateLabel && (!prevDateLabel || currentDateLabel !== prevDateLabel)
           );
 
+          const isHighlighted = inChatSearchQuery && msg.content && typeof msg.content === 'string' && msg.content.toLowerCase().includes(inChatSearchQuery.toLowerCase());
+
           return (
             <React.Fragment key={msg.id || msg.clientMessageId || `msg-${index}`}>
               {showDateSeparator && (
-                <div className="message-date-separator">{currentDateLabel}</div>
+                <div className="date-divider">{currentDateLabel}</div>
               )}
 
               <div
-                className={`message-row ${isOutgoing ? 'outgoing' : 'incoming'} ${isSticker ? 'has-sticker-row' : ''} ${isGif ? 'has-gif-row' : ''}`}
+                id={`msg-${msg.id}`}
+                className={`message-bubble ${isOutgoing ? 'outgoing' : 'incoming'} ${isHighlighted ? 'highlighted' : ''}`}
+                onClick={() => {
+                  if (isCall && otherMember) {
+                    onStartCall(otherMember.userId, callData?.callType === 'video');
+                  }
+                }}
+                title={isCall ? 'Click to call back' : undefined}
               >
-                <div
-                  className={`message-bubble ${isOutgoing ? 'outgoing' : 'incoming'} ${
-                    isMedia && !isGif ? 'has-media' : ''
-                  } ${msg.type === 'DOCUMENT' ? 'has-document' : ''} ${
-                    isSticker ? 'has-sticker' : ''
-                  } ${isGif ? 'has-gif' : ''} ${isCall ? 'has-call' : ''}`}
-                  onClick={() => {
-                    if (isCall && otherMember) {
-                      onStartCall(otherMember.userId, callData?.callType === 'video');
-                    }
-                  }}
-                  title={isCall ? 'Click to call back' : undefined}
-                >
-                  {!isOutgoing && conversation.type === 'GROUP' && (
-                    <div className="message-sender-name">
-                      {msg.sender?.displayName || msg.sender?.username}
-                    </div>
-                  )}
-                  {renderMessageContent(msg)}
-                  {!isCall && (
-                    <div className="message-meta">
-                      <span className="message-time">{formatMessageTime(msg.createdAt)}</span>
-                      {renderReceiptStatus(msg)}
-                    </div>
-                  )}
+                {!isOutgoing && conversation.type === 'GROUP' && (
+                  <div className="message-sender-name" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--brand-emerald)', marginBottom: '2px' }}>
+                    {msg.sender?.displayName || msg.sender?.username}
+                  </div>
+                )}
+
+                {/* Floating Action Bar on Hover */}
+                <div className="bubble-action-bar">
+                  <button
+                    type="button"
+                    className="bubble-action-btn"
+                    data-action="reply"
+                    onClick={(e) => { e.stopPropagation(); setQuotedReplyMessage(msg); }}
+                    title="Reply"
+                  >
+                    <CornerUpLeft size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    className="bubble-action-btn"
+                    data-action="reaction-pick"
+                    onClick={(e) => { e.stopPropagation(); setActiveReactionMessageId(activeReactionMessageId === msg.id ? null : msg.id); }}
+                    title="React"
+                  >
+                    <Smile size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    className="bubble-action-btn"
+                    data-action="star"
+                    onClick={(e) => { e.stopPropagation(); handleToggleStar(msg.id); }}
+                    title="Star"
+                  >
+                    <Star size={13} fill={localStarred[msg.id] || msg.isStarred ? '#f59e0b' : 'none'} color={localStarred[msg.id] || msg.isStarred ? '#f59e0b' : 'inherit'} />
+                  </button>
+                  <button
+                    type="button"
+                    className="bubble-action-btn"
+                    data-action="copy"
+                    onClick={(e) => { e.stopPropagation(); handleCopyMessage(msg.content); }}
+                    title="Copy"
+                  >
+                    <Copy size={13} />
+                  </button>
                 </div>
+
+                {/* Reaction Popover */}
+                {activeReactionMessageId === msg.id && (
+                  <div className="reaction-picker-popover" style={{ position: 'absolute', top: '-42px', left: '0' }}>
+                    {['👍', '❤️', '😂', '😮', '😢', '🙏'].map((emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        className="reaction-emoji-btn"
+                        onClick={(e) => { e.stopPropagation(); handleReactionPick(msg.id, emoji); }}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {renderMessageContent(msg)}
+
+                {/* Reaction Badges on Bubble */}
+                {(() => {
+                  const summaries = localReactions[msg.id]?.summaries ?? msg.reactionSummaries;
+                  if (!summaries || summaries.length === 0) return null;
+                  return (
+                    <div className="reactions-row">
+                      {summaries.map((s: any) => (
+                        <span
+                          key={s.emoji}
+                          className="reaction-badge"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleReactionPick(msg.id, s.emoji);
+                          }}
+                        >
+                          <span>{s.emoji}</span>
+                          <span>{s.count}</span>
+                        </span>
+                      ))}
+                    </div>
+                  );
+                })()}
+
+                {!isCall && (
+                  <div className="bubble-meta">
+                    <span>{formatMessageTime(msg.createdAt)}</span>
+                    {renderReceiptStatus(msg)}
+                  </div>
+                )}
               </div>
             </React.Fragment>
           );
@@ -785,6 +1069,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       {/* Emoji, GIF & Sticker Picker Popup */}
       {showEmoji && (
         <EmojiPicker
+          className="emoji-gif-sticker-panel emoji-picker-panel"
           initialMode={mediaPickerMode}
           onSelectEmoji={handleEmojiClick}
           onSelectGif={handleSelectGif}
@@ -833,87 +1118,218 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         />
       )}
 
-      {/* Chat Input Bar */}
-      <div className="chat-input-bar">
-        <button
-          className={`icon-btn ${showEmoji && mediaPickerMode === 'emojis' ? 'active' : ''}`}
-          onClick={() => {
-            if (showEmoji && mediaPickerMode === 'emojis') {
-              setShowEmoji(false);
-            } else {
-              setMediaPickerMode('emojis');
-              setShowEmoji(true);
-            }
-          }}
-          title="Emojis"
-          aria-label="Emojis"
-        >
-          <Smile size={22} />
-        </button>
-
-        <button
-          className={`icon-btn gif-input-btn ${showEmoji && mediaPickerMode === 'gifs' ? 'active' : ''}`}
-          onClick={() => {
-            if (showEmoji && mediaPickerMode === 'gifs') {
-              setShowEmoji(false);
-            } else {
-              setMediaPickerMode('gifs');
-              setShowEmoji(true);
-            }
-          }}
-          title="Search & Send GIFs"
-          aria-label="GIFs"
-        >
-          <span className="gif-btn-text">GIF</span>
-        </button>
-
-        <button
-          className={`icon-btn ${showEmoji && mediaPickerMode === 'stickers' ? 'active' : ''}`}
-          onClick={() => {
-            if (showEmoji && mediaPickerMode === 'stickers') {
-              setShowEmoji(false);
-            } else {
-              setMediaPickerMode('stickers');
-              setShowEmoji(true);
-            }
-          }}
-          title="Stickers"
-          aria-label="Stickers"
-        >
-          <StickerIcon size={21} />
-        </button>
-
-        <button
-          className={`icon-btn ${showAttachmentMenu ? 'active' : ''}`}
-          title="Attach files, photos, camera"
-          aria-label="Attach"
-          onClick={() => setShowAttachmentMenu(!showAttachmentMenu)}
-        >
-          <Paperclip size={20} />
-        </button>
-
-        <div className="input-box-wrapper">
-          <textarea
-            ref={textareaRef}
-            className="chat-textarea"
-            placeholder="Type a message"
-            rows={1}
-            value={inputText}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-          />
+      {/* Quoted Message Reply Bar */}
+      {quotedReplyMessage && (
+        <div className="quoted-reply-active-bar" id="quotedReplyActiveBar" style={{ display: 'flex' }}>
+          <div className="quoted-reply-text">
+            <strong id="quotedReplyAuthor">
+              Replying to {quotedReplyMessage.sender?.displayName || quotedReplyMessage.sender?.username || 'Message'}
+            </strong>
+            <span id="quotedReplyText">{quotedReplyMessage.content}</span>
+          </div>
+          <button
+            type="button"
+            className="icon-btn"
+            id="btnCancelQuotedReply"
+            onClick={() => setQuotedReplyMessage(null)}
+            title="Cancel reply"
+            aria-label="Cancel reply"
+          >
+            <X size={16} />
+          </button>
         </div>
+      )}
+
+      {/* Chat Composer Bar matching Approved Preview */}
+      <form
+        className="chat-composer-bar"
+        id="chatComposerForm"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSend();
+        }}
+      >
+        <button
+          type="button"
+          className="icon-btn"
+          id="btnEmojiPickerToggle"
+          aria-label="Insert Emoji, GIF or Sticker"
+          title="Emoji, GIF & Stickers"
+          onClick={() => {
+            setMediaPickerMode('emojis');
+            setShowEmoji((prev) => !prev);
+          }}
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+            <line x1="9" y1="9" x2="9.01" y2="9" />
+            <line x1="15" y1="9" x2="15.01" y2="9" />
+          </svg>
+        </button>
 
         <button
-          className="send-btn"
-          onClick={handleSend}
-          disabled={!inputText.trim()}
-          title="Send"
-          aria-label="Send Message"
+          type="button"
+          className="icon-btn"
+          id="btnAttachment"
+          aria-label="Add attachment"
+          title="Attach file"
+          onClick={() => setShowAttachmentMenu((prev) => !prev)}
         >
-          <Send size={18} />
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
         </button>
-      </div>
-    </main>
+
+        <input
+          type="text"
+          className="composer-input-field"
+          id="composerInputField"
+          placeholder="Type a message (Press Enter to send)..."
+          autoComplete="off"
+          aria-label="Compose message"
+          value={inputText}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+        />
+
+        <button
+          type="button"
+          className="icon-btn"
+          id="btnRupeePayment"
+          aria-label="Fast ₹ Payment demo"
+          title="Send Rupee Payment"
+          onClick={() => setShowPaymentModal(true)}
+        >
+          ₹
+        </button>
+
+        <button
+          type="submit"
+          className="composer-send-btn"
+          id="btnSendMessage"
+          aria-label="Send message"
+          title="Send"
+          disabled={!inputText.trim()}
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+        </button>
+      </form>
+
+      {/* Fast UPI Rupee Payment Modal */}
+      {showPaymentModal && (
+        <div className="modal-overlay" style={{ zIndex: 1000 }}>
+          <div
+            className="modal-card"
+            style={{
+              maxWidth: '380px',
+              width: '100%',
+              background: 'var(--card-bg)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-lg, 16px)',
+              padding: '24px'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
+                  Fast UPI Payment
+                </h3>
+                <span style={{ fontSize: '10px', padding: '2px 6px', background: 'rgba(234, 179, 8, 0.15)', color: '#eab308', borderRadius: '4px', fontWeight: 600 }}>
+                  Sandbox Preview
+                </span>
+              </div>
+              <button className="icon-btn" onClick={() => setShowPaymentModal(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{
+              background: 'rgba(234, 179, 8, 0.12)',
+              border: '1px solid rgba(234, 179, 8, 0.3)',
+              borderRadius: '8px',
+              padding: '8px 12px',
+              fontSize: '11px',
+              color: '#eab308',
+              marginBottom: '14px',
+              lineHeight: '1.4'
+            }}>
+              ⚠️ <strong>Sandbox Simulation</strong>: UPI payment messaging is a demo preview. No actual financial transfer, banking transaction, or money debit is performed.
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ fontSize: '12px', color: 'var(--text-sec)', display: 'block', marginBottom: '6px' }}>
+                Amount (INR ₹)
+              </label>
+              <input
+                type="number"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  background: 'var(--input-bg)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-sm, 6px)',
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  color: 'var(--text-main)'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ fontSize: '12px', color: 'var(--text-sec)', display: 'block', marginBottom: '6px' }}>
+                Payment Note (Optional)
+              </label>
+              <input
+                type="text"
+                placeholder="Dinner, split bill, etc."
+                value={paymentNote}
+                onChange={(e) => setPaymentNote(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  background: 'var(--input-bg)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-sm, 6px)',
+                  fontSize: '13px',
+                  color: 'var(--text-main)'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                className="btn-secondary"
+                style={{ flex: 1, padding: '10px' }}
+                onClick={() => setShowPaymentModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn-primary"
+                id="btnConfirmPayment"
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  background: 'var(--brand-teal)',
+                  color: '#fff',
+                  borderRadius: 'var(--radius-sm, 6px)',
+                  fontWeight: 600
+                }}
+                onClick={handleConfirmFastPayment}
+              >
+                Send Simulated Payment Card (₹{paymentAmount || '0'})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
   );
 };
