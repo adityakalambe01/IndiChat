@@ -31,6 +31,12 @@ const buildSim = !buildArchive || args.includes('--sim') || args.includes('--sim
 const cleanFirst = args.includes('--clean') || args.includes('-clean');
 const forcePrebuild = args.includes('--prebuild');
 
+// Configure project-local build_run_package/cocoapods cache
+const packageDir = path.join(rootDir, 'build_run_package');
+const cocoapodsCache = path.join(packageDir, 'cocoapods');
+fs.mkdirSync(cocoapodsCache, { recursive: true });
+process.env.CP_CACHE_DIR = process.env.CP_CACHE_DIR || cocoapodsCache;
+
 console.log('====================================================');
 console.log('  IndiChat iOS Build Automation');
 console.log('====================================================');

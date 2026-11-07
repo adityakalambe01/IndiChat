@@ -81,6 +81,10 @@ if (fs.existsSync(desktopDistWebDir)) {
 }
 fs.cpSync(webDistDir, desktopDistWebDir, { recursive: true });
 
+// 3.5. Ensure macOS Electron package in ./build_run_package/electron
+console.log('>>> Checking project package cache for macOS Electron runtime...');
+spawnSync(process.execPath, [path.join(rootDir, 'scripts', 'setup-build-packages.js'), '--ensure=darwin'], { stdio: 'inherit' });
+
 // 4. Run electron-builder for selected targets
 const builderArgs = ['electron-builder', '--mac', ...targets];
 runStep('npx', builderArgs, desktopDir, `Packaging macOS application (${targets.join(', ')})`);

@@ -91,6 +91,10 @@ if (fs.existsSync(desktopDistWebDir)) {
 }
 fs.cpSync(webDistDir, desktopDistWebDir, { recursive: true });
 
+// 3.5. Ensure Linux Electron package in ./build_run_package/electron
+console.log('>>> Checking project package cache for Linux Electron runtime...');
+spawnSync(process.execPath, [path.join(rootDir, 'scripts', 'setup-build-packages.js'), '--ensure=linux'], { stdio: 'inherit' });
+
 // 4. Copy store and metadata assets to release/linux/
 console.log('>>> Synchronizing Linux Store & AppStream metadata...');
 const assetsToCopy = [

@@ -280,6 +280,20 @@ if (require.main === module) {
     console.log('====================================================\n');
   }
 
+  const ensureArg = args.find(a => a.startsWith('--ensure='));
+  if (ensureArg) {
+    const platformToEnsure = ensureArg.split('=')[1];
+    (async () => {
+      try {
+        await ensurePackage(platformToEnsure);
+      } catch (err) {
+        console.error(`\n❌ Error: ${err.message}\n`);
+        process.exit(1);
+      }
+    })();
+    return;
+  }
+
   if (args.includes('--download-all')) {
     (async () => {
       try {
@@ -305,3 +319,4 @@ module.exports = {
   syncFromHostCaches,
   configureBuildEnvironment
 };
+

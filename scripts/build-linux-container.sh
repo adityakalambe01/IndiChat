@@ -9,7 +9,7 @@ release_output="$root_dir/release/linux/$build_id"
 cd "$root_dir"
 builder_image='indichat-desktop-verification:phase3'
 electron_dist="${INDICHAT_ELECTRON_DIST:-}"
-node "$root_dir/scripts/setup-build-packages.js"
+node "$root_dir/scripts/setup-build-packages.js" --ensure=linux
 project_cache="$root_dir/build_run_package"
 electron_cache="$project_cache/electron"
 builder_cache="$project_cache/electron-builder"

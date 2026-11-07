@@ -7,7 +7,7 @@ build_id="$(date -u +%Y%m%dT%H%M%SZ)-$$"
 build_output="$root_dir/apps/desktop/dist-bin-windows/$build_id"
 release_output="$root_dir/release/windows/$build_id"
 builder_image='indichat-desktop-verification:phase3'
-node "$root_dir/scripts/setup-build-packages.js"
+node "$root_dir/scripts/setup-build-packages.js" --ensure=win32
 project_cache="$root_dir/build_run_package"
 electron_cache="$project_cache/electron"
 builder_cache="$project_cache/electron-builder"

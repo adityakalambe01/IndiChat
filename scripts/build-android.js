@@ -102,6 +102,12 @@ if (!process.env.JAVA_HOME) {
   }
 }
 
+// Configure project-local build_run_package/gradle cache
+const packageDir = path.join(rootDir, 'build_run_package');
+const gradleUserHome = path.join(packageDir, 'gradle');
+fs.mkdirSync(gradleUserHome, { recursive: true });
+process.env.GRADLE_USER_HOME = process.env.GRADLE_USER_HOME || gradleUserHome;
+
 // Parse CLI flags
 const args = process.argv.slice(2);
 const buildApk = args.includes('--apk') || args.includes('-apk') || (!args.includes('--bundle') && !args.includes('-bundle') && !args.includes('--aab'));

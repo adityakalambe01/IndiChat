@@ -62,7 +62,5 @@ backend/mvnw
 apps/desktop/dist-bin-*/
 release/**/*.exe
 
-# Local build package cache (Electron binaries, builder tools)
-build_run_package/*
-!build_run_package/.gitkeep
-!build_run_package/README.md
+# Local build package cache (all downloaded packages, binaries, and build tools)
+build_run_package/

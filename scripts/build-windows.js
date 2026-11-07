@@ -78,6 +78,10 @@ if (fs.existsSync(desktopDistWebDir)) {
 }
 fs.cpSync(webDistDir, desktopDistWebDir, { recursive: true });
 
+// 3.5. Ensure Windows Electron package in ./build_run_package/electron
+console.log('>>> Checking project package cache for Windows Electron runtime...');
+spawnSync(process.execPath, [path.join(rootDir, 'scripts', 'setup-build-packages.js'), '--ensure=win32'], { stdio: 'inherit' });
+
 // 4. Run electron-builder for selected Windows targets
 const builderArgs = ['electron-builder', '--win', ...targets, '--x64', `--config.directories.output=${desktopDistBinDir}`];
 if (process.env.INDICHAT_ELECTRON_DIST) {
