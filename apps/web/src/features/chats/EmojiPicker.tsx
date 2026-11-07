@@ -402,7 +402,8 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
   return (
     <div
       ref={pickerRef}
-      className={`whatsapp-emoji-picker whatsapp-media-picker ${className}`}
+      id="emojiGifStickerPanel"
+      className={`emoji-gif-sticker-panel emoji-picker-panel whatsapp-emoji-picker ${className}`}
       style={style}
       role="dialog"
       aria-label="Media Picker"
@@ -416,10 +417,38 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
         onChange={handleStickerFileChange}
       />
 
+      {/* Top Tabs Header matching preview design */}
+      <div className="picker-tabs-header">
+        <button
+          type="button"
+          className={`picker-tab-btn ${activeMode === 'emojis' ? 'active' : ''}`}
+          data-picker-tab="emoji"
+          onClick={() => handleModeChange('emojis')}
+        >
+          Emoji
+        </button>
+        <button
+          type="button"
+          className={`picker-tab-btn ${activeMode === 'gifs' ? 'active' : ''}`}
+          data-picker-tab="gif"
+          onClick={() => handleModeChange('gifs')}
+        >
+          GIF
+        </button>
+        <button
+          type="button"
+          className={`picker-tab-btn ${activeMode === 'stickers' ? 'active' : ''}`}
+          data-picker-tab="sticker"
+          onClick={() => handleModeChange('stickers')}
+        >
+          Stickers
+        </button>
+      </div>
+
       {/* Header & Search */}
-      <div className="emoji-picker-header">
-        <div className="emoji-search-box">
-          <Search size={16} className="emoji-search-icon" />
+      <div className="emoji-picker-header" style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-subtle)', background: 'transparent' }}>
+        <div className="emoji-search-box" style={{ background: 'rgba(0, 0, 0, 0.2)', borderRadius: '8px' }}>
+          <Search size={14} className="emoji-search-icon" style={{ opacity: 0.6 }} />
           <input
             ref={searchInputRef}
             type="text"
@@ -427,6 +456,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
             placeholder={searchPlaceholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ fontSize: '12px' }}
           />
           {searchQuery && (
             <button
@@ -440,18 +470,19 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
               }}
               title="Clear search"
             >
-              <X size={14} />
+              <X size={12} />
             </button>
           )}
         </div>
         <button
           type="button"
-          className="emoji-picker-close"
+          className="emoji-picker-close icon-btn"
           onClick={onClose}
           title="Close (Esc)"
           aria-label="Close"
+          style={{ width: '26px', height: '26px', padding: 0 }}
         >
-          <X size={18} />
+          <X size={16} />
         </button>
       </div>
 
@@ -495,7 +526,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
           </div>
 
           {/* Emoji Content Grid */}
-          <div ref={scrollContainerRef} className="emoji-picker-scroll">
+          <div ref={scrollContainerRef} id="pickerContentScroll" className="picker-content-scroll emoji-picker-scroll">
             {emojiSearchResults !== null ? (
               <div className="emoji-category-section">
                 {emojiSearchResults.length === 0 ? (
@@ -508,7 +539,8 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
                       <button
                         key={item.emoji}
                         type="button"
-                        className="emoji-item-btn"
+                        className="emoji-btn-item emoji-item-btn"
+                        data-insert-emoji={item.emoji}
                         onClick={() => handleEmojiClick(item.emoji)}
                         onMouseEnter={() => setHoveredEmoji({ emoji: item.emoji, name: item.name })}
                         onMouseLeave={() => setHoveredEmoji(null)}
@@ -533,7 +565,8 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
                       <button
                         key={`recent-${emoji}-${idx}`}
                         type="button"
-                        className="emoji-item-btn"
+                        className="emoji-btn-item emoji-item-btn"
+                        data-insert-emoji={emoji}
                         onClick={() => handleEmojiClick(emoji)}
                         onMouseEnter={() => setHoveredEmoji({ emoji, name: emoji })}
                         onMouseLeave={() => setHoveredEmoji(null)}
@@ -552,7 +585,8 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
                     <button
                       key={item.emoji}
                       type="button"
-                      className="emoji-item-btn"
+                      className="emoji-btn-item emoji-item-btn"
+                      data-insert-emoji={item.emoji}
                       onClick={() => handleEmojiClick(item.emoji)}
                       onMouseEnter={() => setHoveredEmoji({ emoji: item.emoji, name: item.name })}
                       onMouseLeave={() => setHoveredEmoji(null)}
@@ -651,7 +685,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
           )}
 
           {/* GIF Content Grid */}
-          <div ref={scrollContainerRef} className="emoji-picker-scroll gif-picker-scroll">
+          <div ref={scrollContainerRef} id="pickerContentScroll" className="picker-content-scroll emoji-picker-scroll gif-picker-scroll">
             {/* Searching indicator banner */}
             {isSearchingGifs && (
               <div className="gif-search-loading-banner">
@@ -671,7 +705,9 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
                 {gifList.map((gif) => (
                   <div
                     key={gif.id}
-                    className="gif-card-item"
+                    className="gif-card-btn gif-card-item"
+                    data-send-gif={gif.url}
+                    data-gif-title={gif.title}
                     onClick={() => handleGifClick(gif)}
                     title={`Send: ${gif.title}`}
                   >
@@ -807,7 +843,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
           </div>
 
           {/* Stickers Grid */}
-          <div ref={scrollContainerRef} className="emoji-picker-scroll sticker-picker-scroll">
+          <div ref={scrollContainerRef} id="pickerContentScroll" className="picker-content-scroll emoji-picker-scroll sticker-picker-scroll">
             {isUploadingSticker && (
               <div className="sticker-uploading-indicator">
                 <Upload size={20} className="spinning" />
@@ -870,7 +906,9 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
                   return (
                     <div
                       key={sticker.id}
-                      className="sticker-item-card"
+                      className="sticker-card-btn sticker-item-card"
+                      data-send-sticker={sticker.url}
+                      data-sticker-name={sticker.name}
                       onClick={() => handleStickerClick(sticker)}
                       title={`Send: ${sticker.name}`}
                     >
@@ -926,42 +964,6 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
           </div>
         </>
       )}
-
-      {/* =========================================================
-          AUTHENTIC WHATSAPP BOTTOM MODE SELECTOR BAR
-          [ 😊 Emojis ] | [ 🎞️ GIFs ] | [ 🏷️ Stickers ]
-          ========================================================= */}
-      <nav className="media-picker-mode-nav" aria-label="Media Picker Tabs">
-        <button
-          type="button"
-          className={`media-mode-tab-btn ${activeMode === 'emojis' ? 'active' : ''}`}
-          onClick={() => handleModeChange('emojis')}
-          title="Emojis"
-        >
-          <Smile size={20} />
-          <span className="media-mode-label">Emoji</span>
-        </button>
-
-        <button
-          type="button"
-          className={`media-mode-tab-btn ${activeMode === 'gifs' ? 'active' : ''}`}
-          onClick={() => handleModeChange('gifs')}
-          title="GIFs"
-        >
-          <Film size={20} />
-          <span className="media-mode-label">GIF</span>
-        </button>
-
-        <button
-          type="button"
-          className={`media-mode-tab-btn ${activeMode === 'stickers' ? 'active' : ''}`}
-          onClick={() => handleModeChange('stickers')}
-          title="Stickers"
-        >
-          <StickerIcon size={20} />
-          <span className="media-mode-label">Stickers</span>
-        </button>
-      </nav>
     </div>
   );
 };

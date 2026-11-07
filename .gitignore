@@ -28,7 +28,7 @@ coverage/
 # Uploaded media (local dev)
 uploads/
 
-# Release binary artifacts (built APK, AAB, AppImage, deb, snap, iOS app/zip bundles)
+# Release binary artifacts (built APK, AAB, AppImage, deb, snap, iOS app/zip bundles, macOS DMG, blockmaps)
 release/**/*.apk
 release/**/*.aab
 release/**/*.AppImage
@@ -39,13 +39,21 @@ release/**/*.app
 release/**/*.zip
 release/**/*.xcarchive
 release/**/*.ipa
+release/**/*.dmg
+release/**/*.blockmap
 *.apk
 *.aab
 *.AppImage
 *.deb
 *.snap
 *.ipa
+*.dmg
+*.blockmap
 
-# Desktop build temporary directories
+# Desktop build temporary directories & test userdata
 dist-bin/
 dist-web/
+apps/desktop/dist-bin-sandboxed/
+tmp-*-userdata/
+screenshot-*.png
+backend/mvnw

@@ -8,7 +8,9 @@ import {
   MessageHistoryResponse,
   Message,
   SendMessagePayload,
-  FileUploadResponse
+  FileUploadResponse,
+  CallLog,
+  CreateCallLogRequest
 } from '@chat/shared-types';
 
 import { getDeviceDetails } from '../utils/device';
@@ -256,6 +258,73 @@ export const api = {
 
   deleteAllChats: () =>
     request<{ message: string }>('/conversations/all', {
+      method: 'DELETE',
+    }),
+
+  // Message Reactions & Starred Messages
+  addReaction: (messageId: string, emoji: string) =>
+    request<{ messageId: string; reactions: any[]; summaries: any[] }>(`/messages/${messageId}/reactions`, {
+      method: 'POST',
+      body: JSON.stringify({ emoji }),
+    }),
+
+  removeReaction: (messageId: string, emoji: string) =>
+    request<{ messageId: string; reactions: any[]; summaries: any[] }>(
+      `/messages/${messageId}/reactions?emoji=${encodeURIComponent(emoji)}`,
+      { method: 'DELETE' }
+    ),
+
+  toggleStarMessage: (messageId: string) =>
+    request<{ messageId: string; isStarred: boolean }>(`/messages/${messageId}/star`, {
+      method: 'POST',
+    }),
+
+  getStarredMessages: () => request<Message[]>('/messages/starred'),
+
+  // Communities & Circles
+  getCommunities: () => request<any[]>('/communities'),
+
+  createCommunity: (data: { name: string; description?: string; channelNames?: string[] }) =>
+    request<any>('/communities', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  addSubGroup: (communityId: string, data: { name: string; isAnnouncement?: boolean }) =>
+    request<any>(`/communities/${communityId}/channels`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  // Status Stories
+  getStatuses: () => request<any[]>('/status'),
+
+  createStatus: (data: { mediaUrl: string; mediaType?: string; caption?: string }) =>
+    request<any>('/status', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  // Call Logs & Dialer
+  getCallHistory: () => request<CallLog[]>('/calls/history'),
+
+  logCall: (data: CreateCallLogRequest) =>
+    request<CallLog>('/calls/logs', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  // Passkeys
+  getPasskeys: () => request<any[]>('/users/me/passkeys'),
+
+  registerPasskey: (data: { credentialId: string; publicKey?: string; nickname: string }) =>
+    request<any>('/users/me/passkeys', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  removePasskey: (credentialId: string) =>
+    request<{ message: string }>(`/users/me/passkeys/${encodeURIComponent(credentialId)}`, {
       method: 'DELETE',
     }),
 };

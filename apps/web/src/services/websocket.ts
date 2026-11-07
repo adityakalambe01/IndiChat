@@ -5,7 +5,8 @@ import {
   PresenceEventPayload,
   CallSignalPayload,
   SendMessagePayload,
-  WebSocketMessage
+  WebSocketMessage,
+  ReactionEventPayload
 } from '@chat/shared-types';
 import { generateUUID } from '../utils/uuid';
 import { getDeviceId } from '../utils/device';
@@ -16,6 +17,7 @@ type TypingUpdatedHandler = (event: TypingEventPayload) => void;
 type PresenceUpdatedHandler = (event: PresenceEventPayload) => void;
 type CallSignalHandler = (signal: CallSignalPayload) => void;
 type DeviceRemovedHandler = (reason: string) => void;
+type ReactionUpdatedHandler = (event: ReactionEventPayload) => void;
 
 class WebSocketClient {
   private socket: WebSocket | null = null;
@@ -29,6 +31,7 @@ class WebSocketClient {
   private presenceUpdatedListeners = new Set<PresenceUpdatedHandler>();
   private callSignalListeners = new Set<CallSignalHandler>();
   private deviceRemovedListeners = new Set<DeviceRemovedHandler>();
+  private reactionUpdatedListeners = new Set<ReactionUpdatedHandler>();
 
   public connect(token: string) {
     this.token = token;
@@ -114,6 +117,9 @@ class WebSocketClient {
         break;
       case 'message.receipt.updated':
         this.receiptUpdatedListeners.forEach((fn) => fn(msg.payload as MessageReceipt));
+        break;
+      case 'message.reaction.updated':
+        this.reactionUpdatedListeners.forEach((fn) => fn(msg.payload as ReactionEventPayload));
         break;
       case 'typing.updated':
         this.typingUpdatedListeners.forEach((fn) => fn(msg.payload as TypingEventPayload));
@@ -204,6 +210,11 @@ class WebSocketClient {
   public onDeviceRemoved(fn: DeviceRemovedHandler) {
     this.deviceRemovedListeners.add(fn);
     return () => { this.deviceRemovedListeners.delete(fn); };
+  }
+
+  public onReactionUpdated(fn: ReactionUpdatedHandler) {
+    this.reactionUpdatedListeners.add(fn);
+    return () => { this.reactionUpdatedListeners.delete(fn); };
   }
 }
 
