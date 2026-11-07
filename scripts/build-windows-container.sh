@@ -16,14 +16,31 @@ require('./scripts/desktop-build-artifacts.cjs').verifyElectronDist(process.argv
 JS
   extra_mounts=(-v "$electron_dist:/electron-dist:ro")
 fi
+host_electron_cache=""
+if [[ -d "$HOME/Library/Caches/electron" ]]; then
+  host_electron_cache="$HOME/Library/Caches/electron"
+elif [[ -d "$HOME/.cache/electron" ]]; then
+  host_electron_cache="$HOME/.cache/electron"
+fi
+if [[ -n "$host_electron_cache" ]]; then
+  extra_mounts+=(-v "$host_electron_cache:/root/.cache/electron:ro")
+fi
+
+host_builder_cache=""
 if [[ -n "${INDICHAT_BUILDER_CACHE:-}" ]]; then
-  builder_cache="$(cd "$INDICHAT_BUILDER_CACHE" && pwd)"
-  extra_mounts+=(-v "$builder_cache:/host-builder-cache:ro")
+  host_builder_cache="$(cd "$INDICHAT_BUILDER_CACHE" && pwd)"
+elif [[ -d "$HOME/Library/Caches/electron-builder" ]]; then
+  host_builder_cache="$HOME/Library/Caches/electron-builder"
+elif [[ -d "$HOME/.cache/electron-builder" ]]; then
+  host_builder_cache="$HOME/.cache/electron-builder"
+fi
+if [[ -n "$host_builder_cache" ]]; then
+  extra_mounts+=(-v "$host_builder_cache:/host-builder-cache:ro")
 fi
 npm --workspace=apps/web run build
 mkdir -p "$build_output"
 docker build --platform linux/amd64 -f scripts/desktop-linux-verification.Dockerfile -t "$builder_image" .
-docker run --rm --platform linux/amd64 "${extra_mounts[@]}" \
+docker run --rm --platform linux/amd64 ${extra_mounts[@]+"${extra_mounts[@]}"} \
   -e ELECTRON_BUILDER_BINARIES_MIRROR -e CSC_IDENTITY_AUTO_DISCOVERY=false \
   -v "$root_dir:/project:ro" -v "$build_output:/out" -w /work \
   "$builder_image" bash -lc '
@@ -57,7 +74,7 @@ JS
     node /work/build.cjs --win nsis portable --x64 \
       --config.win.signAndEditExecutable=false \
       --config.afterPack=/project/scripts/edit-windows-resources.cjs \
-      --config.directories.output=/out "${extra_args[@]}"
+      --config.directories.output=/out ${extra_args[@]+"${extra_args[@]}"}
   '
 node - "$build_output" "$release_output" <<'JS'
 const fs = require('node:fs');

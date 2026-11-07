@@ -1,0 +1,64 @@
+{
+  "pathBase": "project-root",
+  "host": "darwin",
+  "passed": false,
+  "scope": "local package creation; does not establish native runtime verification or distribution approval",
+  "results": [
+    {
+      "platform": "windows",
+      "command": "bash ./scripts/build-windows-container.sh",
+      "status": "failed",
+      "exitCode": 1,
+      "durationSeconds": 5.9,
+      "message": "Build exited with 1",
+      "artifacts": []
+    },
+    {
+      "platform": "macos",
+      "command": "node ./scripts/build-macos.js",
+      "status": "passed",
+      "exitCode": 0,
+      "durationSeconds": 27.4,
+      "message": "Fresh artifacts created",
+      "artifacts": [
+        "./release/macos/IndiChat-1.0.0-arm64.dmg",
+        "./release/macos/IndiChat-1.0.0-arm64.zip"
+      ]
+    },
+    {
+      "platform": "linux",
+      "command": "bash ./scripts/build-linux-container.sh",
+      "status": "failed",
+      "exitCode": 1,
+      "durationSeconds": 2.8,
+      "message": "Build exited with 1",
+      "artifacts": []
+    },
+    {
+      "platform": "ios",
+      "command": "node ./scripts/build-ios.js --sim --archive",
+      "status": "failed",
+      "exitCode": 65,
+      "durationSeconds": 173.3,
+      "message": "Build exited with 65",
+      "artifacts": [
+        "./release/ios/IndiChat-Simulator.zip",
+        "./release/ios/IndiChat.app"
+      ]
+    },
+    {
+      "platform": "android",
+      "command": "node ./scripts/build-android.js",
+      "status": "passed",
+      "exitCode": 0,
+      "durationSeconds": 33.4,
+      "message": "Fresh artifacts created",
+      "artifacts": [
+        "./release/android/IndiChat.aab",
+        "./release/android/IndiChat.apk",
+        "./release/android/app-release.aab",
+        "./release/android/app-release.apk"
+      ]
+    }
+  ]
+}

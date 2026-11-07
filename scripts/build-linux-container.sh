@@ -10,18 +10,20 @@ cd "$root_dir"
 builder_image='indichat-desktop-verification:phase3'
 electron_dist="${INDICHAT_ELECTRON_DIST:-}"
 extra_mounts=()
-if [[ -n "$electron_dist" ]]; then
-  electron_dist="$(cd "$electron_dist" && pwd)"
-  node - "$electron_dist" <<'JS'
-require('./scripts/desktop-build-artifacts.cjs').verifyElectronDist(process.argv[2], 'linux');
-JS
-  extra_mounts=(-v "$electron_dist:/electron-dist:ro")
+host_electron_cache=""
+if [[ -d "$HOME/Library/Caches/electron" ]]; then
+  host_electron_cache="$HOME/Library/Caches/electron"
+elif [[ -d "$HOME/.cache/electron" ]]; then
+  host_electron_cache="$HOME/.cache/electron"
+fi
+if [[ -n "$host_electron_cache" ]]; then
+  extra_mounts+=(-v "$host_electron_cache:/root/.cache/electron:ro")
 fi
 cd "$root_dir"
 npm --workspace=apps/web run build
 mkdir -p "$build_output"
 docker build --platform linux/amd64 -f scripts/desktop-linux-verification.Dockerfile -t "$builder_image" .
-docker run --rm --platform linux/amd64 -e USE_SYSTEM_7ZA=true "${extra_mounts[@]}" \
+docker run --rm --platform linux/amd64 -e USE_SYSTEM_7ZA=true ${extra_mounts[@]+"${extra_mounts[@]}"} \
   -e ELECTRON_BUILDER_BINARIES_MIRROR \
   -v "$root_dir:/project:ro" -v "$build_output:/out" -w /work \
   "$builder_image" bash -lc '
@@ -33,7 +35,7 @@ docker run --rm --platform linux/amd64 -e USE_SYSTEM_7ZA=true "${extra_mounts[@]
     extra_args=()
     if [[ -d /electron-dist ]]; then extra_args=(--config.electronDist=/electron-dist); fi
     node /project/node_modules/electron-builder/cli.js --linux AppImage deb --x64 \
-      --config.directories.output=/out "${extra_args[@]}"
+      --config.directories.output=/out ${extra_args[@]+"${extra_args[@]}"}
   '
 node - "$build_output" "$release_output" <<'JS'
 const fs = require('node:fs');
