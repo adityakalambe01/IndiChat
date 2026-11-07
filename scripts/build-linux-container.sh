@@ -9,15 +9,18 @@ release_output="$root_dir/release/linux/$build_id"
 cd "$root_dir"
 builder_image='indichat-desktop-verification:phase3'
 electron_dist="${INDICHAT_ELECTRON_DIST:-}"
-extra_mounts=()
-host_electron_cache=""
-if [[ -d "$HOME/Library/Caches/electron" ]]; then
-  host_electron_cache="$HOME/Library/Caches/electron"
-elif [[ -d "$HOME/.cache/electron" ]]; then
-  host_electron_cache="$HOME/.cache/electron"
-fi
-if [[ -n "$host_electron_cache" ]]; then
-  extra_mounts+=(-v "$host_electron_cache:/root/.cache/electron:ro")
+node "$root_dir/scripts/setup-build-packages.js" --ensure=linux
+project_cache="$root_dir/build_run_package"
+electron_cache="$project_cache/electron"
+builder_cache="$project_cache/electron-builder"
+mkdir -p "$electron_cache" "$builder_cache"
+
+extra_mounts=(
+  -v "$electron_cache:/root/.cache/electron"
+  -v "$builder_cache:/root/.cache/electron-builder"
+)
+if [[ -n "$electron_dist" ]]; then
+  extra_mounts+=(-v "$(cd "$electron_dist" && pwd):/electron-dist:ro")
 fi
 cd "$root_dir"
 npm --workspace=apps/web run build

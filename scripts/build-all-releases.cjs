@@ -2,6 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { configureBuildEnvironment } = require('./setup-build-packages.js');
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 const PLATFORMS = ['windows', 'macos', 'linux', 'ios', 'android'];
 
@@ -60,8 +61,9 @@ function runPlan(plan, { rootDir = PROJECT_ROOT, run = spawnSync, log = console.
     let child;
     const started = Date.now();
     try {
+      const env = configureBuildEnvironment({ ...process.env });
       child = run(step.kind === 'node' ? process.execPath : 'bash', [path.join(rootDir, step.script), ...step.args], {
-        cwd: rootDir, stdio: 'inherit', shell: false, env: { ...process.env }
+        cwd: rootDir, stdio: 'inherit', shell: false, env
       });
     } catch (error) { child = { error, status: null }; }
     const after = snapshotArtifacts(output);

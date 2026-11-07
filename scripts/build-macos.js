@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const { configureBuildEnvironment } = require('./setup-build-packages.js');
 
 const rootDir = path.resolve(__dirname, '..');
 const desktopDir = path.join(rootDir, 'apps', 'desktop');
@@ -46,7 +47,7 @@ console.log('====================================================\n');
 
 function runStep(cmd, cmdArgs, cwd, description) {
   console.log(`>>> ${description}...`);
-  const env = { ...process.env };
+  const env = configureBuildEnvironment({ ...process.env });
   delete env.ELECTRON_RUN_AS_NODE;
   env.CSC_IDENTITY_AUTO_DISCOVERY = 'false';
 
@@ -79,6 +80,10 @@ if (fs.existsSync(desktopDistWebDir)) {
   fs.rmSync(desktopDistWebDir, { recursive: true, force: true });
 }
 fs.cpSync(webDistDir, desktopDistWebDir, { recursive: true });
+
+// 3.5. Ensure macOS Electron package in ./build_run_package/electron
+console.log('>>> Checking project package cache for macOS Electron runtime...');
+spawnSync(process.execPath, [path.join(rootDir, 'scripts', 'setup-build-packages.js'), '--ensure=darwin'], { stdio: 'inherit' });
 
 // 4. Run electron-builder for selected targets
 const builderArgs = ['electron-builder', '--mac', ...targets];

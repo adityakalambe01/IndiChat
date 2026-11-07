@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const { collectArtifacts, verifyElectronDist } = require('./desktop-build-artifacts.cjs');
+const { configureBuildEnvironment } = require('./setup-build-packages.js');
 const buildId = new Date().toISOString().replace(/[:.]/g, '-') + '-' + process.pid;
 
 const rootDir = path.resolve(__dirname, '..');
@@ -44,7 +45,7 @@ console.log('====================================================\n');
 
 function runStep(cmd, cmdArgs, cwd, description) {
   console.log(`>>> ${description}...`);
-  const env = { ...process.env };
+  const env = configureBuildEnvironment({ ...process.env });
   delete env.ELECTRON_RUN_AS_NODE;
 
   const result = spawnSync(cmd, cmdArgs, {
@@ -76,6 +77,10 @@ if (fs.existsSync(desktopDistWebDir)) {
   fs.rmSync(desktopDistWebDir, { recursive: true, force: true });
 }
 fs.cpSync(webDistDir, desktopDistWebDir, { recursive: true });
+
+// 3.5. Ensure Windows Electron package in ./build_run_package/electron
+console.log('>>> Checking project package cache for Windows Electron runtime...');
+spawnSync(process.execPath, [path.join(rootDir, 'scripts', 'setup-build-packages.js'), '--ensure=win32'], { stdio: 'inherit' });
 
 // 4. Run electron-builder for selected Windows targets
 const builderArgs = ['electron-builder', '--win', ...targets, '--x64', `--config.directories.output=${desktopDistBinDir}`];

@@ -7,35 +7,23 @@ build_id="$(date -u +%Y%m%dT%H%M%SZ)-$$"
 build_output="$root_dir/apps/desktop/dist-bin-windows/$build_id"
 release_output="$root_dir/release/windows/$build_id"
 builder_image='indichat-desktop-verification:phase3'
-electron_dist="${INDICHAT_ELECTRON_DIST:-}"
-extra_mounts=()
+node "$root_dir/scripts/setup-build-packages.js" --ensure=win32
+project_cache="$root_dir/build_run_package"
+electron_cache="$project_cache/electron"
+builder_cache="$project_cache/electron-builder"
+mkdir -p "$electron_cache" "$builder_cache"
+
+extra_mounts=(
+  -v "$electron_cache:/root/.cache/electron"
+  -v "$builder_cache:/root/.cache/electron-builder"
+  -v "$builder_cache:/host-builder-cache:ro"
+)
 if [[ -n "$electron_dist" ]]; then
   electron_dist="$(cd "$electron_dist" && pwd)"
   node - "$electron_dist" <<'JS'
 require('./scripts/desktop-build-artifacts.cjs').verifyElectronDist(process.argv[2], 'win32');
 JS
-  extra_mounts=(-v "$electron_dist:/electron-dist:ro")
-fi
-host_electron_cache=""
-if [[ -d "$HOME/Library/Caches/electron" ]]; then
-  host_electron_cache="$HOME/Library/Caches/electron"
-elif [[ -d "$HOME/.cache/electron" ]]; then
-  host_electron_cache="$HOME/.cache/electron"
-fi
-if [[ -n "$host_electron_cache" ]]; then
-  extra_mounts+=(-v "$host_electron_cache:/root/.cache/electron:ro")
-fi
-
-host_builder_cache=""
-if [[ -n "${INDICHAT_BUILDER_CACHE:-}" ]]; then
-  host_builder_cache="$(cd "$INDICHAT_BUILDER_CACHE" && pwd)"
-elif [[ -d "$HOME/Library/Caches/electron-builder" ]]; then
-  host_builder_cache="$HOME/Library/Caches/electron-builder"
-elif [[ -d "$HOME/.cache/electron-builder" ]]; then
-  host_builder_cache="$HOME/.cache/electron-builder"
-fi
-if [[ -n "$host_builder_cache" ]]; then
-  extra_mounts+=(-v "$host_builder_cache:/host-builder-cache:ro")
+  extra_mounts+=(-v "$electron_dist:/electron-dist:ro")
 fi
 npm --workspace=apps/web run build
 mkdir -p "$build_output"

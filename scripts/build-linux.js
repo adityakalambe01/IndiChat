@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const { collectArtifacts } = require('./desktop-build-artifacts.cjs');
+const { configureBuildEnvironment } = require('./setup-build-packages.js');
 const buildId = new Date().toISOString().replace(/[:.]/g, '-') + '-' + process.pid;
 
 // Define paths
@@ -58,7 +59,7 @@ console.log('====================================================\n');
 // Helper to run commands
 function runStep(cmd, cmdArgs, cwd, description) {
   console.log(`>>> ${description}...`);
-  const env = { ...process.env };
+  const env = configureBuildEnvironment({ ...process.env });
   delete env.ELECTRON_RUN_AS_NODE;
   const result = spawnSync(cmd, cmdArgs, {
     cwd,
@@ -89,6 +90,10 @@ if (fs.existsSync(desktopDistWebDir)) {
   fs.rmSync(desktopDistWebDir, { recursive: true, force: true });
 }
 fs.cpSync(webDistDir, desktopDistWebDir, { recursive: true });
+
+// 3.5. Ensure Linux Electron package in ./build_run_package/electron
+console.log('>>> Checking project package cache for Linux Electron runtime...');
+spawnSync(process.execPath, [path.join(rootDir, 'scripts', 'setup-build-packages.js'), '--ensure=linux'], { stdio: 'inherit' });
 
 // 4. Copy store and metadata assets to release/linux/
 console.log('>>> Synchronizing Linux Store & AppStream metadata...');
